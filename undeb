@@ -1,0 +1,124 @@
+#!/bin/sh
+
+# Ensure we have neccesary utils (ar, tar)
+
+AR=`which ar`
+if [ -z "$AR" ]; then
+	echo "You must have a POSIXly-compliant version of ar to use $0" 1>&2
+	exit 1
+fi
+
+TAR=`which tar`
+if [ -z "$TAR" ]; then
+	echo "You must have a POSIXly-compliant version of tar to use $0" 1>&2
+	exit 1
+fi
+
+# Verify that the user has invoked the script correctly
+
+if [ -z "$1" ]; then
+	echo "You must specify a package to install." 1>&2
+	exit 1
+fi
+
+# Get the name of a safe temporary directory
+
+if [ ! -z "$TMPDIR" ]; then
+	temp=$TMPDIR
+elif [ ! -z "$TEMP" ]; then
+	temp="$TEMP"
+elif [ ! -z "$TMP" ]; then
+	temp="$TMP"
+elif [ -d "/tmp" ]; then
+	temp="/tmp"
+else
+	#fallback
+	temp="."
+fi
+
+# Get a random directory name and try to create it
+temp="$temp/$0$$"
+mkdir "$temp"
+if [ $? != 0 ]; then
+	echo "ERROR: $temp is not writable (it may already exist)." 1>&2
+	exit 1
+fi
+
+# Get the name of where we want the package file to live
+deb="$temp/`basename $1`"
+
+# Copy the package to its new home
+cp "$1" "$deb"
+if [ $? != 0 ]; then
+	echo "ERROR: $deb could not be created." 1>&2
+	exit 1
+fi
+
+# Unpack the package with ar
+cd "$temp"
+$AR xv "$deb"
+cd - # Pop back to where we were, just in case we forget where we are later
+
+# Check that the package unpacked and is a package we can understand
+DEB_VERSION=`cat "$temp/debian-binary"`
+if [ -z "$DEB_VERSION" ]; then
+	echo "ERROR: The package does not appear to be valid." 1>&2
+	exit 1
+elif [ "$DEB_VERSION" != "2.0" ]; then
+	echo "WARN: debian-binary says $DEB_VERSION, expected 2.0 " 1>&2
+fi
+
+# XXX: Should check dependencies, etc
+
+# Determine what kind of data ball is being used and decompress it
+if [ -f "$temp/data.tar" ]; then
+	echo "Not compressed, no decompression necessary."
+elif [ -f "$temp/data.tar.gz" ]; then
+	GZIP=`which gzip`
+	if [ -z "$GZIP" ]; then
+		echo "You must have a version of gzip to unpack $1" 1>&2
+		exit 1
+	fi
+	$GZIP -d "$temp/data.tar.gz"
+elif [ -f "$temp/data.tar.bz2" ]; then
+	BZIP2=`which bzip2`
+	if [ -z "$BZIP2" ]; then
+		echo "You must have a version of bzip2 to unpack $1" 1>&2
+		exit 1
+	fi
+	$BZIP2 -d "$temp/data.tar.bz2"
+elif [ -f "$temp/data.tar.bzip2" ]; then
+	BZIP2=`which bzip2`
+	if [ -z "$BZIP2" ]; then
+		echo "You must have a version of bzip2 to unpack $1" 1>&2
+		exit 1
+	fi
+	$BZIP2 -d "$temp/data.tar.bzip2"
+else
+	echo "ERROR: No data.tar.* found." 1>&2
+	exit 1
+fi
+
+# Create a dir out
+mkdir "$temp/out"
+
+# Copy the data tar into it
+cp "$temp/data.tar" "$temp/out"
+
+# Unpack using tar
+cd "$temp/out"
+tar xvf data.tar
+rm -f data.tar
+cd - # Pop back to where we were, just in case we forget where we are later
+
+# Copy the data to the dir where it will be installed
+cp -rp $temp/out/* "$PREFIX/"
+if [ $? != 0 ]; then
+	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+	exit 1
+fi
+
+# Clean up our temporary directory
+rm -rf "$temp"
+
+echo "Package $1 installed to $PREFIX successfully."
