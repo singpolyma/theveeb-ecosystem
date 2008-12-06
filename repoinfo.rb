@@ -5,7 +5,7 @@ require 'zlib'
 require 'yaml'
 
 #debline = 'deb http://ca.archive.ubuntu.com/ubuntu/ hardy main restricted'
-debline = 'deb http://csclub.uwaterloo.ca/~s3weber/apt/ ubuntu game lib'
+debline = 'deb http://csclub.uwaterloo.ca/~s3weber/apt/ ubuntu game libs'
 
 class APT
 
@@ -40,6 +40,7 @@ class APT
 		base = @baseurl + 'dists/' + @distro + '/'
 		@sections.each do |section|
 			@arch.each do |arch|
+puts base + section + '/binary-' + arch + '/Packages.gz'
 				gz = Zlib::GzipReader.new(open(base + section + '/binary-' + arch + '/Packages.gz'))
 				meta = gz.read
 				gz.close
@@ -71,4 +72,4 @@ class APT
 
 end
 
-puts APT.new(debline,['amd64']).inspect
+puts APT.new(debline).inspect
