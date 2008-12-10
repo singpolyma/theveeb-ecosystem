@@ -1,11 +1,6 @@
-#!/usr/bin/ruby
-
 require 'open-uri'
 require 'zlib'
 require 'yaml'
-
-#debline = 'deb http://ca.archive.ubuntu.com/ubuntu/ hardy main restricted'
-debline = 'deb http://csclub.uwaterloo.ca/~s3weber/apt/ ubuntu game libs'
 
 class APT
 
@@ -19,11 +14,6 @@ class APT
 		@packages = nil
 	end
 
-	def search(pattern=nil)
-		refresh unless @packages
-		@packages.keys
-	end
-
 	def to_s
 		"deb #{@baseurl} #{@distro} #{@sections.join(' ')}"
 	end
@@ -33,6 +23,21 @@ class APT
 		'# ' + to_s + "\n" + YAML::dump(@packages)
 	end
 
+	def save_to_sqlite(parameters)
+		require 'sqlite3'
+		refresh unless @packages
+		parameters[:packages] = 'packages'
+		parameters[:depends] = 'depends'
+		@packages.each do |package, data|
+			db.execute("INSERT INTO #{parameters[:packages]}" \
+			" (package, version, maintainer, installed_size, size, homepage, section, remote_path, md5, description)" \
+			" VALUES ('#{SQLite3::Database::quote(package)}', '#{SQLite3::Database::quote(data['Version'])}', '#{SQLite3::Database::quote(data['Maintainer'])}',"\
+			" #{SQLite3::Database::quote(data['Installed-Size'])}, #{SQLite3::Database::quote(data['Size'])}, '#{SQLite3::Database::quote(data['Homepage'])}',"\
+			" '#{SQLite3::Database::quote(data['section'])}', '#{SQLite3::Database::quote(@baseurl + data['Filename'])}', '#{SQLite3::Database::quote(data['MD5sum'])}',"\
+			" '#{SQLite3::Database::quote(data['Description'])}')")
+		end
+	end
+
 	private
 
 	def refresh
@@ -40,7 +45,6 @@ class APT
 		base = @baseurl + 'dists/' + @distro + '/'
 		@sections.each do |section|
 			@arch.each do |arch|
-puts base + section + '/binary-' + arch + '/Packages.gz'
 				gz = Zlib::GzipReader.new(open(base + section + '/binary-' + arch + '/Packages.gz'))
 				meta = gz.read
 				gz.close
@@ -71,5 +75,3 @@ puts base + section + '/binary-' + arch + '/Packages.gz'
 	end
 
 end
-
-puts APT.new(debline).inspect
