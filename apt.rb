@@ -44,6 +44,7 @@ class APT
 		refresh unless @packages
 		parameters[:packages] = 'packages'
 		parameters[:depends] = 'depends'
+		parameters[:db].execute("DELETE FROM #{parameters[:depends]}") # Empty depends table, we don't do this with packages because of installed
 		@packages.each do |package, data|
 			begin
 				parameters[:db].execute("INSERT INTO #{parameters[:packages]}" \
@@ -61,7 +62,13 @@ class APT
 				" description='#{SQLite3::Database::quote(data['Description'])}'" \
 				" WHERE package='#{SQLite3::Database::quote(package)}'")
 			end
+			data['Depends'].each do |depend|
+				parameters[:db].execute("INSERT INTO #{parameters[:depends]}" \
+				" (package, depend, version)" \
+				" VALUES ('#{SQLite3::Database::quote(package)}', '#{SQLite3::Database::quote(depend['Package'])}', '#{SQLite3::Database::quote(depend['Version'])}')")
+			end
 		end
+		parameters[:db].execute("VACUUM")
 	end
 
 	private
