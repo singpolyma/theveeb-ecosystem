@@ -1,0 +1,2 @@
+deb http://csclub.uwaterloo.ca/~s3weber/apt/ ubuntu game libs
+#deb http://ca.archive.ubuntu.com/ubuntu/ hardy main restricted
