@@ -25,8 +25,10 @@ sql = "SELECT * from packages WHERE package LIKE '%#{SQLite3::Database::quote(AR
 sql << " OR description LIKE '%#{SQLite3::Database::quote(ARGV[0].to_s)}%'" unless options[:list]
 
 db.execute(sql) do |row|
-	puts "#{row['installed'].to_i == 1 ? 'I': ' '} " \
-	     + "#{row['package']}".ljust(25) \
-	     + "(#{row['version']})".ljust(15) \
-	     + "#{row['description'].split(/\n/)[0]}"
+	flags = ''
+	flags << 'I' if row['status'].to_i == 1
+	flags << 'U' if row['status'].to_i == -1
+	puts flags.ljust(2) + "#{row['package']}".ljust(25) \
+	           + "(#{row['version']})".ljust(15) \
+	           + "#{row['description'].split(/\n/)[0]}"
 end

@@ -54,6 +54,13 @@ class APT
 				" '#{SQLite3::Database::quote(data['section'])}', '#{SQLite3::Database::quote(@baseurl + data['Filename'])}', '#{SQLite3::Database::quote(data['MD5sum'])}'," \
 				" '#{SQLite3::Database::quote(data['Description'])}')")
 			rescue SQLite3::SQLException
+				status = parameters[:db].execute("SELECT status,version FROM packages WHERE package='#{SQLite3::Database::quote(package)}'")[0]
+				if status[0].to_i == 1
+					require 'version_number'
+					if VersionNumber.new(status[0]) < VersionNumber.new(data['Version'])
+						parameters[:db].execute("UPDATE packages SET status=-1 WHERE package='#{SQLite3::Database::quote(package)}'")
+					end
+				end
 				parameters[:db].execute("UPDATE #{parameters[:packages]} SET" \
 				" version='#{SQLite3::Database::quote(data['Version'])}', maintainer='#{SQLite3::Database::quote(data['Maintainer'])}'," \
 				" installed_size=#{data['Installed-Size']}, size=#{data['Size']}," \
