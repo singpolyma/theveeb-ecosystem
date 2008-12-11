@@ -2,6 +2,22 @@ require 'open-uri'
 require 'zlib'
 require 'yaml'
 
+begin
+	require 'sqlite3'
+	module SQLite3
+		class Database
+			class << self
+				alias :quote_string_only :quote
+				def quote(val)
+					quote_string_only(val.to_s)
+				end
+			end
+		end
+	end
+rescue LoadError
+	warn 'SQLite3 not found, saving to db will not work'
+end
+
 class APT
 
 	def initialize(debline, arch=['all',RUBY_PLATFORM.split(/-/)[0].sub(/^i\d86$/,'i386')])
@@ -24,17 +40,27 @@ class APT
 	end
 
 	def save_to_sqlite(parameters)
-		require 'sqlite3'
+		# The caller passes us a sqlite3 db, we can assume it's been included
 		refresh unless @packages
 		parameters[:packages] = 'packages'
 		parameters[:depends] = 'depends'
 		@packages.each do |package, data|
-			db.execute("INSERT INTO #{parameters[:packages]}" \
-			" (package, version, maintainer, installed_size, size, homepage, section, remote_path, md5, description)" \
-			" VALUES ('#{SQLite3::Database::quote(package)}', '#{SQLite3::Database::quote(data['Version'])}', '#{SQLite3::Database::quote(data['Maintainer'])}',"\
-			" #{SQLite3::Database::quote(data['Installed-Size'])}, #{SQLite3::Database::quote(data['Size'])}, '#{SQLite3::Database::quote(data['Homepage'])}',"\
-			" '#{SQLite3::Database::quote(data['section'])}', '#{SQLite3::Database::quote(@baseurl + data['Filename'])}', '#{SQLite3::Database::quote(data['MD5sum'])}',"\
-			" '#{SQLite3::Database::quote(data['Description'])}')")
+			begin
+				parameters[:db].execute("INSERT INTO #{parameters[:packages]}" \
+				" (package, version, maintainer, installed_size, size, homepage, section, remote_path, md5, description)" \
+				" VALUES ('#{SQLite3::Database::quote(package)}', '#{SQLite3::Database::quote(data['Version'])}', '#{SQLite3::Database::quote(data['Maintainer'])}'," \
+				" #{data['Installed-Size']}, #{data['Size']}, '#{SQLite3::Database::quote(data['Homepage'])}'," \
+				" '#{SQLite3::Database::quote(data['section'])}', '#{SQLite3::Database::quote(@baseurl + data['Filename'])}', '#{SQLite3::Database::quote(data['MD5sum'])}'," \
+				" '#{SQLite3::Database::quote(data['Description'])}')")
+			rescue SQLite3::SQLException
+				parameters[:db].execute("UPDATE #{parameters[:packages]} SET" \
+				" version='#{SQLite3::Database::quote(data['Version'])}', maintainer='#{SQLite3::Database::quote(data['Maintainer'])}'," \
+				" installed_size=#{data['Installed-Size']}, size=#{data['Size']}," \
+				" homepage='#{SQLite3::Database::quote(data['Homepage'])}', section='#{SQLite3::Database::quote(data['section'])}'," \
+				" remote_path='#{SQLite3::Database::quote(@baseurl + data['Filename'])}', md5='#{SQLite3::Database::quote(data['MD5sum'])}'," \
+				" description='#{SQLite3::Database::quote(data['Description'])}'" \
+				" WHERE package='#{SQLite3::Database::quote(package)}'")
+			end
 		end
 	end
 
