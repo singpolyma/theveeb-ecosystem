@@ -1,17 +1,23 @@
 #!/usr/bin/ruby
 
 require 'optparse'
+require 'open-uri'
+require 'tempfile'
 require 'sqlite3'
 require 'version_number'
 
 $external = {}
 if `which apt-cache` != ''
-	$external[:get_version] = 'apt-cache show "%s" | grep Version | head -n1 | cut -d" " -f2'
+	$external[:get_version] = "apt-cache show '%s' | grep Version | head -n1 | cut -d' ' -f2"
 end
 if `which apt-get` != ''
-	$external[:install] = 'apt-get install -y %s'
+	$external[:install] = "sudo apt-get install -y '%s'"
 end
 
+$internal_install = "undeb '%s'"
+if `which dpkg` != ''
+	$internal_install = "sudo dpkg -i '%s'"
+end
 
 options = {
 	:config => 'testrepo.txt',
@@ -73,7 +79,15 @@ def install(pkg, interactive=false)
 						doit = true if $stdin.gets.chomp != 'n'
 					end
 					if doit
-						puts "EXTERNAL INSTALL #{row['depend']}"
+						if $external[:install]
+							unless system($external[:install].sub(/%s/,row['depend']))
+								warn "Error installing #{row['depend']} using #{$external[:install]}"
+								return -3
+							end
+						else
+							warn 'No external package install command.'
+							return -3
+						end
 						$done[row['depend']] = VersionNumber.new(available)
 					else
 						return -2
@@ -95,8 +109,15 @@ def install(pkg, interactive=false)
 		doit = true if $stdin.gets.chomp != 'n'
 	end
 	if doit
+		# TODO: add oauth stuff
+		fh = Tempfile.new($0)
+		fh.write open(package['remote_path']).read
+		fh.close
+		unless system($internal_install.sub(/%s/,fh.path))
+			warn "Error installing #{pkg} (#{fh.path}) using #{$internal_install}"
+			return -3
+		end
 		$done[pkg] = VersionNumber.new(package['version'])
-		puts "INTERNAL INSTALL #{pkg}"
 	else
 		return -2
 	end
