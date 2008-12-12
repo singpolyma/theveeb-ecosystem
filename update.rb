@@ -1,7 +1,5 @@
 #!/usr/bin/ruby
 
-# TODO: add gpg verification
-
 require 'optparse'
 require 'sqlite3'
 require 'apt'

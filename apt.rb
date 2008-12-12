@@ -1,6 +1,8 @@
 require 'open-uri'
 require 'zlib'
 require 'yaml'
+require 'digest/md5'
+require 'tempfile'
 
 begin
 	require 'sqlite3'
@@ -83,9 +85,53 @@ class APT
 	def refresh
 		@packages = {}
 		base = @baseurl + 'dists/' + @distro + '/'
+		sums = {}
+
+		release = open(base + 'Release').read
+
+		begin
+			fh = Tempfile.new($0)
+			fh.write open(base + 'Release.gpg').read
+			fh.close
+			sig_path = fh.path
+
+			fh = Tempfile.new($0)
+			fh.write release
+			fh.close
+			release_path = fh.path
+
+			if `which gpg` != ''
+				warn `gpg --verify "#{sig_path}" "#{release_path}"`
+				unless $?.success?
+					warn 'FATAL ERROR: GPG verification failed. Skipping.'
+					return
+				end
+			else
+				warn 'GPG not found... not validating repositories.'
+			end
+
+		rescue OpenURI::HTTPError
+			warn "Repository #{base} not validated."
+		end
+
+		YAML::load(release.gsub(/^ /, ' - '))['MD5Sum'].each do |line|
+			line = line.split(/ /)
+			sums[line[2]] = {:size => line[1].to_i, :md5 => line[0]}
+		end
+
 		@sections.each do |section|
 			@arch.each do |arch|
-				gz = Zlib::GzipReader.new(open(base + section + '/binary-' + arch + '/Packages.gz'))
+				meta = open(base + section + '/binary-' + arch + '/Packages.gz').read
+				unless meta.length == sums[section + '/binary-' + arch + '/Packages.gz'][:size]
+					warn 'Bad size detected. Skipping ' + base + section + '/binary-' + arch + '/Packages.gz'
+					next
+				end
+				unless Digest::MD5.hexdigest(meta) == sums[section + '/binary-' + arch + '/Packages.gz'][:md5]
+					warn 'Bad MD5 sum detected. Skipping ' + base + section + '/binary-' + arch + '/Packages.gz'
+					next
+				end
+				def meta.read(dummy); self; end # Pretend to be an IOstream for GzipReader
+				gz = Zlib::GzipReader.new(meta)
 				meta = gz.read
 				gz.close
 				YAML::load_documents(meta.gsub(/\n\n/,"\n---\n").gsub(/^(\S+: )(.+)/,"\\1|-\n \\2")) do |package|
