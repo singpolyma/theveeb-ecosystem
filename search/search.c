@@ -27,21 +27,22 @@ int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char sql[200] = "\0";
+	char * query = NULL;
 	int c;
-	int switchcount = 0;
 
-	while((c = getopt(argc, argv, "ld:")) != -1) {
+	while((c = getopt(argc, argv, "-ld:")) != -1) {
 		switch(c) {
 			case 'l':
 				sql[0] = 1;
-				switchcount++;
 				break;
 			case 'd':
 				if(sqlite3_open(optarg, &db) != 0) {
 					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 					exit(EXIT_FAILURE);
 				}
-				switchcount++;
+				break;
+			case '\1':
+				query = optarg;
 				break;
 			default:
 				/* TODO: write usage message */
@@ -55,20 +56,20 @@ int main (int argc, char ** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	if(argc < switchcount+2) {
+	if(query == NULL) {
 		/* Why can't this just be an assignment? */
 		strcpy(sql, "SELECT status,package,version,description FROM packages");
 	} else {
 		/* Static buffers are retarded, block long searches */
-		if(strlen(argv[switchcount+1]) > 85) {
+		if(strlen(query) > 85) {
 			fprintf(stderr,"Your query is too long.\n");
 			exit(EXIT_FAILURE);
 		}
 
 		if(sql[0] == '\0') {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%' OR description LIKE '%%%s%%'", argv[switchcount+1], argv[switchcount+1]);
+			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%' OR description LIKE '%%%s%%'", query, query);
 		} else {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%'", argv[switchcount+1]);
+			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%'", query);
 		}
 	}
 
