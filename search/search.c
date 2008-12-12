@@ -57,11 +57,10 @@ int main (int argc, char ** argv) {
 	}
 
 	if(query == NULL) {
-		/* Why can't this just be an assignment? */
 		strcpy(sql, "SELECT status,package,version,description FROM packages");
 	} else {
 		/* Static buffers are retarded, block long searches */
-		if(strlen(query) > 85) {
+		if(strlen(query) > 43) {
 			fprintf(stderr,"Your query is too long.\n");
 			exit(EXIT_FAILURE);
 		}
