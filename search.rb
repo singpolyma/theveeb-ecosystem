@@ -28,7 +28,7 @@ db.execute(sql) do |row|
 	flags = ''
 	flags << 'I' if row['status'].to_i == 1
 	flags << 'U' if row['status'].to_i == -1
-	puts flags.ljust(2) + "#{row['package']}".ljust(25) \
-	           + "(#{row['version']})".ljust(15) \
-	           + "#{row['description'].split(/\n/)[0]}"
+	puts flags.ljust(2) + "#{row['package']}".ljust(35) \
+	           + " #{row['version']}".ljust(25) \
+	           + " #{row['description'].split(/\n/)[0]}"
 end
