@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <sqlite3.h>
+/* For getopt. Means we'll need mingw to build on Windows
+ * or we might investigate http://sourceforge.net/projects/freegetopt */
+#include <unistd.h>
 
 int getopt(int argc, char * const argv[], const char *optstring);
 extern char *optarg;
