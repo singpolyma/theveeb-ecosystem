@@ -71,10 +71,12 @@ class APT
 				" description='#{SQLite3::Database::quote(data['Description'])}'" \
 				" WHERE package='#{SQLite3::Database::quote(package)}'")
 			end
-			data['Depends'].each do |depend|
-				parameters[:db].execute("INSERT INTO #{parameters[:depends]}" \
-				" (package, depend, version)" \
-				" VALUES ('#{SQLite3::Database::quote(package)}', '#{SQLite3::Database::quote(depend['Package'])}', '#{SQLite3::Database::quote(depend['Version'])}')")
+			if data['Depends']
+				data['Depends'].each do |depend|
+					parameters[:db].execute("INSERT INTO #{parameters[:depends]}" \
+					" (package, depend, version)" \
+					" VALUES ('#{SQLite3::Database::quote(package)}', '#{SQLite3::Database::quote(depend['Package'])}', '#{SQLite3::Database::quote(depend['Version'])}')")
+				end
 			end
 		end
 		parameters[:db].execute("VACUUM")
@@ -115,13 +117,18 @@ class APT
 		end
 
 		YAML::load(release.gsub(/^ /, ' - '))['MD5Sum'].each do |line|
-			line = line.split(/ /)
+			line = line.split(/\s+/)
 			sums[line[2]] = {:size => line[1].to_i, :md5 => line[0]}
 		end
 
 		@sections.each do |section|
 			@arch.each do |arch|
-				meta = open(base + section + '/binary-' + arch + '/Packages.gz').read
+				begin
+					meta = open(base + section + '/binary-' + arch + '/Packages.gz').read
+				rescue OpenURI::HTTPError
+					warn 'Fetch failed. Skipping ' + base + section + '/binary-' + arch + '/Packages.gz'
+					next
+				end
 				unless meta.length == sums[section + '/binary-' + arch + '/Packages.gz'][:size]
 					warn 'Bad size detected. Skipping ' + base + section + '/binary-' + arch + '/Packages.gz'
 					next
