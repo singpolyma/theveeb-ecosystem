@@ -56,7 +56,7 @@ void safe_execute(sqlite3 * db, char * sql) {
 }
 
 /* Parse the Depends: line for a single package */
-void parse_depends(char * package, char * sep) {
+void parse_depends(sqlite3 * db, char * package, char * sep) {
 	char * endcomma;
 	char sql[200];
 	sep = strtok(sep, " (");
@@ -66,7 +66,7 @@ void parse_depends(char * package, char * sep) {
 		quotecat(sql, package, sizeof(sql), 1);
 		quotecat(sql, sep, sizeof(sql), 1);
 		strncat(sql, "'');", sizeof(sql)-1);
-		puts(sql);
+		safe_execute(db, sql);
 	} else {
 		strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
 		quotecat(sql, package, sizeof(sql), 1);
@@ -75,11 +75,11 @@ void parse_depends(char * package, char * sep) {
 		if((sep = strtok(NULL, ")")) != NULL) {
 			quotecat(sql, sep, sizeof(sql), 0);
 			strncat(sql, ");", sizeof(sql)-1);
-			puts(sql);
+			safe_execute(db, sql);
 			strtok(NULL, " ");
 		} else {
 			strncat(sql, "'');", sizeof(sql)-1);
-			puts(sql);
+			safe_execute(db, sql);
 		}
 	}
 	while(sep != NULL) {
@@ -91,7 +91,7 @@ void parse_depends(char * package, char * sep) {
 			quotecat(sql, package, sizeof(sql), 1);
 			quotecat(sql, sep, sizeof(sql), 1);
 			strncat(sql, "'');", sizeof(sql)-1);
-			puts(sql);
+			safe_execute(db, sql);
 		} else {
 			strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
 			quotecat(sql, package, sizeof(sql), 1);
@@ -100,23 +100,38 @@ void parse_depends(char * package, char * sep) {
 			if((sep = strtok(NULL, ")"))) {
 				quotecat(sql, sep, sizeof(sql), 0);
 				strncat(sql, ");", sizeof(sql)-1);
-				puts(sql);
+				safe_execute(db, sql);
 				sep = strtok(NULL, " ");
 			} else {
 				strncat(sql, "'');", sizeof(sql)-1);
-				puts(sql);
+				safe_execute(db, sql);
 			}
 		}
 	}
 }
 
+/* Generate SQL statement to insert a package */
+void package_insert_sql(struct Package * current, char * sql, size_t size) {
+	strncpy(sql, "INSERT INTO packages (package, version, maintainer, homepage, section, remote_path, md5, description, installed_size, size) VALUES (", size);
+	quotecat(sql, current->package,     size, 1);
+	quotecat(sql, current->version,     size, 1);
+	quotecat(sql, current->maintainer,  size, 1);
+	quotecat(sql, current->homepage,    size, 1);
+	quotecat(sql, current->section,     size, 1);
+	quotecat(sql, current->remote_path, size, 1);
+	quotecat(sql, current->md5,         size, 1);
+	quotecat(sql, current->description, size, 1);
+	sprintf(sql, "%s%d,%d);", sql, current->installed_size, current->size);
+}
+
 int main(int argc, char ** argv) {
 	char line[300]; /* No line will be larger than the largest field */
-	char sql[1500] = "\0";
 	char * sep;
 	sqlite3 * db = NULL;
 	struct Package current = {"","","","","","","","",0,0};
 	int code = 0;
+	/* NOTE: If Package ever contains varible fields, this must be changed */
+	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
 
 	/* TODO: getopt for specifying db (not to do VACCUM?)
 	 *       UPDATE queries
@@ -149,16 +164,7 @@ int main(int argc, char ** argv) {
 	while(fgets(line, sizeof(line), stdin)) {
 		/* Blank line means end of this package definition */
 		if(line[0] == '\n') {
-			strncpy(sql, "INSERT INTO packages (package, version, maintainer, homepage, section, remote_path, md5, description, installed_size, size) VALUES (", sizeof(sql)-1);
-			quotecat(sql, current.package, sizeof(sql), 1);
-			quotecat(sql, current.version, sizeof(sql), 1);
-			quotecat(sql, current.maintainer, sizeof(sql), 1);
-			quotecat(sql, current.homepage, sizeof(sql), 1);
-			quotecat(sql, current.section, sizeof(sql), 1);
-			quotecat(sql, current.remote_path, sizeof(sql), 1);
-			quotecat(sql, current.md5, sizeof(sql), 1);
-			quotecat(sql, current.description, sizeof(sql), 1);
-			sprintf(sql, "%s%d,%d);", sql, current.installed_size, current.size);
+			package_insert_sql(&current, sql, sizeof(sql));
 
 			if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
 				if(code == SQLITE_CONSTRAINT) {
@@ -168,6 +174,7 @@ int main(int argc, char ** argv) {
 					exit(EXIT_FAILURE);
 				}
 			}
+
 			/* Reset things */
 			code = 0;
 			memset(&current, 0, sizeof(current));
@@ -207,7 +214,7 @@ int main(int argc, char ** argv) {
 					} else if(current.size            ==   0  && strcmp(line, "Size")           == 0) {
 						current.size = atoi(sep);
 					} else if(                                   strcmp(line, "Depends")        == 0) {
-						parse_depends(current.package, sep);
+						parse_depends(db, current.package, sep);
 					} else if(                                   strcmp(line, "Description")    == 0) {
 						strncpy(current.description, sep, sizeof(current.description)-1);
 						code = 1;
