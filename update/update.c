@@ -55,8 +55,25 @@ int main(int argc, char ** argv) {
 	char line[200];
 	char sql[2000] = "\0";
 	char * sep;
+	sqlite3 * db = NULL;
 	struct Package current = {"","","","","","","","",0,0};
 	int code = 0;
+
+	/* Open database */
+	if(sqlite3_open("test.db", &db) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
+
+	/* Create tables if they do not exist */
+	if(sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS packages (package TEXT PRIMARY KEY, version TEXT, maintainer TEXT, installed_size INTEGER, size INTEGER, homepage TEXT, section TEXT, remote_path TEXT, md5 TEXT, description TEXT, status INTEGER);", NULL, NULL, NULL) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
+	if(sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);", NULL, NULL, NULL) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
 
 	/* Loop over lines from stream */
 	while(fgets(line, sizeof(line), stdin)) {
@@ -72,7 +89,11 @@ int main(int argc, char ** argv) {
 			quotecat(sql, current.md5, sizeof(sql));
 			quotecat(sql, current.description, sizeof(sql));
 			sprintf(sql, "%s%d,%d);", sql, current.installed_size, current.size);
-			puts(sql);
+
+			if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
+				fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+				exit(EXIT_FAILURE);
+			}
 			/* Reset things */
 			code = 0;
 			memset(&current, 0, sizeof(current));
@@ -120,6 +141,19 @@ int main(int argc, char ** argv) {
 			} /* if code */
 		} /* if line[0] == '\n' */
 	} /* while */
+
+	/* Clean up disk space
+	if(sqlite3_exec(db, "VACUUM;", NULL, NULL, NULL) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
+	*/
+
+	/* Close database */
+	if(sqlite3_close(db) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
 
 	exit(EXIT_SUCCESS);
 }
