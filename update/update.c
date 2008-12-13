@@ -29,25 +29,42 @@ struct Package {
 	int size                 ;
 };
 
+int quotecat(char * dst, char * src, size_t n) {
+	size_t i;
+	size_t offset = strlen(dst)+1;
+	dst[offset-1] = '\'';
+	for(i = 0; i < (n-offset-3) && src[i] != '\0'; i++) {
+		if(src[i] == '\'') {
+			if(offset + i + 2 > n) break;
+			dst[offset + i] = src[i];
+			offset++;
+			dst[offset + i] = '\'';
+		} else {
+			dst[offset + i] = src[i];
+		}
+	}
+	dst[offset + i] = '\'';
+	dst[offset + i + 1] = ',';
+	dst[offset + i + 2] = '\0';
+	if(offset + i + 3 > n) return -1;
+	return 0;
+}
+
 int main(int argc, char ** argv) {
 	char line[200];
 	char * sep;
-	FILE * fh;
 	struct Package current = {"","","","","","","","",0,0};
-	int doing_description = 0;
-
-	/* Read it from a file... do network acces later */
-	fh = fopen("Packages","r");
+	int code = 0;
 
 	/* Loop over lines from stream */
-	while(fgets(line, sizeof(line), fh)) {
+	while(fgets(line, sizeof(line), stdin)) {
 		/* Blank line means end of this package definition */
 		if(line[0] == '\n') {
 			puts(current.package); /* Print some stuff */
 			puts(current.version);
 			puts(current.description);
 			puts("---");
-			doing_description = 0; /* Reset things */
+			code = 0; /* Reset things */
 			memset(&current, 0, sizeof(current));
 		} else {
 			/* Chomp */
@@ -55,7 +72,7 @@ int main(int argc, char ** argv) {
 				*sep = '\0';
 			}
 			/* Description spans multiple lines at the end, concat stuff */
-			if(doing_description) {
+			if(code) {
 				strncat(current.description, "\n", sizeof(current.description)-1);
 				strncat(current.description, line, sizeof(current.description)-1);
 			} else {
@@ -86,13 +103,12 @@ int main(int argc, char ** argv) {
 						current.size = atoi(sep);
 					} else if(                                   strcmp(line, "Description")    == 0) {
 						strncpy(current.description, sep, sizeof(current.description)-1);
-						doing_description = 1;
+						code = 1;
 					}
 				}
-			} /* if doing_description */
+			} /* if code */
 		} /* if line[0] == '\n' */
 	} /* while */
 
-	fclose(fh);
 	exit(EXIT_SUCCESS);
 }
