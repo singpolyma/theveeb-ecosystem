@@ -1,0 +1,4 @@
+OAuth gem is installed.
+Need script to get access token and store it.
+May need to do server side first.
+Need to add oauth GET to install.rb
