@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__WIN32__)
 	#include "getopt.h"
 #else
 	#include <unistd.h>
