@@ -56,8 +56,8 @@ int main(int argc, char ** argv) {
 			}
 			/* Description spans multiple lines at the end, concat stuff */
 			if(doing_description) {
-				strncat(current.description, "\n", sizeof(current.description));
-				strncat(current.description, line, sizeof(current.description));
+				strncat(current.description, "\n", sizeof(current.description)-1);
+				strncat(current.description, line, sizeof(current.description)-1);
 			} else {
 				/* Split on colon */
 				if((sep = strchr(line, ':'))) {
@@ -67,25 +67,25 @@ int main(int argc, char ** argv) {
 					/* If we haven't seen the field yet, do a string compare to see if
 					 * this is it. Copu remainder of line into struct */
 					if(       current.package[0]      == '\0' && strcmp(line, "Package")        == 0) {
-						strncpy(current.package,     sep, sizeof(current.package));
+						strncpy(current.package,     sep, sizeof(current.package)-1);
 					} else if(current.version[0]      == '\0' && strcmp(line, "Version")        == 0) {
-						strncpy(current.version,     sep, sizeof(current.version));
+						strncpy(current.version,     sep, sizeof(current.version)-1);
 					} else if(current.section[0]      == '\0' && strcmp(line, "Section")        == 0) {
-						strncpy(current.section,     sep, sizeof(current.section));
+						strncpy(current.section,     sep, sizeof(current.section)-1);
 					} else if(current.md5[0]          == '\0' && strcmp(line, "MD5sum")         == 0) {
-						strncpy(current.md5,         sep, sizeof(current.md5));
+						strncpy(current.md5,         sep, sizeof(current.md5)-1);
 					} else if(current.maintainer[0]   == '\0' && strcmp(line, "Maintainer")     == 0) {
-						strncpy(current.maintainer,  sep, sizeof(current.maintainer));
+						strncpy(current.maintainer,  sep, sizeof(current.maintainer)-1);
 					} else if(current.remote_path[0]  == '\0' && strcmp(line, "Filename")       == 0) {
-						strncpy(current.remote_path, sep, sizeof(current.remote_path));
+						strncpy(current.remote_path, sep, sizeof(current.remote_path)-1);
 					} else if(current.homepage        == '\0' && strcmp(line, "Homepage")       == 0) {
-						strncpy(current.homepage,    sep, sizeof(current.homepage));
+						strncpy(current.homepage,    sep, sizeof(current.homepage)-1);
 					} else if(current.installed_size  ==   0  && strcmp(line, "Installed-Size") == 0) {
 						current.installed_size = atoi(sep);
 					} else if(current.size            ==   0  && strcmp(line, "Size")           == 0) {
 						current.size = atoi(sep);
 					} else if(                                   strcmp(line, "Description")    == 0) {
-						strncpy(current.description, sep, sizeof(current.description));
+						strncpy(current.description, sep, sizeof(current.description)-1);
 						doing_description = 1;
 					}
 				}
