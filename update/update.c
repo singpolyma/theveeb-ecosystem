@@ -14,23 +14,19 @@
 /* Need somewhere to store data as we parse,
  * because order is not guarenteed */
 struct Package {
-	/* These sizes are a bit arbitrary,
-	 * they seem to be big enough
-	 * for data found in the wild, with
-	 * some breathing room */
-	char package       [  50];
-	char version       [  50];
-	char section       [  50];
-	char md5           [  32];
-	char maintainer    [ 100];
-	char remote_path   [ 255];
-	char homepage      [ 255];
-	char description   [1000];
-	int installed_size       ;
-	int size                 ;
+	char package       [ 50]; /* In Ubuntu, largest is 41 */
+	char version       [ 50]; /* Plenty large */
+	char section       [ 50]; /* Plenty large */
+	char md5           [ 32]; /* MD5s are 32 characters */
+	char maintainer    [100]; /* In Ubuntu, largest is 78 */
+	char remote_path   [255]; /* In Ubuntu, largest subpath is 106 */
+	char homepage      [255]; /* URLs are specced to a max length of 255 */
+	char description   [300]; /* In Ubuntu, lagest is < 100 */
+	int installed_size      ;
+	int size                ;
 };
 
-int quotecat(char * dst, char * src, size_t n) {
+int quotecat(char * dst, char * src, size_t n, int comma) {
 	size_t i;
 	size_t offset = strlen(dst)+1;
 	dst[offset-1] = '\'';
@@ -45,19 +41,26 @@ int quotecat(char * dst, char * src, size_t n) {
 		}
 	}
 	dst[offset + i] = '\'';
-	dst[offset + i + 1] = ',';
+	if(comma) dst[offset + i + 1] = ',';
 	dst[offset + i + 2] = '\0';
 	if(offset + i + 3 > n) return -1;
 	return 0;
 }
 
 int main(int argc, char ** argv) {
-	char line[200];
-	char sql[2000] = "\0";
+	char line[300]; /* No line will be larger than the largest field */
+	char sql[1500] = "\0";
 	char * sep;
+	char * endcomma;
 	sqlite3 * db = NULL;
 	struct Package current = {"","","","","","","","",0,0};
 	int code = 0;
+
+	/* TODO: getopt for specifying db (not to do VACCUM?)
+	 *       UPDATE queries
+	 *       dependency parsing
+	 *       SQL output
+	 */
 
 	/* Open database */
 	if(sqlite3_open("test.db", &db) != 0) {
@@ -81,19 +84,24 @@ int main(int argc, char ** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	if(sqlite3_exec(db, "DELETE FROM depends;", NULL, NULL, NULL) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
+
 	/* Loop over lines from stream */
 	while(fgets(line, sizeof(line), stdin)) {
 		/* Blank line means end of this package definition */
 		if(line[0] == '\n') {
 			strncpy(sql, "INSERT INTO packages (package, version, maintainer, homepage, section, remote_path, md5, description, installed_size, size) VALUES (", sizeof(sql)-1);
-			quotecat(sql, current.package, sizeof(sql));
-			quotecat(sql, current.version, sizeof(sql));
-			quotecat(sql, current.maintainer, sizeof(sql));
-			quotecat(sql, current.homepage, sizeof(sql));
-			quotecat(sql, current.section, sizeof(sql));
-			quotecat(sql, current.remote_path, sizeof(sql));
-			quotecat(sql, current.md5, sizeof(sql));
-			quotecat(sql, current.description, sizeof(sql));
+			quotecat(sql, current.package, sizeof(sql), 1);
+			quotecat(sql, current.version, sizeof(sql), 1);
+			quotecat(sql, current.maintainer, sizeof(sql), 1);
+			quotecat(sql, current.homepage, sizeof(sql), 1);
+			quotecat(sql, current.section, sizeof(sql), 1);
+			quotecat(sql, current.remote_path, sizeof(sql), 1);
+			quotecat(sql, current.md5, sizeof(sql), 1);
+			quotecat(sql, current.description, sizeof(sql), 1);
 			sprintf(sql, "%s%d,%d);", sql, current.installed_size, current.size);
 
 			if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
@@ -107,7 +115,6 @@ int main(int argc, char ** argv) {
 			/* Reset things */
 			code = 0;
 			memset(&current, 0, sizeof(current));
-			sql[0] = '\0';
 		} else {
 			/* Chomp */
 			if((sep = strchr(line, '\n'))) {
@@ -143,6 +150,44 @@ int main(int argc, char ** argv) {
 						current.installed_size = atoi(sep);
 					} else if(current.size            ==   0  && strcmp(line, "Size")           == 0) {
 						current.size = atoi(sep);
+					} else if(                                   strcmp(line, "Depends")        == 0) {
+						sep = strtok(sep, " (");
+						if((endcomma = strchr(sep, ','))) {
+							*endcomma = '\0';
+							strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+							quotecat(sql, current.package, sizeof(sql), 1);
+							quotecat(sql, sep, sizeof(sql), 1);
+							strncat(sql, "'');", sizeof(sql-1));
+							puts(sql);
+						} else {
+							strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+							quotecat(sql, current.package, sizeof(sql), 1);
+							quotecat(sql, sep, sizeof(sql), 1);
+							strtok(NULL, " ");
+							if((sep = strtok(NULL, ")")) != NULL) {
+								quotecat(sql, sep, sizeof(sql), 0);
+								strncat(sql, ");", sizeof(sql-1));
+								puts(sql);
+								strtok(NULL, " ");
+							} else {
+								strncat(sql, "'');", sizeof(sql-1));
+								puts(sql);
+							}
+						}
+						while(sep != NULL) {
+							sep = strtok(NULL, " (");
+							if(sep == NULL) break;
+							if((endcomma = strchr(sep, ','))) {
+								*endcomma = '\0';
+								puts(sep);
+							} else {
+								printf("\tPackage: %s\n", sep);
+								strtok(NULL, " ");
+								sep = strtok(NULL, ")");
+								printf("\tVersion: %s\n", sep);
+								sep = strtok(NULL, " ");
+							}
+						}
 					} else if(                                   strcmp(line, "Description")    == 0) {
 						strncpy(current.description, sep, sizeof(current.description)-1);
 						code = 1;
