@@ -3,6 +3,15 @@
 #include <string.h>
 #include <sqlite3.h>
 
+#if defined(_WIN32) || defined(__WIN32__)
+	#include "getopt.h"
+#else
+	#include <unistd.h>
+	int getopt(int argc, char * const argv[], const char *optstring);
+	extern char *optarg;
+	extern int optind, opterr, optopt;
+#endif
+
 #ifndef EXIT_SUCCESS
 	#define EXIT_SUCCESS 0
 #endif
@@ -60,6 +69,7 @@ void parse_depends(sqlite3 * db, char * package, char * sep) {
 	char * endcomma;
 	char sql[200];
 	sep = strtok(sep, " (");
+
 	if((endcomma = strchr(sep, ','))) {
 		*endcomma = '\0';
 		strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
@@ -124,23 +134,72 @@ void package_insert_sql(struct Package * current, char * sql, size_t size) {
 	sprintf(sql, "%s%d,%d);", sql, current->installed_size, current->size);
 }
 
+/* Generate SQL statement to update a package */
+void package_update_sql(struct Package * current, char * sql, size_t size) {
+	strncpy(sql, "UPDATE packages SET version=", size);
+	quotecat(sql, current->version,     size, 1);
+	strncat (sql, "maintainer=",   size);
+	quotecat(sql, current->maintainer,  size, 1);
+	strncat (sql, "homepage=",     size);
+	quotecat(sql, current->homepage,    size, 1);
+	strncat (sql, "section=",      size);
+	quotecat(sql, current->section,     size, 1);
+	strncat (sql, "remote_path=",  size);
+	quotecat(sql, current->remote_path, size, 1);
+	strncat (sql, "md5=",          size);
+	quotecat(sql, current->md5,         size, 1);
+	strncat (sql, "description=",  size);
+	quotecat(sql, current->description, size, 1);
+	sprintf(sql, "%sinstalled_size=%d,size=%d WHERE package=", sql, current->installed_size, current->size);
+	quotecat(sql, current->package, size, 0);
+	strncat (sql, ";",             size);
+}
+
+/* Display usage message */
+void help() {
+	puts("TODO");
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char ** argv) {
 	char line[300]; /* No line will be larger than the largest field */
 	char * sep;
+	char * baseurl = NULL;
 	sqlite3 * db = NULL;
 	struct Package current = {"","","","","","","","",0,0};
-	int code = 0;
+	int code;
 	/* NOTE: If Package ever contains varible fields, this must be changed */
 	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
 
-	/* TODO: getopt for specifying db (not to do VACCUM?)
-	 *       UPDATE queries
-	 *       dependency parsing
+	/* TODO: 
 	 *       SQL output
 	 */
 
+	while((code = getopt(argc, argv, "-lhd:")) != -1) {
+		switch(code) {
+			case 'h':
+				help();
+				break;
+			case 'd':
+				if(sqlite3_open(optarg, &db) != 0) {
+					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+					exit(EXIT_FAILURE);
+				}
+				break;
+			case '\1':
+				baseurl = optarg;
+				break;
+			default:
+				help();
+		}
+	}
+
+	if(baseurl == NULL) {
+		help();
+	}
+
 	/* Open database */
-	if(sqlite3_open("test.db", &db) != 0) {
+	if(db == NULL && sqlite3_open("test.db", &db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
 	}
@@ -157,10 +216,10 @@ int main(int argc, char ** argv) {
 	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
 	            );
 
-	/* Clear dependency table */
 	safe_execute(db, "DELETE FROM depends;");
 
 	/* Loop over lines from stream */
+	code = 0;
 	while(fgets(line, sizeof(line), stdin)) {
 		/* Blank line means end of this package definition */
 		if(line[0] == '\n') {
@@ -168,7 +227,8 @@ int main(int argc, char ** argv) {
 
 			if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
 				if(code == SQLITE_CONSTRAINT) {
-					puts("TODO: update");
+					package_update_sql(&current, sql, sizeof(sql));
+					safe_execute(db, sql);
 				} else {
 					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 					exit(EXIT_FAILURE);
@@ -194,7 +254,7 @@ int main(int argc, char ** argv) {
 					/* Skip over the space too */
 					sep = sep + 2;
 					/* If we haven't seen the field yet, do a string compare to see if
-					 * this is it. Copu remainder of line into struct */
+					 * this is it. Copy remainder of line into struct */
 					if(       current.package[0]      == '\0' && strcmp(line, "Package")        == 0) {
 						strncpy(current.package,     sep, sizeof(current.package)-1);
 					} else if(current.version[0]      == '\0' && strcmp(line, "Version")        == 0) {
@@ -206,7 +266,8 @@ int main(int argc, char ** argv) {
 					} else if(current.maintainer[0]   == '\0' && strcmp(line, "Maintainer")     == 0) {
 						strncpy(current.maintainer,  sep, sizeof(current.maintainer)-1);
 					} else if(current.remote_path[0]  == '\0' && strcmp(line, "Filename")       == 0) {
-						strncpy(current.remote_path, sep, sizeof(current.remote_path)-1);
+						strncpy(current.remote_path, baseurl, sizeof(current.remote_path)-1);
+						strncat(current.remote_path, sep,     sizeof(current.remote_path)-1);
 					} else if(current.homepage        == '\0' && strcmp(line, "Homepage")       == 0) {
 						strncpy(current.homepage,    sep, sizeof(current.homepage)-1);
 					} else if(current.installed_size  ==   0  && strcmp(line, "Installed-Size") == 0) {
