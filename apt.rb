@@ -47,6 +47,7 @@ class APT
 		parameters[:packages] = 'packages'
 		parameters[:depends] = 'depends'
 		parameters[:db].execute("DELETE FROM #{parameters[:depends]}") # Empty depends table, we don't do this with packages because of installed
+		parameters[:db].execute("BEGIN TRANSACTION");
 		@packages.each do |package, data|
 			begin
 				parameters[:db].execute("INSERT INTO #{parameters[:packages]}" \
@@ -79,6 +80,7 @@ class APT
 				end
 			end
 		end
+		parameters[:db].execute("END TRANSACTION");
 		parameters[:db].execute("VACUUM")
 	end
 
