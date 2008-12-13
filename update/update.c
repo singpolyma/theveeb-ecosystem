@@ -65,6 +65,12 @@ int main(int argc, char ** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	/* Do everything as one transaction. Many times faster */
+	if(sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
+
 	/* Create tables if they do not exist */
 	if(sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS packages (package TEXT PRIMARY KEY, version TEXT, maintainer TEXT, installed_size INTEGER, size INTEGER, homepage TEXT, section TEXT, remote_path TEXT, md5 TEXT, description TEXT, status INTEGER);", NULL, NULL, NULL) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
@@ -146,12 +152,17 @@ int main(int argc, char ** argv) {
 		} /* if line[0] == '\n' */
 	} /* while */
 
-	/* Clean up disk space
+	/* End the transaction only when all data has been inserted */
+	if(sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
+
+	/* Clean up disk space */
 	if(sqlite3_exec(db, "VACUUM;", NULL, NULL, NULL) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
 	}
-	*/
 
 	/* Close database */
 	if(sqlite3_close(db) != 0) {
