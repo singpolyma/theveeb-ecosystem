@@ -86,6 +86,11 @@ int main (int argc, char ** argv) {
 	if(query == NULL) {
 		strcpy(sql, "SELECT status,package,version,description FROM packages");
 	} else {
+		if(strchr(query, '\'') != NULL) {
+			fprintf(stderr, "Malformed query (single-quote not allowed).\n");
+			exit(EXIT_FAILURE);
+		}
+
 		/* Static buffers are retarded, block long searches */
 		if(strlen(query) > 43) {
 			fprintf(stderr,"Your query is too long.\n");
@@ -100,7 +105,7 @@ int main (int argc, char ** argv) {
 	}
 
 	if(sqlite3_exec(db, sql, &print_results, NULL, NULL) != 0) {
-		fprintf(stderr, "Malformed query (you may have included a single-quote, or the specified database may not exist).\n");
+		fprintf(stderr, "Malformed query (The specified database may not exist).\n");
 		exit(EXIT_FAILURE);
 	}
 
