@@ -47,11 +47,73 @@ int quotecat(char * dst, char * src, size_t n, int comma) {
 	return 0;
 }
 
+/* Safely execute a SQL query with no callback */
+void safe_execute(sqlite3 * db, char * sql) {
+	if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
+		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+		exit(EXIT_FAILURE);
+	}
+}
+
+/* Parse the Depends: line for a single package */
+void parse_depends(char * package, char * sep) {
+	char * endcomma;
+	char sql[200];
+	sep = strtok(sep, " (");
+	if((endcomma = strchr(sep, ','))) {
+		*endcomma = '\0';
+		strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+		quotecat(sql, package, sizeof(sql), 1);
+		quotecat(sql, sep, sizeof(sql), 1);
+		strncat(sql, "'');", sizeof(sql)-1);
+		puts(sql);
+	} else {
+		strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+		quotecat(sql, package, sizeof(sql), 1);
+		quotecat(sql, sep, sizeof(sql), 1);
+		strtok(NULL, " ");
+		if((sep = strtok(NULL, ")")) != NULL) {
+			quotecat(sql, sep, sizeof(sql), 0);
+			strncat(sql, ");", sizeof(sql)-1);
+			puts(sql);
+			strtok(NULL, " ");
+		} else {
+			strncat(sql, "'');", sizeof(sql)-1);
+			puts(sql);
+		}
+	}
+	while(sep != NULL) {
+		sep = strtok(NULL, " (");
+		if(sep == NULL) break;
+		if((endcomma = strchr(sep, ','))) {
+			*endcomma = '\0';
+			strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+			quotecat(sql, package, sizeof(sql), 1);
+			quotecat(sql, sep, sizeof(sql), 1);
+			strncat(sql, "'');", sizeof(sql)-1);
+			puts(sql);
+		} else {
+			strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+			quotecat(sql, package, sizeof(sql), 1);
+			quotecat(sql, sep, sizeof(sql), 1);
+			strtok(NULL, " ");
+			if((sep = strtok(NULL, ")"))) {
+				quotecat(sql, sep, sizeof(sql), 0);
+				strncat(sql, ");", sizeof(sql)-1);
+				puts(sql);
+				sep = strtok(NULL, " ");
+			} else {
+				strncat(sql, "'');", sizeof(sql)-1);
+				puts(sql);
+			}
+		}
+	}
+}
+
 int main(int argc, char ** argv) {
 	char line[300]; /* No line will be larger than the largest field */
 	char sql[1500] = "\0";
 	char * sep;
-	char * endcomma;
 	sqlite3 * db = NULL;
 	struct Package current = {"","","","","","","","",0,0};
 	int code = 0;
@@ -69,25 +131,19 @@ int main(int argc, char ** argv) {
 	}
 
 	/* Do everything as one transaction. Many times faster */
-	if(sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL) != 0) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		exit(EXIT_FAILURE);
-	}
+	safe_execute(db, "BEGIN TRANSACTION;");
 
 	/* Create tables if they do not exist */
-	if(sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS packages (package TEXT PRIMARY KEY, version TEXT, maintainer TEXT, installed_size INTEGER, size INTEGER, homepage TEXT, section TEXT, remote_path TEXT, md5 TEXT, description TEXT, status INTEGER);", NULL, NULL, NULL) != 0) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		exit(EXIT_FAILURE);
-	}
-	if(sqlite3_exec(db, "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);", NULL, NULL, NULL) != 0) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		exit(EXIT_FAILURE);
-	}
+	safe_execute(db, "CREATE TABLE IF NOT EXISTS packages " \
+	                 "(package TEXT PRIMARY KEY, version TEXT, maintainer TEXT," \
+	                 " installed_size INTEGER, size INTEGER, homepage TEXT," \
+	                 " section TEXT, remote_path TEXT, md5 TEXT, description TEXT," \
+	                 " status INTEGER);" \
+	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
+	            );
 
-	if(sqlite3_exec(db, "DELETE FROM depends;", NULL, NULL, NULL) != 0) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		exit(EXIT_FAILURE);
-	}
+	/* Clear dependency table */
+	safe_execute(db, "DELETE FROM depends;");
 
 	/* Loop over lines from stream */
 	while(fgets(line, sizeof(line), stdin)) {
@@ -151,43 +207,7 @@ int main(int argc, char ** argv) {
 					} else if(current.size            ==   0  && strcmp(line, "Size")           == 0) {
 						current.size = atoi(sep);
 					} else if(                                   strcmp(line, "Depends")        == 0) {
-						sep = strtok(sep, " (");
-						if((endcomma = strchr(sep, ','))) {
-							*endcomma = '\0';
-							strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
-							quotecat(sql, current.package, sizeof(sql), 1);
-							quotecat(sql, sep, sizeof(sql), 1);
-							strncat(sql, "'');", sizeof(sql-1));
-							puts(sql);
-						} else {
-							strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
-							quotecat(sql, current.package, sizeof(sql), 1);
-							quotecat(sql, sep, sizeof(sql), 1);
-							strtok(NULL, " ");
-							if((sep = strtok(NULL, ")")) != NULL) {
-								quotecat(sql, sep, sizeof(sql), 0);
-								strncat(sql, ");", sizeof(sql-1));
-								puts(sql);
-								strtok(NULL, " ");
-							} else {
-								strncat(sql, "'');", sizeof(sql-1));
-								puts(sql);
-							}
-						}
-						while(sep != NULL) {
-							sep = strtok(NULL, " (");
-							if(sep == NULL) break;
-							if((endcomma = strchr(sep, ','))) {
-								*endcomma = '\0';
-								puts(sep);
-							} else {
-								printf("\tPackage: %s\n", sep);
-								strtok(NULL, " ");
-								sep = strtok(NULL, ")");
-								printf("\tVersion: %s\n", sep);
-								sep = strtok(NULL, " ");
-							}
-						}
+						parse_depends(current.package, sep);
 					} else if(                                   strcmp(line, "Description")    == 0) {
 						strncpy(current.description, sep, sizeof(current.description)-1);
 						code = 1;
@@ -198,16 +218,10 @@ int main(int argc, char ** argv) {
 	} /* while */
 
 	/* End the transaction only when all data has been inserted */
-	if(sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL) != 0) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		exit(EXIT_FAILURE);
-	}
+	safe_execute(db, "END TRANSACTION;");
 
 	/* Clean up disk space */
-	if(sqlite3_exec(db, "VACUUM;", NULL, NULL, NULL) != 0) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		exit(EXIT_FAILURE);
-	}
+	safe_execute(db, "VACUUM;");
 
 	/* Close database */
 	if(sqlite3_close(db) != 0) {
