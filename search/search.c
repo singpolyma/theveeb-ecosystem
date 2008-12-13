@@ -2,13 +2,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sqlite3.h>
-/* For getopt. Means we'll need mingw to build on Windows
- * or we might investigate http://sourceforge.net/projects/freegetopt */
-#include <unistd.h>
 
-int getopt(int argc, char * const argv[], const char *optstring);
-extern char *optarg;
-extern int optind, opterr, optopt;
+#ifdef _WIN32
+	#include "getopt.h"
+#else
+	#include <unistd.h>
+	int getopt(int argc, char * const argv[], const char *optstring);
+	extern char *optarg;
+	extern int optind, opterr, optopt;
+#endif
 
 int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 	char status = ' ';
