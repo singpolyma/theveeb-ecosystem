@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sqlite3.h>
 
 #ifndef EXIT_SUCCESS
 	#define EXIT_SUCCESS 0

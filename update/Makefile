@@ -1,5 +1,5 @@
 update: update.o
-	gcc -lcurl -o update update.o
+	gcc -lsqlite3 -o update update.o
 	strip -s update
  
 update.o: update.c
