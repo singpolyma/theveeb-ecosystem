@@ -90,9 +90,13 @@ int main(int argc, char ** argv) {
 			quotecat(sql, current.description, sizeof(sql));
 			sprintf(sql, "%s%d,%d);", sql, current.installed_size, current.size);
 
-			if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
-				fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-				exit(EXIT_FAILURE);
+			if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
+				if(code == SQLITE_CONSTRAINT) {
+					puts("TODO: update");
+				} else {
+					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+					exit(EXIT_FAILURE);
+				}
 			}
 			/* Reset things */
 			code = 0;
