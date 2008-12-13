@@ -67,25 +67,25 @@ int main(int argc, char ** argv) {
 					/* If we haven't seen the field yet, do a string compare to see if
 					 * this is it. Copu remainder of line into struct */
 					if(       current.package[0]      == '\0' && strcmp(line, "Package")        == 0) {
-						strcpy(current.package, sep);
+						strncpy(current.package,     sep, sizeof(current.package));
 					} else if(current.version[0]      == '\0' && strcmp(line, "Version")        == 0) {
-						strcpy(current.version, sep);
+						strncpy(current.version,     sep, sizeof(current.version));
 					} else if(current.section[0]      == '\0' && strcmp(line, "Section")        == 0) {
-						strcpy(current.section, sep);
+						strncpy(current.section,     sep, sizeof(current.section));
 					} else if(current.md5[0]          == '\0' && strcmp(line, "MD5sum")         == 0) {
-						strcpy(current.md5, sep);
+						strncpy(current.md5,         sep, sizeof(current.md5));
 					} else if(current.maintainer[0]   == '\0' && strcmp(line, "Maintainer")     == 0) {
-						strcpy(current.maintainer, sep);
+						strncpy(current.maintainer,  sep, sizeof(current.maintainer));
 					} else if(current.remote_path[0]  == '\0' && strcmp(line, "Filename")       == 0) {
-						strcpy(current.remote_path, sep);
+						strncpy(current.remote_path, sep, sizeof(current.remote_path));
 					} else if(current.homepage        == '\0' && strcmp(line, "Homepage")       == 0) {
-						strcpy(current.homepage, sep);
+						strncpy(current.homepage,    sep, sizeof(current.homepage));
 					} else if(current.installed_size  ==   0  && strcmp(line, "Installed-Size") == 0) {
 						current.installed_size = atoi(sep);
 					} else if(current.size            ==   0  && strcmp(line, "Size")           == 0) {
 						current.size = atoi(sep);
 					} else if(                                   strcmp(line, "Description")    == 0) {
-						strcpy(current.description, sep);
+						strncpy(current.description, sep, sizeof(current.description));
 						doing_description = 1;
 					}
 				}
