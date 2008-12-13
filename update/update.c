@@ -52,6 +52,7 @@ int quotecat(char * dst, char * src, size_t n) {
 
 int main(int argc, char ** argv) {
 	char line[200];
+	char sql[2000] = "\0";
 	char * sep;
 	struct Package current = {"","","","","","","","",0,0};
 	int code = 0;
@@ -60,12 +61,21 @@ int main(int argc, char ** argv) {
 	while(fgets(line, sizeof(line), stdin)) {
 		/* Blank line means end of this package definition */
 		if(line[0] == '\n') {
-			puts(current.package); /* Print some stuff */
-			puts(current.version);
-			puts(current.description);
-			puts("---");
-			code = 0; /* Reset things */
+			strncpy(sql, "INSERT INTO packages (package, version, maintainer, homepage, section, remote_path, md5, description, installed_size, size) VALUES (", sizeof(sql)-1);
+			quotecat(sql, current.package, sizeof(sql));
+			quotecat(sql, current.version, sizeof(sql));
+			quotecat(sql, current.maintainer, sizeof(sql));
+			quotecat(sql, current.homepage, sizeof(sql));
+			quotecat(sql, current.section, sizeof(sql));
+			quotecat(sql, current.remote_path, sizeof(sql));
+			quotecat(sql, current.md5, sizeof(sql));
+			quotecat(sql, current.description, sizeof(sql));
+			sprintf(sql, "%s%d,%d);", sql, current.installed_size, current.size);
+			puts(sql);
+			/* Reset things */
+			code = 0;
 			memset(&current, 0, sizeof(current));
+			sql[0] = '\0';
 		} else {
 			/* Chomp */
 			if((sep = strchr(line, '\n'))) {
