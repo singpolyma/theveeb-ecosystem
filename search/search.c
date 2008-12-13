@@ -12,6 +12,28 @@
 	extern int optind, opterr, optopt;
 #endif
 
+#ifndef EXIT_SUCCESS
+	#define EXIT_SUCCESS 0
+#endif
+
+#ifndef EXIT_FAILURE
+	#define EXIT_FAILURE -1
+#endif
+
+/* Print usage message */
+void help() {
+	puts(
+"search for packages\n"
+"Usage: search [OPTION] [QUERY]\n"
+"   QUERY           Pattern to search for\n"
+"   -h              help menu (this screen)\n"
+"   -l              list (search package names only)\n"
+"   -d[path]        path to database file\n"
+	);
+	exit(EXIT_FAILURE);
+}
+
+/* Callback for query: print row */
 int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 	char status = ' ';
 	char * end;
@@ -34,10 +56,13 @@ int main (int argc, char ** argv) {
 	char * query = NULL;
 	int c;
 
-	while((c = getopt(argc, argv, "-ld:")) != -1) {
+	while((c = getopt(argc, argv, "-lhd:")) != -1) {
 		switch(c) {
 			case 'l':
 				sql[0] = 1;
+				break;
+			case 'h':
+				help();
 				break;
 			case 'd':
 				if(sqlite3_open(optarg, &db) != 0) {
@@ -49,9 +74,7 @@ int main (int argc, char ** argv) {
 				query = optarg;
 				break;
 			default:
-				/* TODO: write usage message */
-				fprintf(stderr, "Fatal.\n");
-				exit(EXIT_FAILURE);
+				help();
 		}
 	}
 
@@ -86,5 +109,5 @@ int main (int argc, char ** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	return 0;
+	exit(EXIT_SUCCESS);
 }
