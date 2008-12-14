@@ -1,14 +1,17 @@
 update: update.o
-	gcc -lsqlite3 -o update update.o
+	gcc -lsqlite3 -o update getopt.o update.o
 	strip -s update
  
-update.o: update.c
+getopt.o: getopt.c
+	gcc -c -O3 -Wall -Werror -ansi -pedantic -o getopt.o getopt.c
+
+update.o: update.c getopt.o
 	gcc -c -O3 -Wall -Werror -ansi -pedantic -o update.o update.c
  
 .PHONY: clean distclean
  
 clean:
-	rm -f update update.o
+	rm -f update update.o getopt.o
 
 distclean: clean
 
