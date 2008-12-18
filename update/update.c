@@ -166,11 +166,11 @@ void help() {
 }
 
 int main(int argc, char ** argv) {
-	char line[300]; /* No line will be larger than the largest field */
 	char * sep;
 	char * baseurl = NULL;
 	sqlite3 * db = NULL;
 	struct Package current = {"","","","","","","","",0,0};
+	char line[sizeof(current.homepage)]; /* No line will be larger than the largest field */
 	int code;
 	/* NOTE: If Package ever contains varible fields, this must be changed */
 	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
