@@ -23,14 +23,14 @@
 /* Need somewhere to store data as we parse,
  * because order is not guarenteed */
 struct Package {
-	char package       [ 50]; /* In Ubuntu, largest is 41 */
-	char version       [ 50]; /* Plenty large */
-	char section       [ 50]; /* Plenty large */
-	char md5           [ 32]; /* MD5s are 32 characters */
-	char maintainer    [100]; /* In Ubuntu, largest is 78 */
-	char remote_path   [255]; /* In Ubuntu, largest subpath is 106 */
-	char homepage      [255]; /* URLs are specced to a max length of 255 */
-	char description   [300]; /* In Ubuntu, lagest is < 100 */
+	char package       [  50]; /* In Ubuntu, largest is 41 */
+	char version       [  50]; /* Plenty large */
+	char section       [  50]; /* Plenty large */
+	char md5           [  32]; /* MD5s are 32 characters */
+	char maintainer    [ 100]; /* In Ubuntu, largest is 78 */
+	char remote_path   [ 255]; /* In Ubuntu, largest subpath is 106 */
+	char homepage      [ 255]; /* URLs are specced to a max length of 255 */
+	char description   [3000]; /* In Ubuntu, lagest is > 20000, way too rediculous. Most are < 3000 */
 	int installed_size      ;
 	int size                ;
 };
