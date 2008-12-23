@@ -326,6 +326,7 @@ int main(int argc, char ** argv) {
 
 	/* Clean up disk space */
 	if(!chained_call) {
+		safe_execute(db, "DELETE FROM packages WHERE package='';");
 		safe_execute(db, "VACUUM;");
 	}
 
