@@ -161,7 +161,14 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 
 /* Display usage message */
 void help() {
-	puts("TODO");
+	puts(
+"create/update package database\n"
+"Usage: update [OPTION] < [FILE] \n"
+"   FILE            Metadata file to read\n"
+"   -h              help menu (this screen)\n"
+"   -d[path]        path to database file\n"
+"   -c              chained call (don't erase or vacuum)\n"
+	);
 	exit(EXIT_FAILURE);
 }
 
