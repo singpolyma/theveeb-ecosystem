@@ -1,5 +1,8 @@
 #!/usr/bin/ruby
 
+# Usage convention:
+# ruby getrepo.rb -ctestrepo.txt | update/update -dtest.db
+
 require 'optparse'
 require 'open-uri'
 require 'zlib'
