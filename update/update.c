@@ -163,7 +163,8 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 void help() {
 	puts(
 "create/update package database\n"
-"Usage: update [OPTION] < [FILE] \n"
+"Usage: update [OPTION] [BASEURL] < [FILE] \n"
+"   BASEURL         Base URL of the repository\n"
 "   FILE            Metadata file to read\n"
 "   -h              help menu (this screen)\n"
 "   -d[path]        path to database file\n"
@@ -179,6 +180,7 @@ int main(int argc, char ** argv) {
 	struct Package current = {"","","","","","","","",0,0};
 	char line[sizeof(current.homepage)]; /* No line will be larger than the largest field */
 	int code;
+	int chained_call = 0;
 	/* NOTE: If Package ever contains varible fields, this must be changed */
 	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
 
@@ -186,8 +188,11 @@ int main(int argc, char ** argv) {
 	 *       SQL output
 	 */
 
-	while((code = getopt(argc, argv, "-lhd:")) != -1) {
+	while((code = getopt(argc, argv, "-chd:")) != -1) {
 		switch(code) {
+			case 'c':
+				chained_call = 1;
+				break;
 			case 'h':
 				help();
 				break;
@@ -227,7 +232,9 @@ int main(int argc, char ** argv) {
 	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
 	            );
 
-	safe_execute(db, "DELETE FROM depends;");
+	if(!chained_call) {
+		safe_execute(db, "DELETE FROM depends;");
+	}
 
 	/* Loop over lines from stream */
 	code = 0;
@@ -300,7 +307,9 @@ int main(int argc, char ** argv) {
 	safe_execute(db, "END TRANSACTION;");
 
 	/* Clean up disk space */
-	safe_execute(db, "VACUUM;");
+	if(!chained_call) {
+		safe_execute(db, "VACUUM;");
+	}
 
 	/* Close database */
 	if(sqlite3_close(db) != 0) {
