@@ -35,6 +35,8 @@ struct Package {
 	int size                ;
 };
 
+static int print_sql = 0;
+
 /* Cat src onto dst, double single quote (') characters,
  * prefix and postfix with single quote and, optionally, postpend
  * a comma. Pass the size of dst as n and the function will do
@@ -62,9 +64,13 @@ int quotecat(char * dst, char * src, size_t n, int comma) {
 
 /* Safely execute a SQL query with no callback */
 void safe_execute(sqlite3 * db, char * sql) {
-	if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
-		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-		exit(EXIT_FAILURE);
+	if(print_sql) {
+		puts(sql);
+	} else {
+		if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
+			fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+			exit(EXIT_FAILURE);
+		}
 	}
 }
 
@@ -169,6 +175,7 @@ void help() {
 "   -h              help menu (this screen)\n"
 "   -d[path]        path to database file\n"
 "   -c              chained call (don't erase or vacuum)\n"
+"   -s              print SQL statements instead of executing them\n"
 	);
 	exit(EXIT_FAILURE);
 }
@@ -184,12 +191,15 @@ int main(int argc, char ** argv) {
 	/* NOTE: If Package ever contains varible fields, this must be changed */
 	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
 
-	/* TODO: 
-	 *       SQL output
-	 */
-
-	while((code = getopt(argc, argv, "-chd:")) != -1) {
+	while((code = getopt(argc, argv, "-schd:")) != -1) {
 		switch(code) {
+			case 's':
+				if(db != NULL) {
+					fputs("-d and -s are mutually exclusive\n", stderr);
+					exit(EXIT_FAILURE);
+				}
+				print_sql = 1;
+				break;
 			case 'c':
 				chained_call = 1;
 				break;
@@ -197,6 +207,10 @@ int main(int argc, char ** argv) {
 				help();
 				break;
 			case 'd':
+				if(print_sql) {
+					fputs("-d and -s are mutually exclusive\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				if(sqlite3_open(optarg, &db) != 0) {
 					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 					exit(EXIT_FAILURE);
@@ -215,7 +229,7 @@ int main(int argc, char ** argv) {
 	}
 
 	/* Open database */
-	if(db == NULL && sqlite3_open("test.db", &db) != 0) {
+	if(!print_sql && db == NULL && sqlite3_open("test.db", &db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
 	}
@@ -243,13 +257,17 @@ int main(int argc, char ** argv) {
 		if(line[0] == '\n') {
 			package_insert_sql(&current, sql, sizeof(sql));
 
-			if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
-				if(code == SQLITE_CONSTRAINT) {
-					package_update_sql(&current, sql, sizeof(sql));
-					safe_execute(db, sql);
-				} else {
-					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-					exit(EXIT_FAILURE);
+			if(print_sql) {
+				puts(sql);
+			} else {
+				if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
+					if(code == SQLITE_CONSTRAINT) {
+						package_update_sql(&current, sql, sizeof(sql));
+						safe_execute(db, sql);
+					} else {
+						fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+						exit(EXIT_FAILURE);
+					}
 				}
 			}
 
@@ -312,7 +330,7 @@ int main(int argc, char ** argv) {
 	}
 
 	/* Close database */
-	if(sqlite3_close(db) != 0) {
+	if(db != NULL && sqlite3_close(db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
 	}
