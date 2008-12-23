@@ -28,8 +28,8 @@ struct Package {
 	char section       [  50]; /* Plenty large */
 	char md5           [  32]; /* MD5s are 32 characters */
 	char maintainer    [ 100]; /* In Ubuntu, largest is 78 */
-	char remote_path   [ 255]; /* In Ubuntu, largest subpath is 106 */
-	char homepage      [ 255]; /* URLs are specced to a max length of 255 */
+	char remote_path   [ 256]; /* In Ubuntu, largest subpath is 106 */
+	char homepage      [ 256]; /* URLs are specced to a max length of 255 */
 	char description   [3000]; /* In Ubuntu, lagest is > 20000, way too rediculous. Most are < 3000 */
 	int installed_size      ;
 	int size                ;
@@ -169,8 +169,7 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 void help() {
 	puts(
 "create/update package database\n"
-"Usage: update [OPTION] [BASEURL] < [FILE] \n"
-"   BASEURL         Base URL of the repository\n"
+"Usage: update [OPTION] < [FILE] \n"
 "   FILE            Metadata file to read\n"
 "   -h              help menu (this screen)\n"
 "   -d[path]        path to database file\n"
@@ -182,7 +181,7 @@ void help() {
 
 int main(int argc, char ** argv) {
 	char * sep;
-	char * baseurl = NULL;
+	char baseurl[256] = "\0";
 	sqlite3 * db = NULL;
 	struct Package current = {"","","","","","","","",0,0};
 	char line[sizeof(current.homepage)]; /* No line will be larger than the largest field */
@@ -191,7 +190,7 @@ int main(int argc, char ** argv) {
 	/* NOTE: If Package ever contains varible fields, this must be changed */
 	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
 
-	while((code = getopt(argc, argv, "-schd:")) != -1) {
+	while((code = getopt(argc, argv, "schd:")) != -1) {
 		switch(code) {
 			case 's':
 				if(db != NULL) {
@@ -216,16 +215,9 @@ int main(int argc, char ** argv) {
 					exit(EXIT_FAILURE);
 				}
 				break;
-			case '\1':
-				baseurl = optarg;
-				break;
 			default:
 				help();
 		}
-	}
-
-	if(baseurl == NULL) {
-		help();
 	}
 
 	/* Open database */
@@ -253,8 +245,14 @@ int main(int argc, char ** argv) {
 	/* Loop over lines from stream */
 	code = 0;
 	while(fgets(line, sizeof(line), stdin)) {
+		if(line[0] == '#') {
+			/* Chomp */
+			if((sep = strchr(line, '\n'))) {
+				*sep = '\0';
+			}
+			strncpy(baseurl, line + 1, sizeof(baseurl)-1);
 		/* Blank line means end of this package definition */
-		if(line[0] == '\n') {
+		} else if(line[0] == '\n') {
 			package_insert_sql(&current, sql, sizeof(sql));
 
 			if(print_sql) {
@@ -302,6 +300,10 @@ int main(int argc, char ** argv) {
 					} else if(current.maintainer[0]   == '\0' && strcmp(line, "Maintainer")     == 0) {
 						strncpy(current.maintainer,  sep, sizeof(current.maintainer)-1);
 					} else if(current.remote_path[0]  == '\0' && strcmp(line, "Filename")       == 0) {
+						if(baseurl[0] == '\0') {
+							fputs("Invalid input data.", stderr);
+							exit(EXIT_FAILURE);
+						}
 						strncpy(current.remote_path, baseurl, sizeof(current.remote_path)-1);
 						strncat(current.remote_path, sep,     sizeof(current.remote_path)-1);
 					} else if(current.homepage        == '\0' && strcmp(line, "Homepage")       == 0) {
