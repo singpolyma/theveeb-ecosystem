@@ -56,6 +56,8 @@ int main (int argc, char ** argv) {
 	char * query = NULL;
 	int c;
 
+	/* TODO: support -v, show instead of list */
+
 	while((c = getopt(argc, argv, "-lhd:")) != -1) {
 		switch(c) {
 			case 'l':
