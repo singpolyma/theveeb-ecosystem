@@ -54,10 +54,5 @@ cp -p ./debian/prerm "./debian/$1/DEBIAN/prerm"
 cp -p ./debian/postrm "./debian/$1/DEBIAN/postrm"
 
 cd "./debian/$1"
-FILES="`find | grep -v DEBIAN | sed -e'1d'`"
-for i in $FILES; do
-	if [ -f "$i" ]; then
-		md5sum `echo "$i" | cut -b3-` >> "DEBIAN/md5sums"
-	fi
-done
+md5sum `find . -type f | grep -v DEBIAN | cut -b3-` > "DEBIAN/md5sums"
 cd -
