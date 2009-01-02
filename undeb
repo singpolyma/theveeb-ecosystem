@@ -1,5 +1,19 @@
 #!/bin/sh
 
+# Parse options
+while [ $# -gt 0 ]; do
+	optarg="`expr "x$1" : 'x[^=]*=\(.*\)'`"
+	case "$1" in
+		--prefix=*)
+			PREFIX="$optarg"
+			shift
+		;;
+		*)
+			shift
+		;;
+	esac
+done
+
 # Ensure we have neccesary utils (ar, tar)
 
 AR=`which ar`
@@ -68,7 +82,7 @@ elif [ "$DEB_VERSION" != "2.0" ]; then
 	echo "WARN: debian-binary says $DEB_VERSION, expected 2.0 " 1>&2
 fi
 
-# XXX: Should check dependencies, etc
+# XXX: Should check dependencies? Should check md5sums. Should check _gpgorigin.
 
 if [ -f "$temp/control.tar" ]; then
 	echo "Not compressed, no decompression necessary."
@@ -136,7 +150,7 @@ else
 fi
 
 # Create a dir out
-mkdir "$temp/out"
+mkdir -p "$temp/out"
 
 # Copy the data tar into it
 cp "$temp/data.tar" "$temp/out"
@@ -153,7 +167,7 @@ if [ -z "$PREFIX" ]; then
 fi
 
 mkdir -p "$PREFIX"
-cp -Rfp $temp/out/* "$PREFIX"
+cp -Rfp "$temp/out/"* "$PREFIX"
 if [ $? != 0 ]; then
 	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
 	exit 1
