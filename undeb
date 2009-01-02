@@ -37,7 +37,7 @@ else
 fi
 
 # Get a random directory name and try to create it
-temp="$temp/$0$$"
+temp="$temp/undeb$$"
 mkdir "$temp"
 if [ $? != 0 ]; then
 	echo "ERROR: $temp is not writable (it may already exist)." 1>&2
@@ -70,30 +70,66 @@ fi
 
 # XXX: Should check dependencies, etc
 
-# Determine what kind of data ball is being used and decompress it
-if [ -f "$temp/data.tar" ]; then
+if [ -f "$temp/control.tar" ]; then
 	echo "Not compressed, no decompression necessary."
-elif [ -f "$temp/data.tar.gz" ]; then
-	GZIP=`which gzip`
+elif [ -f "$temp/control.tar.gz" ]; then
+	GZIP="`which gzip`"
 	if [ -z "$GZIP" ]; then
 		echo "You must have a version of gzip to unpack $1" 1>&2
 		exit 1
 	fi
-	$GZIP -d "$temp/data.tar.gz"
+	"$GZIP" -d "$temp/control.tar.gz"
+elif [ -f "$temp/control.tar.bz2" ]; then
+	BZIP2="`which bzip2`"
+	if [ -z "$BZIP2" ]; then
+		echo "You must have a version of bzip2 to unpack $1" 1>&2
+		exit 1
+	fi
+	"$BZIP2" -d "$temp/control.tar.bz2"
+elif [ -f "$temp/control.tar.bzip2" ]; then
+	BZIP2="`which bzip2`"
+	if [ -z "$BZIP2" ]; then
+		echo "You must have a version of bzip2 to unpack $1" 1>&2
+		exit 1
+	fi
+	"$BZIP2" -d "$temp/control.tar.bzip2"
+else
+	echo "ERROR: No control.tar.* found." 1>&2
+	exit 1
+fi
+
+cd "$temp"
+tar xvf "$temp/control.tar"
+cd -
+
+if [ -f "$temp/preinst" ]; then
+	sh "$temp/preinst"
+fi
+
+# Determine what kind of data ball is being used and decompress it
+if [ -f "$temp/data.tar" ]; then
+	echo "Not compressed, no decompression necessary."
+elif [ -f "$temp/data.tar.gz" ]; then
+	GZIP="`which gzip`"
+	if [ -z "$GZIP" ]; then
+		echo "You must have a version of gzip to unpack $1" 1>&2
+		exit 1
+	fi
+	"$GZIP" -d "$temp/data.tar.gz"
 elif [ -f "$temp/data.tar.bz2" ]; then
-	BZIP2=`which bzip2`
+	BZIP2="`which bzip2`"
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	$BZIP2 -d "$temp/data.tar.bz2"
+	"$BZIP2" -d "$temp/data.tar.bz2"
 elif [ -f "$temp/data.tar.bzip2" ]; then
-	BZIP2=`which bzip2`
+	BZIP2="`which bzip2`"
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	$BZIP2 -d "$temp/data.tar.bzip2"
+	"$BZIP2" -d "$temp/data.tar.bzip2"
 else
 	echo "ERROR: No data.tar.* found." 1>&2
 	exit 1
@@ -112,10 +148,19 @@ rm -f data.tar
 cd - # Pop back to where we were, just in case we forget where we are later
 
 # Copy the data to the dir where it will be installed
-cp -rp $temp/out/* "$PREFIX/"
+if [ -z "$PREFIX" ]; then
+	PREFIX="/"
+fi
+
+mkdir -p "$PREFIX"
+cp -Rfp $temp/out/* "$PREFIX"
 if [ $? != 0 ]; then
 	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
 	exit 1
+fi
+
+if [ -f "$temp/postinst" ]; then
+	sh "$temp/postinst"
 fi
 
 # Clean up our temporary directory
