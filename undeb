@@ -1,19 +1,5 @@
 #!/bin/sh
 
-# Parse options
-while [ $# -gt 0 ]; do
-	optarg="`expr "x$1" : 'x[^=]*=\(.*\)'`"
-	case "$1" in
-		--prefix=*)
-			PREFIX="$optarg"
-			shift
-		;;
-		*)
-			shift
-		;;
-	esac
-done
-
 # Ensure we have neccesary utils (ar, tar)
 
 AR=`which ar`
