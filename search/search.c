@@ -46,7 +46,7 @@ int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 			case -1: status = 'U'; break;
 		}
 	}
-	printf("%c %-35s %-25s %s\n", status, row[1], row[2], row[3]);
+	printf("%c %-20s %-10s %s\n", status, row[1], row[2], row[3]);
 	return 0;
 }
 
