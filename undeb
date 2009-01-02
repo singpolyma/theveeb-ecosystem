@@ -37,7 +37,7 @@ else
 fi
 
 # Get a random directory name and try to create it
-temp="$temp/$0$$"
+temp="$temp/undeb$$"
 mkdir "$temp"
 if [ $? != 0 ]; then
 	echo "ERROR: $temp is not writable (it may already exist)." 1>&2
@@ -68,7 +68,7 @@ elif [ "$DEB_VERSION" != "2.0" ]; then
 	echo "WARN: debian-binary says $DEB_VERSION, expected 2.0 " 1>&2
 fi
 
-# XXX: Should check dependencies, etc
+# XXX: Should check dependencies? Should check md5sums. Should check _gpgorigin.
 
 # Determine what kind of data ball is being used and decompress it
 if [ -f "$temp/data.tar" ]; then
@@ -100,7 +100,7 @@ else
 fi
 
 # Create a dir out
-mkdir "$temp/out"
+mkdir -p "$temp/out"
 
 # Copy the data tar into it
 cp "$temp/data.tar" "$temp/out"
@@ -112,7 +112,12 @@ rm -f data.tar
 cd - # Pop back to where we were, just in case we forget where we are later
 
 # Copy the data to the dir where it will be installed
-cp -rp $temp/out/* "$PREFIX/"
+if [ -z "$PREFIX" ]; then
+	PREFIX="/"
+fi
+
+mkdir -p "$PREFIX"
+cp -Rfp "$temp/out/"* "$PREFIX"
 if [ $? != 0 ]; then
 	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
 	exit 1
