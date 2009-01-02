@@ -41,7 +41,7 @@ cp -p ./debian/changelog "./debian/$1/usr/share/doc/$1/changelog.Debian"
 gzip "./debian/$1/usr/share/doc/$1/changelog.Debian"
 cp -p ./debian/copyright "./debian/$1/usr/share/doc/$1/copyright"
 for i in `cat ./debian/docs`; do
-	cp -p "$i" "./debian/$1/usr/share/doc/$1/"
+	cp -pv "$i" "./debian/$1/usr/share/doc/$1"
 done
 
 echo "Generating debian data..."
@@ -54,5 +54,5 @@ cp -p ./debian/prerm "./debian/$1/DEBIAN/prerm"
 cp -p ./debian/postrm "./debian/$1/DEBIAN/postrm"
 
 cd "./debian/$1"
-md5sum `find . -type f | grep -v DEBIAN | cut -b3-` > "DEBIAN/md5sums"
+find . -type f | grep -v DEBIAN | cut -b3- | xargs md5sum > "DEBIAN/md5sums"
 cd -

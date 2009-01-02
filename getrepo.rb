@@ -46,17 +46,17 @@ open(options[:config]).read.split(/\n/).each do |debline|
 
 	# Read the signature file and verify with gpg
 	begin
-		fh = Tempfile.new($0)
+		fh = Tempfile.new($0).binmode
 		fh.write open(baseurl + 'dists/' + distro + '/Release.gpg').read
 		fh.close
 		sig_path = fh.path
 
-		fh = Tempfile.new($0)
+		fh = Tempfile.new($0).binmode
 		fh.write release
 		fh.close
 		release_path = fh.path
 
-		if `which gpg` != ''
+		if `sh -c "which gpg"` != ''
 			warn `gpg --verify "#{sig_path}" "#{release_path}"`
 			unless $?.success?
 				raise "FATAL ERROR: GPG verification failed for #{baseurl + 'dists/' + distro + '/Release'}"
