@@ -235,10 +235,12 @@ int main(int argc, char ** argv) {
 	                 " installed_size INTEGER, size INTEGER, homepage TEXT," \
 	                 " section TEXT, remote_path TEXT, md5 TEXT, description TEXT," \
 	                 " status INTEGER);" \
+	                 "CREATE TABLE IF NOT EXISTS virtual_packages (package TEXT PRIMARY KEY, is_really TEXT);" \
 	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
 	            );
 
 	if(!chained_call) {
+		safe_execute(db, "DELETE FROM virtual_packages;");
 		safe_execute(db, "DELETE FROM depends;");
 	}
 
@@ -312,6 +314,22 @@ int main(int argc, char ** argv) {
 						current.installed_size = atoi(sep);
 					} else if(current.size            ==   0  && strcmp(line, "Size")           == 0) {
 						current.size = atoi(sep);
+					} else if(                                   strcmp(line, "Provides")       == 0) {
+						sep = strtok(sep, ", ");
+						sql[0] = '\0';
+						strncpy(sql, "INSERT INTO virtual_packages (package, is_really) VALUES(", sizeof(sql));
+						quotecat(sql, sep, sizeof(sql), 1);
+						quotecat(sql, current.package, sizeof(sql), 0);
+						strncat(sql, ");", sizeof(sql));
+						safe_execute(db, sql);
+						while((sep = strtok(NULL, ", ")) != NULL) {
+							sql[0] = '\0';
+							strncpy(sql, "INSERT INTO virtual_packages (package, is_really) VALUES(", sizeof(sql));
+							quotecat(sql, sep, sizeof(sql), 1);
+							quotecat(sql, current.package, sizeof(sql), 0);
+							strncat(sql, ");", sizeof(sql));
+							safe_execute(db, sql);
+						}
 					} else if(                                   strcmp(line, "Depends")        == 0) {
 						parse_depends(db, current.package, sep);
 					} else if(                                   strcmp(line, "Description")    == 0) {

@@ -64,9 +64,15 @@ def install(pkg, interactive=false)
 
 	$db.execute("SELECT depend,version FROM depends WHERE package='#{SQLite3::Database::quote(pkg)}'") do |row|
 		next if $done[row['depend']] && $done[row['depend']] >= VersionNumber.new(row['version'])
-		available = $db.execute("SELECT version FROM packages WHERE package='#{SQLite3::Database::quote(row['depend'])}' LIMIT 1")[0]['version'] rescue nil
-		if available && VersionNumber.new(available) >= VersionNumber.new(row['version'])
-			if status = install(row['depend'], interactive) < 0
+		available = $db.execute("SELECT package,version FROM packages WHERE package='#{SQLite3::Database::quote(row['depend'])}' LIMIT 1")[0] rescue nil
+		unless available
+			available = $db.execute("SELECT is_really FROM virtual_packages WHERE package='#{SQLite3::Database::quote(row['depend'])}' LIMIT 1")[0]['is_really'] rescue nil
+			if available
+				available = $db.execute("SELECT package,version FROM packages WHERE package='#{SQLite3::Database::quote(available)}' LIMIT 1")[0] rescue nil
+			end
+		end
+		if available && VersionNumber.new(available['version']) >= VersionNumber.new(row['version'])
+			if status = install(row['package'], interactive) < 0
 				return status
 			end
 		else
