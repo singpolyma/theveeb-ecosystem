@@ -3,7 +3,7 @@ catch {package require tile}
 if [catch {ttk::setTheme tilegtk}] {
 	catch {ttk::setTheme tileqt}
 }
-catch {namespace import -force ttk::*}
+#catch {namespace import -force ttk::*}
 source scrollable.tcl
 
 # Get the main scrollable canvas
@@ -35,10 +35,12 @@ set pkgs [split [exec search/search ""] "\n"]
 set i 0
 foreach {item} $pkgs {
 	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status name version desc
-	set cb [checkbutton ${canvas}.frame.check$i]
-	set icon [canvas $canvas.frame.icon$i -height 24 -width 24 -background blue]
-	set name [label ${canvas}.frame.desc$i -text $name]
-	set desc [label ${canvas}.frame.longer$i -text $desc]
+	frame ${canvas}.frame.row$i -highlightbackground "#abc" -highlightthickness 2 -background blue
+	pack ${canvas}.frame.row$i -side top -fill x
+	set cb [checkbutton ${canvas}.frame.row$i.check]
+	set icon [canvas $canvas.frame.row$i.icon -height 24 -width 24 -background blue]
+	set name [label ${canvas}.frame.row$i.desc -text $name]
+	set desc [label ${canvas}.frame.row$i.longer -text $desc]
 	# Invoke may be ttk only... may need to catch that
 	if {$status == "U" || $status == "I"} {$cb invoke}
 	grid $cb -column 0 -rowspan 2 -padx 5 -row $i
