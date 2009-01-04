@@ -3,7 +3,7 @@ catch {package require tile}
 if [catch {ttk::setTheme tilegtk}] {
 	catch {ttk::setTheme tileqt}
 }
-#catch {namespace import -force ttk::*}
+catch {namespace import -force ttk::*}
 source scrollable.tcl
 
 # Get the main scrollable canvas
@@ -30,17 +30,29 @@ grid .viewyscroll -sticky ns
 grid rowconfigure . 0 -weight 1
 grid columnconfigure . 0 -weight 1
 
+# Add label to viewarea
+set viewlabel [label ${viewarea}.frame.label -text "Package Description"]
+pack $viewlabel -fill both
+
 set pkgs [split [exec search/search ""] "\n"]
 
 set i 0
 foreach {item} $pkgs {
-	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status name version desc
-	frame ${canvas}.frame.row$i -highlightbackground "#abc" -highlightthickness 2 -background blue
+	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version desc
+	canvas ${canvas}.frame.row$i -highlightbackground "#abc" -highlightthickness 2 -background blue
 	pack ${canvas}.frame.row$i -side top -fill x
 	set cb [checkbutton ${canvas}.frame.row$i.check]
 	set icon [canvas $canvas.frame.row$i.icon -height 24 -width 24 -background blue]
-	set name [label ${canvas}.frame.row$i.desc -text $name]
+	set name [label ${canvas}.frame.row$i.desc -text $pkg]
 	set desc [label ${canvas}.frame.row$i.longer -text $desc]
+
+	# Should get longer info from search eventually
+	set handler "$viewlabel configure -text $pkg"
+	bind ${canvas}.frame.row$i <ButtonPress-1> $handler
+	bind $name <ButtonPress-1> $handler
+	bind $icon <ButtonPress-1> $handler
+	bind $desc <ButtonPress-1> $handler
+
 	# Invoke may be ttk only... may need to catch that
 	if {$status == "U" || $status == "I"} {$cb invoke}
 	grid $cb -column 0 -rowspan 2 -padx 5 -row $i
@@ -49,7 +61,3 @@ foreach {item} $pkgs {
 	grid $desc -column 2 -padx 5 -sticky nw -row [expr {1+$i}]
 	incr i 2
 }
-
-# Add label to viewarea
-set viewlabel [label ${viewarea}.frame.label -text "Package Description"]
-pack $viewlabel -fill both
