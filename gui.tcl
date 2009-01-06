@@ -3,7 +3,7 @@ catch {package require tile}
 if [catch {ttk::setTheme tilegtk}] {
 	catch {ttk::setTheme tileqt}
 }
-catch {namespace import -force ttk::*}
+#catch {namespace import -force ttk::*}
 source scrollable.tcl
 
 # Get the main scrollable canvas
@@ -35,13 +35,15 @@ set viewlabel [label ${viewarea}.frame.label -text "Package Description"]
 pack $viewlabel -fill both
 
 set pkgs [split [exec search/search ""] "\n"]
+puts $pkgs
 
 set i 0
 foreach {item} $pkgs {
 	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version desc
-	canvas ${canvas}.frame.row$i -highlightbackground "#abc" -highlightthickness 2 -background blue
-	pack ${canvas}.frame.row$i -side top -fill x
-	set cb [checkbutton ${canvas}.frame.row$i.check]
+	frame ${canvas}.frame.row$i -highlightbackground "#abc" -highlightthickness 2
+	grid ${canvas}.frame.row$i -sticky nw -row $i
+
+	set cb [checkbutton ${canvas}.frame.row${i}.check -variable check$i]
 	set icon [canvas $canvas.frame.row$i.icon -height 24 -width 24 -background blue]
 	set name [label ${canvas}.frame.row$i.desc -text $pkg]
 	set desc [label ${canvas}.frame.row$i.longer -text $desc]
@@ -53,11 +55,12 @@ foreach {item} $pkgs {
 	bind $icon <ButtonPress-1> $handler
 	bind $desc <ButtonPress-1> $handler
 
-	# Invoke may be ttk only... may need to catch that
 	if {$status == "U" || $status == "I"} {$cb invoke}
+
 	grid $cb -column 0 -rowspan 2 -padx 5 -row $i
 	grid $icon -column 1 -rowspan 2 -padx 5 -row $i
 	grid $name -column 2 -padx 5 -sticky nw -row $i
 	grid $desc -column 2 -padx 5 -sticky nw -row [expr {1+$i}]
+
 	incr i 2
 }
