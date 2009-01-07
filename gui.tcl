@@ -44,12 +44,12 @@ set i 0
 foreach {item} $pkgs {
 	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version desc
 	frame ${canvas}.frame.row$i -highlightbackground "#abc" -highlightthickness 2
-	grid ${canvas}.frame.row$i -sticky nw -row $i
+	grid ${canvas}.frame.row$i -sticky nwe -row $i
 
 	set cb [checkbutton ${canvas}.frame.row${i}.check -variable check$i]
 	set icon [canvas $canvas.frame.row$i.icon -height 24 -width 24 -background blue]
-	set name [label ${canvas}.frame.row$i.desc -text $pkg]
-	set desc [label ${canvas}.frame.row$i.longer -text $desc]
+	set name [label ${canvas}.frame.row$i.desc -text $pkg -anchor w]
+	set desc [label ${canvas}.frame.row$i.longer -text $desc -anchor w]
 
 	# Should get longer info from search eventually
 	set handler "$viewlabel configure -text $pkg"
@@ -62,8 +62,10 @@ foreach {item} $pkgs {
 
 	grid $cb -column 0 -rowspan 2 -padx 5 -row $i
 	grid $icon -column 1 -rowspan 2 -padx 5 -row $i
-	grid $name -column 2 -padx 5 -sticky nw -row $i
-	grid $desc -column 2 -padx 5 -sticky nw -row [expr {1+$i}]
+	grid $name -column 2 -padx 5 -sticky nwe -row $i
+	grid $desc -column 2 -padx 5 -sticky nwe -row [expr {1+$i}]
+
+	grid columnconfigure ${canvas}.frame.row$i 2 -weight 1
 
 	incr i 2
 }
