@@ -1,6 +1,7 @@
 search: search.o
 	gcc -lsqlite3 -o search getopt.o search.o
-	strip -s search
+	#Strip isn't on all systems
+	#strip -s search
 
 getopt.o: getopt.c
 	gcc -c -O3 -Wall -Werror -ansi -pedantic -o getopt.o getopt.c
