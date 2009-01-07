@@ -1,3 +1,5 @@
 #!/bin/sh
 
 echo "TODO: detect windows and link in getopt.*, instead of doing it on every platform."
+
+echo "Detect strip. See http://github.com/singpolyma/xgame/commit/3b2fcb39be4ebff943aa49b35f2a3c2bf13836ac"
