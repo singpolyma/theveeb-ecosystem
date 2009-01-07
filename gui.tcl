@@ -16,7 +16,7 @@ set viewarea [scrollableThing .viewarea]
 $viewarea configure -yscrollcommand {.viewyscroll set}
 scrollbar .viewyscroll -orient vertical -command {$viewarea yview}
 
-# Grid the canvas an scrollbar
+# Grid the canvas and scrollbar
 grid $canvas .yscroll
 grid $canvas -sticky news
 grid .yscroll -sticky ns
