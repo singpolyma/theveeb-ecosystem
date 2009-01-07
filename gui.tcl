@@ -30,6 +30,9 @@ grid .viewyscroll -sticky ns
 grid rowconfigure . 0 -weight 1
 grid columnconfigure . 0 -weight 1
 
+# And make rows fill canvas
+grid columnconfigure ${canvas}.frame 0 -weight 1
+
 # Add label to viewarea
 set viewlabel [label ${viewarea}.frame.label -text "Package Description"]
 pack $viewlabel -fill both
