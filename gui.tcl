@@ -37,7 +37,15 @@ grid columnconfigure ${canvas}.frame 0 -weight 1
 
 # Add label to viewarea
 set tabArea [ttk::notebook ${viewarea}.frame.tabArea]
-set description [label ${tabArea}.label -text "Package Description"]
+
+set description [frame ${tabArea}.description]
+set description.title [label ${description}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
+set description.caption [label ${description}.caption -textvariable currentPackage(caption) -justify left]
+set description.longText [label ${description}.longText -textvariable currentPackage(longText) -justify left]
+grid ${description.title} -sticky nw
+grid ${description.caption} -sticky nw
+grid ${description.longText} -sticky nwes
+
 set reviews [frame ${tabArea}.review]
 set feedback [frame ${tabArea}.feedback]
 
@@ -53,17 +61,19 @@ puts $pkgs
 set i 0
 set highlightedrow 0
 foreach {item} $pkgs {
-	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version desc
+	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version descText
 	canvas ${canvas}.frame.row$i -highlightbackground #abc -highlightthickness 0
 	grid ${canvas}.frame.row$i -pady 2 -sticky nwe -row $i
 
 	set cb [checkbutton ${canvas}.frame.row${i}.check -variable check$i]
 	set icon [canvas $canvas.frame.row$i.icon -height 24 -width 24 -background blue]
 	set name [label ${canvas}.frame.row$i.desc -text $pkg -anchor w -font TkHeadingFont]
-	set desc [label ${canvas}.frame.row$i.longer -text $desc -anchor w]
+	set desc [label ${canvas}.frame.row$i.longer -text $descText -anchor w]
 
 	# Should get longer info from search eventually
-	set handler "$description configure -text $pkg
+	set handler "set currentPackage(title) {$pkg}
+	             set currentPackage(caption) {$descText}
+	             set currentPackage(longText) {This is where the long description of the package should go.\n For example:\n This pacakge is $pkg, it is a $descText}
 	             ${canvas}.frame.row\$highlightedrow configure -highlightthickness 0
 	             set highlightedrow $i
 	             ${canvas}.frame.row$i configure -highlightthickness 2
