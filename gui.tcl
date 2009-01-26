@@ -1,7 +1,9 @@
 package require Tk
 catch {package require tile}
-if [catch {ttk::setTheme tilegtk}] {
-	catch {ttk::setTheme tileqt}
+if [catch {ttk::setTheme aqua}] {
+	if [catch {ttk::setTheme tilegtk}] {
+		catch {ttk::setTheme tileqt}
+	}
 }
 catch {namespace import -force ttk::*}
 source scrollable.tcl
