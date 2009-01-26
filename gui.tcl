@@ -59,7 +59,7 @@ foreach {item} $pkgs {
 
 	set cb [checkbutton ${canvas}.frame.row${i}.check -variable check$i]
 	set icon [canvas $canvas.frame.row$i.icon -height 24 -width 24 -background blue]
-	set name [label ${canvas}.frame.row$i.desc -text $pkg -anchor w]
+	set name [label ${canvas}.frame.row$i.desc -text $pkg -anchor w -font TkHeadingFont]
 	set desc [label ${canvas}.frame.row$i.longer -text $desc -anchor w]
 
 	# Should get longer info from search eventually
