@@ -36,8 +36,16 @@ grid columnconfigure . 0 -weight 1
 grid columnconfigure ${canvas}.frame 0 -weight 1
 
 # Add label to viewarea
-set viewlabel [label ${viewarea}.frame.label -text "Package Description"]
-pack $viewlabel -fill both
+set tabArea [ttk::notebook ${viewarea}.frame.tabArea]
+set description [label ${tabArea}.label -text "Package Description"]
+set reviews [frame ${tabArea}.review]
+set feedback [frame ${tabArea}.feedback]
+
+$tabArea add $description -text "Package Description" -sticky news
+$tabArea add $reviews -text "Reviews" -state disabled -sticky news
+$tabArea add $feedback -text "Feedback" -state disabled -sticky news
+
+pack $tabArea -fill both -expand 1 -side top
 
 set pkgs [split [exec search/search ""] "\n"]
 puts $pkgs
@@ -55,7 +63,7 @@ foreach {item} $pkgs {
 	set desc [label ${canvas}.frame.row$i.longer -text $desc -anchor w]
 
 	# Should get longer info from search eventually
-	set handler "$viewlabel configure -text $pkg
+	set handler "$description configure -text $pkg
 	             ${canvas}.frame.row\$highlightedrow configure -highlightthickness 0
 	             set highlightedrow $i
 	             ${canvas}.frame.row$i configure -highlightthickness 2
