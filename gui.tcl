@@ -8,6 +8,59 @@ if [catch {ttk::setTheme aqua}] {
 catch {namespace import -force ttk::*}
 source scrollable.tcl
 
+proc clearScrollableThing {widget} {
+	foreach item [grid slaves ${widget}.frame] {
+		grid forget $item
+		destroy $item
+	}
+}
+
+proc drawPackageList {destination data} {
+	global highlightedrow
+	set i 0
+	set highlightedrow 0
+	foreach {item} $data {
+		regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version descText
+
+		canvas ${destination}.frame.row$i -highlightbackground #abc -highlightthickness 0
+		grid ${destination}.frame.row$i -pady 2 -sticky nwe -row $i
+
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable check$i]
+		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
+		set name [label ${destination}.frame.row$i.desc -text $pkg -anchor w -font TkHeadingFont]
+		set desc [label ${destination}.frame.row$i.longer -text $descText -anchor w]
+
+		# Should get longer info from search eventually
+		set handler "set currentPackage(title) {$pkg}
+								 set currentPackage(caption) {$descText}
+								 set currentPackage(longText) {This is where the long description of the package should go.\n For example:\n This pacakge is $pkg, it is a $descText}
+								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
+								 set highlightedrow $i
+								 ${destination}.frame.row$i configure -highlightthickness 2
+								 "
+		bind ${destination}.frame.row$i <ButtonPress-1> $handler
+		bind $name <ButtonPress-1> $handler
+		bind $icon <ButtonPress-1> $handler
+		bind $desc <ButtonPress-1> $handler
+
+		#This had to be changed, invoke was toggling it, which worked the first time, but toggled every time after that.
+		if {$status == "U" || $status == "I"} {
+			$cb select
+		} else {
+			$cb deselect
+		}
+
+		grid $cb -column 0 -rowspan 2 -padx 5 -row $i
+		grid $icon -column 1 -rowspan 2 -padx 5 -row $i
+		grid $name -column 2 -padx 5 -pady 2 -sticky nwe -row $i
+		grid $desc -column 2 -padx 5 -pady 2 -sticky nwe -row [expr {1+$i}]
+
+		grid columnconfigure ${destination}.frame.row$i 2 -weight 1
+
+		incr i 2
+	}
+}
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
 $canvas configure -yscrollcommand {.yscroll set}
@@ -58,39 +111,4 @@ pack $tabArea -fill both -expand 1 -side top
 set pkgs [split [exec search/search ""] "\n"]
 puts $pkgs
 
-set i 0
-set highlightedrow 0
-foreach {item} $pkgs {
-	regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version descText
-	canvas ${canvas}.frame.row$i -highlightbackground #abc -highlightthickness 0
-	grid ${canvas}.frame.row$i -pady 2 -sticky nwe -row $i
-
-	set cb [checkbutton ${canvas}.frame.row${i}.check -variable check$i]
-	set icon [canvas $canvas.frame.row$i.icon -height 24 -width 24 -background blue]
-	set name [label ${canvas}.frame.row$i.desc -text $pkg -anchor w -font TkHeadingFont]
-	set desc [label ${canvas}.frame.row$i.longer -text $descText -anchor w]
-
-	# Should get longer info from search eventually
-	set handler "set currentPackage(title) {$pkg}
-	             set currentPackage(caption) {$descText}
-	             set currentPackage(longText) {This is where the long description of the package should go.\n For example:\n This pacakge is $pkg, it is a $descText}
-	             ${canvas}.frame.row\$highlightedrow configure -highlightthickness 0
-	             set highlightedrow $i
-	             ${canvas}.frame.row$i configure -highlightthickness 2
-	             "
-	bind ${canvas}.frame.row$i <ButtonPress-1> $handler
-	bind $name <ButtonPress-1> $handler
-	bind $icon <ButtonPress-1> $handler
-	bind $desc <ButtonPress-1> $handler
-
-	if {$status == "U" || $status == "I"} {$cb invoke}
-
-	grid $cb -column 0 -rowspan 2 -padx 5 -row $i
-	grid $icon -column 1 -rowspan 2 -padx 5 -row $i
-	grid $name -column 2 -padx 5 -pady 2 -sticky nwe -row $i
-	grid $desc -column 2 -padx 5 -pady 2 -sticky nwe -row [expr {1+$i}]
-
-	grid columnconfigure ${canvas}.frame.row$i 2 -weight 1
-
-	incr i 2
-}
+drawPackageList $canvas $pkgs
