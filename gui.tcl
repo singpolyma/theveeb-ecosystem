@@ -61,6 +61,15 @@ proc drawPackageList {destination data} {
 	}
 }
 
+proc getPackList {text} {
+	return [split [exec search/search $text] "\n"]
+}
+
+proc filter {list text} {
+	clearScrollableThing $list
+	drawPackageList $list [getPackList $text]
+}
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
 $canvas configure -yscrollcommand {.yscroll set}
@@ -70,6 +79,19 @@ scrollbar .yscroll -orient vertical -command {$canvas yview}
 set viewarea [scrollableThing .viewarea]
 $viewarea configure -yscrollcommand {.viewyscroll set}
 scrollbar .viewyscroll -orient vertical -command {$viewarea yview}
+
+# Make the search area.
+set searchArea [frame .searchArea]
+set searchBar [entry ${searchArea}.bar -width 20 -textvariable searchQuery]
+set searchButton [button ${searchArea}.button -text "Search" -command {filter $canvas $searchQuery}]
+bind $searchBar <Return> "$searchButton invoke"
+grid $searchBar $searchButton
+grid $searchBar -sticky ew
+grid $searchButton -sticky e
+grid columnconfigure $searchArea 0 -weight 1
+
+# Grid the search box
+grid $searchArea - -sticky ew
 
 # Grid the canvas and scrollbar
 grid $canvas .yscroll
@@ -108,7 +130,7 @@ $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
 
-set pkgs [split [exec search/search ""] "\n"]
+set pkgs [getPackList ""]
 puts $pkgs
 
 drawPackageList $canvas $pkgs
