@@ -17,6 +17,7 @@ proc clearScrollableThing {widget} {
 
 proc drawPackageList {destination data} {
 	global highlightedrow
+	global selectedPackages
 	set i 0
 	set highlightedrow 0
 	foreach {item} $data {
@@ -25,7 +26,17 @@ proc drawPackageList {destination data} {
 		canvas ${destination}.frame.row$i -highlightbackground #abc -highlightthickness 0
 		grid ${destination}.frame.row$i -pady 2 -sticky nwe -row $i
 
-		set cb [checkbutton ${destination}.frame.row${i}.check -variable check$i]
+		# When reading the database, only use its value if we haven't already picked one
+		# This fixes the problem where anytime the list is reread it would clobber your selection changes.
+		if {![info exists selectedPackages($pkg)]} {
+			if {$status == "U" || $status == "I"} {
+				set selectedPackages($pkg) 1
+			} else {
+				set selectedPackages($pkg) 0
+			}
+		}
+
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($pkg)]
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
 		set name [label ${destination}.frame.row$i.desc -text $pkg -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $descText -anchor w]
@@ -42,13 +53,6 @@ proc drawPackageList {destination data} {
 		bind $name <ButtonPress-1> $handler
 		bind $icon <ButtonPress-1> $handler
 		bind $desc <ButtonPress-1> $handler
-
-		#This had to be changed, invoke was toggling it, which worked the first time, but toggled every time after that.
-		if {$status == "U" || $status == "I"} {
-			$cb select
-		} else {
-			$cb deselect
-		}
 
 		grid $cb -column 0 -rowspan 2 -padx 5 -row $i
 		grid $icon -column 1 -rowspan 2 -padx 5 -row $i
