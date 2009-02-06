@@ -28,6 +28,7 @@ void help() {
 "   QUERY           Pattern to search for\n"
 "   -h              help menu (this screen)\n"
 "   -l              list (search package names only)\n"
+"   -v              verbose (more complete output)\n"
 "   -d[path]        path to database file\n"
 	);
 	exit(EXIT_FAILURE);
@@ -51,14 +52,30 @@ int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 	return 0;
 }
 
+/* Callback for query: print row (verbose) */
+int print_results_verbose(void * dummy, int field_count, char ** row, char ** fields) {
+	if(dummy && field_count && fields) {} /* Supress "unused parameters" warning. */
+	printf("Package: %s\n", row[1]);
+	if(row[0] != NULL) {
+		switch(atoi(row[0])) {
+			case 1: puts("Status: installed"); break;
+			case -1: puts("Status: update available"); break;
+		}
+	} else {
+		puts("Status: not installed");
+	}
+	printf("Version: %s\n", row[2]);
+	printf("Description: %s\n", row[3]);
+	puts("");
+	return 0;
+}
+
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char sql[200] = "\0";
 	char * query = NULL;
 	int verbose = 0;
 	int c;
-
-	/* TODO: support -v, show instead of list */
 
 	while((c = getopt(argc, argv, "-lvhd:")) != -1) {
 		switch(c) {
@@ -109,9 +126,16 @@ int main (int argc, char ** argv) {
 		}
 	}
 
-	if(sqlite3_exec(db, sql, &print_results, NULL, NULL) != 0) {
-		fprintf(stderr, "Malformed query (The specified database may not exist).\n");
-		exit(EXIT_FAILURE);
+	if(verbose) {
+		if(sqlite3_exec(db, sql, &print_results_verbose, NULL, NULL) != 0) {
+			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		if(sqlite3_exec(db, sql, &print_results, NULL, NULL) != 0) {
+			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	if(sqlite3_close(db) != 0) {
