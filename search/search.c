@@ -37,6 +37,7 @@ void help() {
 int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 	char status = ' ';
 	char * end;
+	if(dummy && field_count && fields) {} /* Supress "unused parameters" warning. */
 	if((end = strchr(row[3], '\n'))) {
 		*end = '\0';
 	}
@@ -54,27 +55,29 @@ int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char sql[200] = "\0";
 	char * query = NULL;
+	int verbose = 0;
 	int c;
 
 	/* TODO: support -v, show instead of list */
 
-	while((c = getopt(argc, argv, "-lhd:")) != -1) {
+	while((c = getopt(argc, argv, "-lvhd:")) != -1) {
 		switch(c) {
-			case 'l':
+			case 'l': /* Search package names only */
 				sql[0] = 1;
 				break;
-			case 'h':
-				help();
+			case 'v':
+				verbose = 1;
 				break;
-			case 'd':
+			case 'd': /* Specify database */
 				if(sqlite3_open(optarg, &db) != 0) {
 					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 					exit(EXIT_FAILURE);
 				}
 				break;
-			case '\1':
+			case '\1': /* Search query */
 				query = optarg;
 				break;
+			case 'h': /* Usage message and exit */
 			default:
 				help();
 		}
