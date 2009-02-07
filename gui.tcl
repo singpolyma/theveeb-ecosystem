@@ -114,7 +114,16 @@ grid $searchButton -sticky e
 grid columnconfigure $searchArea 0 -weight 1
 
 # Grid the search box
-grid $searchArea - -sticky ew
+grid $searchArea -sticky ew
+
+# Make the category box
+set categoryArea [frame .categoryArea]
+set categoryLabel [label ${categoryArea}.categoryLabel -text "Category: "]
+set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value [list All Blah Blanch Drake]]
+grid $categoryLabel $categoryCombo
+
+# Grid the category area
+grid $categoryArea -sticky ew
 
 # Grid the canvas and scrollbar
 grid $canvas .yscroll
