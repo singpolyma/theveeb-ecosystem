@@ -119,7 +119,8 @@ grid $searchArea -sticky ew
 # Make the category box
 set categoryArea [frame .categoryArea]
 set categoryLabel [label ${categoryArea}.categoryLabel -text "Category: "]
-set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value [list All Blah Blanch Drake]]
+set categoryList [list All ActionGame AdventureGame ArcadeGame BoardGame BlocksGame CardGame KidsGame LogicGame RolePlaying Simulation SportsGame StrategyGame]
+set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value $categoryList]
 grid $categoryLabel $categoryCombo
 
 # Grid the category area
