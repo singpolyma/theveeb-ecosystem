@@ -139,6 +139,5 @@ $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 pack $tabArea -fill both -expand 1 -side top
 
 set pkgs [getPackList ""]
-puts $pkgs
 
 drawPackageList $canvas $pkgs
