@@ -73,22 +73,27 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
-	char sql[200] = "\0";
+	char sql[250] = "\0";
 	char * query = NULL;
+	char * include_cats = NULL;
+	char * exclude_cats = NULL;
 	char * order_by = "package";
 	int verbose = 0;
 	int c;
 
-	/* TODO: include/exclude category and section switch.  -icat,sect -xcat,sect
-    */
-
-	while((c = getopt(argc, argv, "-lvhs:d:")) != -1) {
+	while((c = getopt(argc, argv, "-lvhi:x:s:d:")) != -1) {
 		switch(c) {
 			case 'l': /* Search package names only */
 				sql[0] = 1;
 				break;
 			case 'v':
 				verbose = 1;
+				break;
+			case 'i':
+				include_cats = optarg;
+				break;
+			case 'x':
+				exclude_cats = optarg;
 				break;
 			case 's':
 				order_by = optarg;
@@ -114,7 +119,7 @@ int main (int argc, char ** argv) {
 	}
 
 	if(query == NULL) {
-		sprintf(sql, "SELECT status,package,version,description FROM packages ORDER BY %s", order_by);
+		strcpy(sql, "SELECT status,package,version,description FROM packages WHERE 1=1");
 	} else {
 		if(strchr(query, '\'') != NULL) {
 			fprintf(stderr, "Malformed query (single-quote not allowed).\n");
@@ -128,11 +133,30 @@ int main (int argc, char ** argv) {
 		}
 
 		if(sql[0] == '\0') {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%' OR description LIKE '%%%s%%' ORDER BY %s", query, query, order_by);
+			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
 		} else {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%' ORDER BY %s", query, order_by);
+			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%'", query);
 		}
 	}
+
+	if(include_cats) {
+		strcat(sql, " AND (section='");
+		strcat(sql, include_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, "' OR category='");
+		strcat(sql, include_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, "')");
+	}
+
+	if(exclude_cats) {
+		strcat(sql, " AND (section!='");
+		strcat(sql, exclude_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, "' AND category!='");
+		strcat(sql, exclude_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, "')");
+	}
+
+	strcat(sql, " ORDER BY ");
+	strcat(sql, order_by);
 
 	if(verbose) {
 		if(sqlite3_exec(db, sql, &print_results_verbose, NULL, NULL) != 0) {
