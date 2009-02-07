@@ -121,7 +121,7 @@ set tabArea [ttk::notebook ${viewarea}.frame.tabArea]
 set description [frame ${tabArea}.description]
 set description.title [label ${description}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
 set description.caption [label ${description}.caption -textvariable currentPackage(caption) -justify left]
-set description.longText [label ${description}.longText -textvariable currentPackage(longText) -justify left]
+set description.longText [label ${description}.longText -textvariable currentPackage(longText) -justify left -anchor w]
 
 bind . <Configure> [concat [list ${description.longText} configure -wraplength ] {[winfo width .]}]
 
