@@ -77,6 +77,10 @@ int main (int argc, char ** argv) {
 	int verbose = 0;
 	int c;
 
+	/* TODO: include/exclude category and section switch.  -icat,sect -xcat,sect
+    *       -s rating (sort by rating)
+    */
+
 	while((c = getopt(argc, argv, "-lvhd:")) != -1) {
 		switch(c) {
 			case 'l': /* Search package names only */
