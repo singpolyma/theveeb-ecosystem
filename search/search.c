@@ -29,6 +29,7 @@ void help() {
 "   -h              help menu (this screen)\n"
 "   -l              list (search package names only)\n"
 "   -v              verbose (more complete output)\n"
+"   -s[field]       field to sort by\n"
 "   -d[path]        path to database file\n"
 	);
 	exit(EXIT_FAILURE);
@@ -74,16 +75,23 @@ int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char sql[200] = "\0";
 	char * query = NULL;
+	char * order_by = "package";
 	int verbose = 0;
 	int c;
 
-	while((c = getopt(argc, argv, "-lvhd:")) != -1) {
+	/* TODO: include/exclude category and section switch.  -icat,sect -xcat,sect
+    */
+
+	while((c = getopt(argc, argv, "-lvhs:d:")) != -1) {
 		switch(c) {
 			case 'l': /* Search package names only */
 				sql[0] = 1;
 				break;
 			case 'v':
 				verbose = 1;
+				break;
+			case 's':
+				order_by = optarg;
 				break;
 			case 'd': /* Specify database */
 				if(sqlite3_open(optarg, &db) != 0) {
@@ -106,7 +114,7 @@ int main (int argc, char ** argv) {
 	}
 
 	if(query == NULL) {
-		strcpy(sql, "SELECT status,package,version,description FROM packages");
+		sprintf(sql, "SELECT status,package,version,description FROM packages ORDER BY %s", order_by);
 	} else {
 		if(strchr(query, '\'') != NULL) {
 			fprintf(stderr, "Malformed query (single-quote not allowed).\n");
@@ -120,9 +128,9 @@ int main (int argc, char ** argv) {
 		}
 
 		if(sql[0] == '\0') {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%' OR description LIKE '%%%s%%'", query, query);
+			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%' OR description LIKE '%%%s%%' ORDER BY %s", query, query, order_by);
 		} else {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%'", query);
+			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%' ORDER BY %s", query, order_by);
 		}
 	}
 
