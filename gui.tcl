@@ -21,30 +21,30 @@ proc drawPackageList {destination data} {
 	set i 0
 	set highlightedrow 0
 	foreach {item} $data {
-		regexp {^(.)\s+(.+?)\s+(.+?)\s+(.+)$} $item matches status pkg version descText
+		array set temp $item
 
 		canvas ${destination}.frame.row$i -highlightbackground #abc -highlightthickness 0
 		grid ${destination}.frame.row$i -pady 2 -sticky nwe -row $i
 
 		# When reading the database, only use its value if we haven't already picked one
 		# This fixes the problem where anytime the list is reread it would clobber your selection changes.
-		if {![info exists selectedPackages($pkg)]} {
-			if {$status == "U" || $status == "I"} {
-				set selectedPackages($pkg) 1
+		if {![info exists selectedPackages($temp(title))]} {
+			if {$temp(status) != "not installed"} {
+				set selectedPackages($temp(title)) 1
 			} else {
-				set selectedPackages($pkg) 0
+				set selectedPackages($temp(title)) 0
 			}
 		}
 
-		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($pkg)]
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(title))]
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
-		set name [label ${destination}.frame.row$i.desc -text $pkg -anchor w -font TkHeadingFont]
-		set desc [label ${destination}.frame.row$i.longer -text $descText -anchor w]
+		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
+		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
 
 		# Should get longer info from search eventually
-		set handler "set currentPackage(title) {$pkg}
-								 set currentPackage(caption) {$descText}
-								 set currentPackage(longText) {This is where the long description of the package should go.\n For example:\n This pacakge is $pkg, it is a $descText}
+		set handler "set currentPackage(title) {$temp(title)}
+								 set currentPackage(caption) {$temp(descText)}
+								 set currentPackage(longText) {$temp(longDesc)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
 								 set highlightedrow $i
 								 ${destination}.frame.row$i configure -highlightthickness 2
@@ -65,8 +65,27 @@ proc drawPackageList {destination data} {
 	}
 }
 
+proc lineTrim {words} {
+	upvar $words temp
+	set temp [string trim $temp]
+	regsub {\s*\n\s*} $temp {\n} temp
+}
+
 proc getPackList {text} {
-	return [split [exec search/search $text] "\n"]
+	set output [split [string map [list "\n\n" \0] [exec search/search -v $text]] \0]
+
+	set packList [list]
+	foreach pack $output {
+		array set temp [list]
+
+		regexp {Package: ([^\n]*)\n} $pack mat temp(title)
+		regexp {Status: ([^\n]*)\n} $pack mat temp(status)
+		regexp {Description: ([^\n]*)\n(.*)} $pack mat temp(descText) temp(longDesc)
+		lineTrim temp(longDesc)
+
+		lappend packList [array get temp]
+	}
+	return $packList
 }
 
 proc filter {list text} {
@@ -121,9 +140,9 @@ set tabArea [ttk::notebook ${viewarea}.frame.tabArea]
 set description [frame ${tabArea}.description]
 set description.title [label ${description}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
 set description.caption [label ${description}.caption -textvariable currentPackage(caption) -justify left]
-set description.longText [label ${description}.longText -textvariable currentPackage(longText) -justify left]
+set description.longText [label ${description}.longText -textvariable currentPackage(longText) -justify left -anchor w]
 
-bind . <Configure> [concat [list ${description.longText} configure -wraplength ] {[winfo width .]}]
+bind . <Configure> [concat [list ${description.longText} configure -wraplength ] {[expr {[winfo width .]-20}]}]
 
 grid ${description.title} -sticky nw
 grid ${description.caption} -sticky nw
@@ -139,6 +158,5 @@ $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 pack $tabArea -fill both -expand 1 -side top
 
 set pkgs [getPackList ""]
-puts $pkgs
 
 drawPackageList $canvas $pkgs
