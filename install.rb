@@ -116,6 +116,7 @@ def install(pkg, interactive=false)
 	end
 	if doit
 		# TODO: add oauth stuff
+		# TODO: log what files get added so that removal can be done
 		fh = Tempfile.new($0)
 		fh.write open(package['remote_path']).read
 		fh.close
