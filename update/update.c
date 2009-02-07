@@ -233,11 +233,13 @@ int main(int argc, char ** argv) {
 	safe_execute(db, "CREATE TABLE IF NOT EXISTS packages " \
 	                 "(package TEXT PRIMARY KEY, version TEXT, maintainer TEXT," \
 	                 " installed_size INTEGER, size INTEGER, homepage TEXT," \
-	                 " section TEXT, remote_path TEXT, md5 TEXT, description TEXT," \
-	                 " status INTEGER);" \
+	                 " section TEXT, category TEXT, remote_path TEXT, md5 TEXT, description TEXT," \
+	                 " status INTEGER, rating INTEGER);" \
 	                 "CREATE TABLE IF NOT EXISTS virtual_packages (package TEXT PRIMARY KEY, is_really TEXT);" \
 	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
 	            );
+	/* TODO: fetch ratings from yet-to-be-written API. 
+    *       get list of categories and write parsings. */
 
 	if(!chained_call) {
 		safe_execute(db, "DELETE FROM virtual_packages;");
