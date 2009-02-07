@@ -24,6 +24,7 @@
  * because order is not guarenteed */
 struct Package {
 	char package       [  50]; /* In Ubuntu, largest is 41 */
+	char name          [  50]; /* Human readable name, size is similar to package */
 	char version       [  50]; /* Plenty large */
 	char section       [  50]; /* Plenty large */
 	char md5           [  32]; /* MD5s are 32 characters */
@@ -31,8 +32,8 @@ struct Package {
 	char remote_path   [ 256]; /* In Ubuntu, largest subpath is 106 */
 	char homepage      [ 256]; /* URLs are specced to a max length of 255 */
 	char description   [3000]; /* In Ubuntu, lagest is > 20000, way too rediculous. Most are < 3000 */
-	int installed_size      ;
-	int size                ;
+	int installed_size       ;
+	int size                 ;
 };
 
 static int print_sql = 0;
@@ -132,8 +133,9 @@ void parse_depends(sqlite3 * db, char * package, char * sep) {
 
 /* Generate SQL statement to insert a package */
 void package_insert_sql(struct Package * current, char * sql, size_t size) {
-	strncpy(sql, "INSERT INTO packages (package, version, maintainer, homepage, section, remote_path, md5, description, installed_size, size) VALUES (", size);
+	strncpy(sql, "INSERT INTO packages (package, name, version, maintainer, homepage, section, remote_path, md5, description, installed_size, size) VALUES (", size);
 	quotecat(sql, current->package,     size, 1);
+	quotecat(sql, current->name,        size, 1);
 	quotecat(sql, current->version,     size, 1);
 	quotecat(sql, current->maintainer,  size, 1);
 	quotecat(sql, current->homepage,    size, 1);
@@ -148,6 +150,8 @@ void package_insert_sql(struct Package * current, char * sql, size_t size) {
 void package_update_sql(struct Package * current, char * sql, size_t size) {
 	strncpy(sql, "UPDATE packages SET version=", size);
 	quotecat(sql, current->version,     size, 1);
+	strncat (sql, "name=",   size);
+	quotecat(sql, current->name,  size, 1);
 	strncat (sql, "maintainer=",   size);
 	quotecat(sql, current->maintainer,  size, 1);
 	strncat (sql, "homepage=",     size);
@@ -183,7 +187,7 @@ int main(int argc, char ** argv) {
 	char * sep;
 	char baseurl[256] = "\0";
 	sqlite3 * db = NULL;
-	struct Package current = {"","","","","","","","",0,0};
+	struct Package current = {"","","","","","","","","",0,0};
 	char line[sizeof(current.homepage)]; /* No line will be larger than the largest field */
 	int code;
 	int chained_call = 0;
@@ -231,7 +235,7 @@ int main(int argc, char ** argv) {
 
 	/* Create tables if they do not exist */
 	safe_execute(db, "CREATE TABLE IF NOT EXISTS packages " \
-	                 "(package TEXT PRIMARY KEY, version TEXT, maintainer TEXT," \
+	                 "(package TEXT PRIMARY KEY, name TEXT, version TEXT, maintainer TEXT," \
 	                 " installed_size INTEGER, size INTEGER, homepage TEXT," \
 	                 " section TEXT, category TEXT, remote_path TEXT, md5 TEXT, description TEXT," \
 	                 " status INTEGER, rating INTEGER);" \
@@ -275,7 +279,7 @@ int main(int argc, char ** argv) {
 
 			/* Reset things */
 			code = 0;
-			memset(&current, 0, sizeof(current));
+			memset(&current, 0, sizeof(current)); /* XXX: This may not be portable */
 		} else {
 			/* Chomp */
 			if((sep = strchr(line, '\n'))) {
@@ -295,6 +299,8 @@ int main(int argc, char ** argv) {
 					 * this is it. Copy remainder of line into struct */
 					if(       current.package[0]      == '\0' && strcmp(line, "Package")        == 0) {
 						strncpy(current.package,     sep, sizeof(current.package)-1);
+					} else if(current.name[0]         == '\0' && strcmp(line, "Name")           == 0) {
+						strncpy(current.name,        sep, sizeof(current.name)-1);
 					} else if(current.version[0]      == '\0' && strcmp(line, "Version")        == 0) {
 						strncpy(current.version,     sep, sizeof(current.version)-1);
 					} else if(current.section[0]      == '\0' && strcmp(line, "Section")        == 0) {
