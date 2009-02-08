@@ -38,24 +38,22 @@ void md5(char * dst, char * src, int len) {
 
 int main(int argc, char *argv[]) {
 	char out[33]; /* MD5 is 32 + \0 */
-	char * string = NULL;
-	int bufsize = 0;
+	char * string = malloc(1*sizeof(*string));
+	int bufsize = 1;
 	int len = 0;
-	int c;
+	int nread = 0;
 	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-')) {
 		/* Don't treat it as a string, because it may be binary data */
-		while((c = fgetc(stdin)) != EOF) {
-			if(bufsize == len) {
-				bufsize = 2*(bufsize+1)*sizeof(*string);
-				string = realloc(string, bufsize);
-				if(!string) {
-					fputs("Failed to allocate memory\n", stderr);
-					exit(EXIT_FAILURE);
-				}
+		while((nread = fread(string+len, 1, bufsize-len, stdin)) == (bufsize-len)) { 
+			len = bufsize;
+			bufsize = 2*(bufsize+1)*sizeof(*string);
+			string = realloc(string, bufsize);
+			if(!string) {
+				fputs("Failed to allocate memory\n", stderr);
+				exit(EXIT_FAILURE);
 			}
-			string[len] = (char)c;
-			len++;
-		}
+		} 
+		len += nread;
 	} else {
 		string = argv[1];
 		len = strlen(string);
