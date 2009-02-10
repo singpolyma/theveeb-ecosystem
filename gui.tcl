@@ -105,6 +105,28 @@ proc filter {listWidget text category} {
 	drawPackageList $listWidget [getPackList $text $category]
 }
 
+proc categoryUpdate {path} {
+	global filterCategory
+	global filterCategoryDisplayNameMap
+	# Get the data from the comboBox
+	# Convert from the view value to the data value
+	set filterCategory $filterCategoryDisplayNameMap([$path get])
+	# If the value is "All"
+	if {$filterCategory == ""} {
+		# Set the value to be "Category"
+		$path set "Category"
+	}
+	# Filter
+	getDataAndFilter
+}
+
+proc getDataAndFilter {} {
+	global canvas 
+	global searchQuery
+	global filterCategory
+	filter $canvas $searchQuery $filterCategory
+}
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
 $canvas configure -yscrollcommand {.yscroll set}
@@ -118,7 +140,7 @@ scrollbar .viewyscroll -orient vertical -command {$viewarea yview}
 # Make the search area.
 set searchArea [frame .searchArea]
 set searchBar [entry ${searchArea}.bar -width 20 -textvariable searchQuery]
-set searchButton [button ${searchArea}.button -text "Search" -command {filter $canvas $searchQuery ""}]
+set searchButton [button ${searchArea}.button -text "Search" -command getDataAndFilter]
 bind $searchBar <Return> "$searchButton invoke"
 grid $searchBar $searchButton
 grid $searchBar -sticky ew
@@ -131,8 +153,14 @@ grid $searchArea -sticky ew
 # Make the category box
 set categoryArea [frame .categoryArea]
 set categoryLabel [label ${categoryArea}.categoryLabel -text "Category: "]
-set categoryList [list All ActionGame AdventureGame ArcadeGame BoardGame BlocksGame CardGame KidsGame LogicGame RolePlaying Simulation SportsGame StrategyGame]
+# Set the map that maps from display name to data name
+array set filterCategoryDisplayNameMap [list Action actiongame Adventure adventuregame Arcade arcadegame "Board Game" boardgame "Blocks Game" blocksgame "Card Game" cardgame "Kids" kidsgame "Logic" logicgame "Role Playing" roleplaying Simulation simulation Sports sportsgame Strategy strategy]
+# Then get the sorted list of categories, with "All" at the start
+set categoryList [concat All [lsort [array names filterCategoryDisplayNameMap]]]
+# Add the mapping form "All" to the filter
+set filterCategoryDisplayNameMap(All) ""
 set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value $categoryList]
+bind $categoryCombo <<ComboboxSelected>> {categoryUpdate %W}
 grid $categoryLabel $categoryCombo
 
 # Grid the category area
@@ -178,6 +206,10 @@ $tabArea add $reviews -text "Reviews" -state disabled -sticky news
 $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
+
+# Initialize Filter
+set searchQuery ""
+set filterCategory ""
 
 set pkgs [getPackList "" ""]
 
