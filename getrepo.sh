@@ -93,7 +93,7 @@ while read LINE ; do
 					if $GET "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
 						#Verify size and MD5 from Release file
 						size="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f3`"
-						realsize="`ls -l Packages.gz | sed -e 's/[^ ]* [^ ] [^ ]* [^ ]* \([^ ]*\).*/\1/g'`"
+						realsize="`ls -l Packages.gz | awk '{print $5}'`"
 						if [ "$size" != "$realsize" ]; then
 							echo "ERROR: size of Packages.gz does not match" 1>&2
 							exit 1
