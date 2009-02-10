@@ -179,8 +179,8 @@ grid $viewarea -sticky news
 grid .viewyscroll -sticky ns
 
 # Make grid fill window
-grid rowconfigure . 1 -weight 1
 grid rowconfigure . 2 -weight 1
+grid rowconfigure . 3 -weight 1
 grid columnconfigure . 0 -weight 1
 
 # And make rows fill canvas
