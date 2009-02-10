@@ -115,6 +115,7 @@ proc categoryUpdate {path} {
 	if {$filterCategory == ""} {
 		# Set the value to be "Category"
 		$path set "Category"
+		$path selection clear
 	}
 	# Filter
 	getDataAndFilter
