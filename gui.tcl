@@ -72,15 +72,24 @@ proc lineTrim {words} {
 }
 
 proc getPackList {text} {
-	set output [split [string map [list "\n\n" \0] [exec search/search -v $text]] \0]
+	set rawOutput [exec search/search -v $text]
+	set output [split [string map [list "\n\n" \0] $rawOutput] \0]
 
 	set packList [list]
 	foreach pack $output {
 		array set temp [list]
 
-		regexp {Package: ([^\n]*)\n} $pack mat temp(title)
-		regexp {Status: ([^\n]*)\n} $pack mat temp(status)
-		regexp {Description: ([^\n]*)\n(.*)} $pack mat temp(descText) temp(longDesc)
+		#This part runs all of the parses, and if any of them fail the error part runs
+		if {!(
+			[regexp {Package: ([^\n]*)\n} $pack mat temp(title)] && 
+			[regexp {Status: ([^\n]*)\n} $pack mat temp(status)] &&
+			[regexp {Description: ([^\n]*)\n(.*)} $pack mat temp(descText) temp(longDesc)]
+			)
+		} {
+			# ERROR
+			puts "Package parse error: \n$rawOutput"
+			return [list]
+		}
 		lineTrim temp(longDesc)
 
 		lappend packList [array get temp]
