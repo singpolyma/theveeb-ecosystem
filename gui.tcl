@@ -71,8 +71,11 @@ proc lineTrim {words} {
 	regsub {\s*\n\s*} $temp {\n} temp
 }
 
-proc getPackList {text} {
-	set rawOutput [exec search/search -v $text]
+proc getPackList {text category} {
+	if {$category !=""} {
+		set category "-i$category"
+	}
+	set rawOutput [exec search/search -v $category $text]
 	set output [split [string map [list "\n\n" \0] $rawOutput] \0]
 
 	set packList [list]
@@ -97,9 +100,9 @@ proc getPackList {text} {
 	return $packList
 }
 
-proc filter {list text} {
-	clearScrollableThing $list
-	drawPackageList $list [getPackList $text]
+proc filter {listWidget text category} {
+	clearScrollableThing $listWidget
+	drawPackageList $listWidget [getPackList $text $category]
 }
 
 # Get the main scrollable canvas
@@ -115,7 +118,7 @@ scrollbar .viewyscroll -orient vertical -command {$viewarea yview}
 # Make the search area.
 set searchArea [frame .searchArea]
 set searchBar [entry ${searchArea}.bar -width 20 -textvariable searchQuery]
-set searchButton [button ${searchArea}.button -text "Search" -command {filter $canvas $searchQuery}]
+set searchButton [button ${searchArea}.button -text "Search" -command {filter $canvas $searchQuery ""}]
 bind $searchBar <Return> "$searchButton invoke"
 grid $searchBar $searchButton
 grid $searchBar -sticky ew
@@ -176,6 +179,6 @@ $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
 
-set pkgs [getPackList ""]
+set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
