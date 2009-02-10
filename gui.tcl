@@ -152,7 +152,6 @@ grid $searchArea -sticky ew
 
 # Make the category box
 set categoryArea [frame .categoryArea]
-set categoryLabel [label ${categoryArea}.categoryLabel -text "Category: "]
 # Set the map that maps from display name to data name
 array set filterCategoryDisplayNameMap [list Action actiongame Adventure adventuregame Arcade arcadegame "Board Game" boardgame "Blocks Game" blocksgame "Card Game" cardgame "Kids" kidsgame "Logic" logicgame "Role Playing" roleplaying Simulation simulation Sports sportsgame Strategy strategy]
 # Then get the sorted list of categories, with "All" at the start
@@ -160,8 +159,10 @@ set categoryList [concat All [lsort [array names filterCategoryDisplayNameMap]]]
 # Add the mapping form "All" to the filter
 set filterCategoryDisplayNameMap(All) ""
 set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value $categoryList]
+# Set the categoryCombo boxes value to Category
+$categoryCombo set "Category"
 bind $categoryCombo <<ComboboxSelected>> {categoryUpdate %W}
-grid $categoryLabel $categoryCombo
+grid $categoryCombo
 
 # Grid the category area
 grid $categoryArea -sticky ew
