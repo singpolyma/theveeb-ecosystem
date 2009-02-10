@@ -159,7 +159,14 @@ array set filterCategoryDisplayNameMap [list Action actiongame Adventure adventu
 set categoryList [concat All [lsort [array names filterCategoryDisplayNameMap]]]
 # Add the mapping form "All" to the filter
 set filterCategoryDisplayNameMap(All) ""
-set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value $categoryList]
+# Find the required width of the combobox
+set categoryMaxWidth 0
+foreach item [concat "Category" $categoryList] {
+	if {[string length $item] > $categoryMaxWidth} {
+		set categoryMaxWidth [string length $item]
+	}
+}
+set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value $categoryList -width $categoryMaxWidth]
 # Set the categoryCombo boxes value to Category
 $categoryCombo set "Category"
 bind $categoryCombo <<ComboboxSelected>> {categoryUpdate %W}
