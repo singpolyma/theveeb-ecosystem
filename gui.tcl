@@ -71,16 +71,28 @@ proc lineTrim {words} {
 	regsub {\s*\n\s*} $temp {\n} temp
 }
 
-proc getPackList {text} {
-	set output [split [string map [list "\n\n" \0] [exec search/search -v $text]] \0]
+proc getPackList {text category} {
+	if {$category !=""} {
+		set category "-i$category"
+	}
+	set rawOutput [exec search/search -v $category $text]
+	set output [split [string map [list "\n\n" \0] $rawOutput] \0]
 
 	set packList [list]
 	foreach pack $output {
 		array set temp [list]
 
-		regexp {Package: ([^\n]*)\n} $pack mat temp(title)
-		regexp {Status: ([^\n]*)\n} $pack mat temp(status)
-		regexp {Description: ([^\n]*)\n(.*)} $pack mat temp(descText) temp(longDesc)
+		#This part runs all of the parses, and if any of them fail the error part runs
+		if {!(
+			[regexp {Package: ([^\n]*)\n} $pack mat temp(title)] && 
+			[regexp {Status: ([^\n]*)\n} $pack mat temp(status)] &&
+			[regexp {Description: ([^\n]*)\n(.*)} $pack mat temp(descText) temp(longDesc)]
+			)
+		} {
+			# ERROR
+			puts "Package parse error: \n$rawOutput"
+			return [list]
+		}
 		lineTrim temp(longDesc)
 
 		lappend packList [array get temp]
@@ -88,9 +100,32 @@ proc getPackList {text} {
 	return $packList
 }
 
-proc filter {list text} {
-	clearScrollableThing $list
-	drawPackageList $list [getPackList $text]
+proc filter {listWidget text category} {
+	clearScrollableThing $listWidget
+	drawPackageList $listWidget [getPackList $text $category]
+}
+
+proc categoryUpdate {path} {
+	global filterCategory
+	global filterCategoryDisplayNameMap
+	# Get the data from the comboBox
+	# Convert from the view value to the data value
+	set filterCategory $filterCategoryDisplayNameMap([$path get])
+	# If the value is "All"
+	if {$filterCategory == ""} {
+		# Set the value to be "Category"
+		$path set "Category"
+		$path selection clear
+	}
+	# Filter
+	getDataAndFilter
+}
+
+proc getDataAndFilter {} {
+	global canvas 
+	global searchQuery
+	global filterCategory
+	filter $canvas $searchQuery $filterCategory
 }
 
 # Get the main scrollable canvas
@@ -106,7 +141,7 @@ scrollbar .viewyscroll -orient vertical -command {$viewarea yview}
 # Make the search area.
 set searchArea [frame .searchArea]
 set searchBar [entry ${searchArea}.bar -width 20 -textvariable searchQuery]
-set searchButton [button ${searchArea}.button -text "Search" -command {filter $canvas $searchQuery}]
+set searchButton [button ${searchArea}.button -text "Search" -command getDataAndFilter]
 bind $searchBar <Return> "$searchButton invoke"
 grid $searchBar $searchButton
 grid $searchBar -sticky ew
@@ -118,10 +153,17 @@ grid $searchArea -sticky ew
 
 # Make the category box
 set categoryArea [frame .categoryArea]
-set categoryLabel [label ${categoryArea}.categoryLabel -text "Category: "]
-set categoryList [list All ActionGame AdventureGame ArcadeGame BoardGame BlocksGame CardGame KidsGame LogicGame RolePlaying Simulation SportsGame StrategyGame]
+# Set the map that maps from display name to data name
+array set filterCategoryDisplayNameMap [list Action actiongame Adventure adventuregame Arcade arcadegame "Board Game" boardgame "Blocks Game" blocksgame "Card Game" cardgame "Kids" kidsgame "Logic" logicgame "Role Playing" roleplaying Simulation simulation Sports sportsgame Strategy strategy]
+# Then get the sorted list of categories, with "All" at the start
+set categoryList [concat All [lsort [array names filterCategoryDisplayNameMap]]]
+# Add the mapping form "All" to the filter
+set filterCategoryDisplayNameMap(All) ""
 set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value $categoryList]
-grid $categoryLabel $categoryCombo
+# Set the categoryCombo boxes value to Category
+$categoryCombo set "Category"
+bind $categoryCombo <<ComboboxSelected>> {categoryUpdate %W}
+grid $categoryCombo
 
 # Grid the category area
 grid $categoryArea -sticky ew
@@ -137,8 +179,8 @@ grid $viewarea -sticky news
 grid .viewyscroll -sticky ns
 
 # Make grid fill window
-grid rowconfigure . 1 -weight 1
 grid rowconfigure . 2 -weight 1
+grid rowconfigure . 3 -weight 1
 grid columnconfigure . 0 -weight 1
 
 # And make rows fill canvas
@@ -167,6 +209,10 @@ $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
 
-set pkgs [getPackList ""]
+# Initialize Filter
+set searchQuery ""
+set filterCategory ""
+
+set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
