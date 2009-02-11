@@ -11,7 +11,7 @@
 	#define EXIT_FAILURE -1
 #endif
 
-void md5(char * dst, char * src, int len) {
+void md5(char * dst, char * src, size_t len) {
 	/* dst must be at least 33 */
 	/* src can be any length */
 	int i;
