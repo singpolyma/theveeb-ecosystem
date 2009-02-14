@@ -1,19 +1,5 @@
 #!/bin/sh
 
-# Parse options
-while [ $# -gt 0 ]; do
-	optarg="`expr "x$1" : 'x[^=]*=\(.*\)'`"
-	case "$1" in
-		--prefix=*)
-			PREFIX="$optarg"
-			shift
-		;;
-		*)
-			shift
-		;;
-	esac
-done
-
 # Ensure we have neccesary utils (ar, tar)
 
 AR=`which ar`
@@ -51,7 +37,7 @@ else
 fi
 
 # Get a random directory name and try to create it
-temp="$temp/undeb$$"
+temp="$temp/undeb$$-$RANDOM-$RANDOM"
 mkdir "$temp"
 if [ $? != 0 ]; then
 	echo "ERROR: $temp is not writable (it may already exist)." 1>&2
@@ -70,7 +56,7 @@ fi
 
 # Unpack the package with ar
 cd "$temp"
-$AR xv "$deb"
+"$AR" xv "$deb"
 cd - # Pop back to where we were, just in case we forget where we are later
 
 # Check that the package unpacked and is a package we can understand
@@ -93,21 +79,21 @@ elif [ -f "$temp/data.tar.gz" ]; then
 		echo "You must have a version of gzip to unpack $1" 1>&2
 		exit 1
 	fi
-	$GZIP -d "$temp/data.tar.gz"
+	"$GZIP" -d "$temp/data.tar.gz"
 elif [ -f "$temp/data.tar.bz2" ]; then
 	BZIP2=`which bzip2`
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	$BZIP2 -d "$temp/data.tar.bz2"
+	"$BZIP2" -d "$temp/data.tar.bz2"
 elif [ -f "$temp/data.tar.bzip2" ]; then
 	BZIP2=`which bzip2`
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	$BZIP2 -d "$temp/data.tar.bzip2"
+	"$BZIP2" -d "$temp/data.tar.bzip2"
 else
 	echo "ERROR: No data.tar.* found." 1>&2
 	exit 1
