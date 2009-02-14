@@ -14,6 +14,7 @@ if `which apt-get` != ''
 	$external[:install] = "sudo apt-get install -y '%s'"
 end
 
+# TODO: Find the right locations for PREFIX and LOG and pass them through.
 $internal_install = "undeb '%s'"
 if `which dpkg` != ''
 	$internal_install = "sudo dpkg -i '%s'"
@@ -116,7 +117,6 @@ def install(pkg, interactive=false)
 	end
 	if doit
 		# TODO: add oauth stuff
-		# TODO: log what files get added so that removal can be done
 		fh = Tempfile.new($0)
 		fh.write open(package['remote_path']).read
 		fh.close
