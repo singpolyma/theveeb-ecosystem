@@ -117,7 +117,13 @@ if [ -z "$PREFIX" ]; then
 fi
 
 mkdir -p "$PREFIX"
-cp -Rfp "$temp/out/"* "$PREFIX"
+
+if [ ! -z "$LOG" ]; then
+	cp -Rfpv "$temp/out/"* "$PREFIX" | cut -s -d'`' -f3 | cut -s -d\' -f1 > "$LOG"
+else
+	cp -Rfp "$temp/out/"* "$PREFIX"
+fi
+
 if [ $? != 0 ]; then
 	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
 	exit 1
