@@ -19,8 +19,14 @@ temp="$temp/getrepo-$$-$RANDOM-$RANDOM"
 mkdir -p "$temp"
 cd "$temp"
 
-#Get system architechture (i386)
-ARCH="i386" # XXX: Maybe detect with gcc if present or just have in a config file/generated before packaging/distributing this script
+#Get system architechture
+if [ -z "$ARCH" ]; then
+	ARCH="`uname -m | sed -e 's/i.86/i386/'`"
+fi
+if [ -z "$ARCH" ]; then
+	echo "Could not detect the system architecture. Please set ARCH manually." 1>&2
+	exit 1
+fi
 
 #Loop line-by-line through a setings file
 while read LINE ; do
