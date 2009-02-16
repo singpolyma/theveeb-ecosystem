@@ -118,8 +118,7 @@ int main (int argc, char ** argv) {
 		}
 	}
 
-	db_path = get_db_path();
-	if(db == NULL && sqlite3_open(db_path, &db) != 0) {
+	if(db == NULL && (db_path = get_db_path()) && sqlite3_open(db_path, &db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
 	}
