@@ -1,7 +1,11 @@
 CC=gcc
+STRIP=strip -x
 TARGET=unix
-CFLAGS=-c -O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET)
+CFLAGS=-O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET)
+LDFLAGS=-lsqlite3
 GETOPT=
+
+#ifeq is not POSIX. Other versions of make may require you to set these flags by hand.
 
 ifeq ($(TARGET),win32)
 	CFLAGS+= -D_WIN32 -D__WIN32__ -DTVEDB="\"C:\\\\Program Files\\\\TheVeeb\\\\var\\\\cache\\\\tve.db\""
@@ -13,18 +17,9 @@ ifeq ($(TARGET),osx)
 endif
 
 search: search.o get_paths.o $(GETOPT)
-	$(CC) -lsqlite3 -o search $(GETOPT) get_paths.o search.o
-	strip -x search
+	$(CC) $(LDFLAGS) -o $@ search.o get_paths.o $(GETOPT)
+	$(STRIP) $@
 
-getopt.o: getopt.c
-	$(CC) $(CFLAGS) getopt.c
-
-get_paths.o: get_paths.c
-	$(CC) $(CFLAGS) get_paths.c
-
-search.o: search.c
-	$(CC) $(CFLAGS) search.c
- 
 .PHONY: clean distclean
  
 clean:
