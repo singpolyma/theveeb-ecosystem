@@ -29,6 +29,8 @@ void help() {
 "   -h              help menu (this screen)\n"
 "   -l              list (search package names only)\n"
 "   -v              verbose (more complete output)\n"
+"   -i[category]    category/section to restrict search to\n"
+"   -x[category]    category/section to exclude from results\n"
 "   -s[field]       field to sort by\n"
 "   -d[path]        path to database file\n"
 	);
