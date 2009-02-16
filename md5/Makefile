@@ -1,20 +1,16 @@
 CC=gcc
+STRIP=strip -x
 CFLAGS=-c -O3 -Wextra -Wall -Werror -ansi -pedantic
+LDFLAGS=
 
 md5main: md5main.o md5.o
-	$(CC) -o md5 md5.o md5main.o
-	strip -x md5
- 
-md5.o: md5.c
-	$(CC) $(CFLAGS) md5.c
-
-md5main.o: md5main.c
-	$(CC) $(CFLAGS) md5main.c
+	$(CC) $(LDFLAGS) -o $@ md5.o md5main.o
+	$(STRIP) $@
  
 .PHONY: clean distclean
  
 clean:
-	$(RM) md5main md5main.o md5.o
+	$(RM) md5main *.o
 
 distclean: clean
 
