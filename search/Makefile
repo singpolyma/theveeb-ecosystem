@@ -1,8 +1,19 @@
 CC=gcc
-CFLAGS=-c -O3 -Wextra -Wall -Werror -ansi -pedantic
+TARGET=unix
+CFLAGS=-c -O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET)
+GETOPT=
 
-search: search.o getopt.o get_paths.o
-	$(CC) -lsqlite3 -o search getopt.o get_paths.o search.o
+ifeq ($(TARGET),win32)
+	CFLAGS+= -D_WIN32 -D__WIN32__ -DTVEDB="\"C:\\\\Program Files\\\\TheVeeb\\\\var\\\\cache\\\\tve.db\""
+	GETOPT=getopt.o
+endif
+
+ifeq ($(TARGET),osx)
+	CFLAGS+= -DTVEDB=\"/Library/Caches/tve.db\"
+endif
+
+search: search.o get_paths.o $(GETOPT)
+	$(CC) -lsqlite3 -o search $(GETOPT) get_paths.o search.o
 	strip -x search
 
 getopt.o: getopt.c
@@ -17,6 +28,6 @@ search.o: search.c
 .PHONY: clean distclean
  
 clean:
-	$(RM) search search.o getopt.o
+	$(RM) search *.o
 
 distclean: clean

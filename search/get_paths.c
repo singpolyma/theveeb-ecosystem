@@ -25,9 +25,11 @@ char *get_home() {
 	char *home;
 	char *path;
 	char *other;
+#if ! defined(_WIN32) && ! defined(__WIN32__)
 	if((path = getenv("HOME")) && path[0] != '\0') {
 		return xstrdup(path, "get_home");
 	}
+#endif
 	if((path = getenv("USERPROFILE")) && path[0] != '\0') {
 		return xstrdup(path, "get_home");
 	}
@@ -49,7 +51,7 @@ char *get_db_path() {
 		return xstrdup(path, "get_db_path");
 	}
 	if((path = get_home())) {
-		path = realloc(path, (strlen(path) + 7 + 1) * sizeof(*path));
+		path = realloc(path, (strlen(path) + 8 + 1) * sizeof(*path));
 		if(!path) {
 			perror("get_db_path");
 			exit(EXIT_FAILURE);
