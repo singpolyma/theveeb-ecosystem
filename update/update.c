@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sqlite3.h>
+#include "get_paths.h"
 
 #if defined(_WIN32) || defined(__WIN32__)
 	#include "getopt.h"
@@ -25,6 +26,7 @@
 struct Package {
 	char package       [  50]; /* In Ubuntu, largest is 41 */
 	char name          [  50]; /* Human readable name, size is similar to package */
+	char category      [  50]; /* Plenty large */
 	char version       [  50]; /* Plenty large */
 	char section       [  50]; /* Plenty large */
 	char md5           [  32]; /* MD5s are 32 characters */
@@ -187,10 +189,11 @@ int main(int argc, char ** argv) {
 	char * sep;
 	char baseurl[256] = "\0";
 	sqlite3 * db = NULL;
-	struct Package current = {"","","","","","","","","",0,0};
+	struct Package current = {"","","","","","","","","","",0,0};
 	char line[sizeof(current.homepage)]; /* No line will be larger than the largest field */
 	int code;
 	int chained_call = 0;
+	char * db_path = NULL;
 	/* NOTE: If Package ever contains varible fields, this must be changed */
 	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
 
@@ -225,9 +228,12 @@ int main(int argc, char ** argv) {
 	}
 
 	/* Open database */
-	if(!print_sql && db == NULL && sqlite3_open("test.db", &db) != 0) {
+	if(!print_sql && db == NULL && (db_path = get_db_path()) && sqlite3_open(db_path, &db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
+	}
+	if(db_path) {
+		free(db_path);
 	}
 
 	/* Do everything as one transaction. Many times faster */
@@ -242,8 +248,8 @@ int main(int argc, char ** argv) {
 	                 "CREATE TABLE IF NOT EXISTS virtual_packages (package TEXT PRIMARY KEY, is_really TEXT);" \
 	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
 	            );
-	/* TODO: fetch ratings from yet-to-be-written API. 
-    *       get list of categories and write parsings. */
+
+	/* TODO: fetch ratings from API. */ 
 
 	if(!chained_call) {
 		safe_execute(db, "DELETE FROM virtual_packages;");
@@ -301,6 +307,8 @@ int main(int argc, char ** argv) {
 						strncpy(current.package,     sep, sizeof(current.package)-1);
 					} else if(current.name[0]         == '\0' && strcmp(line, "Name")           == 0) {
 						strncpy(current.name,        sep, sizeof(current.name)-1);
+					} else if(current.category[0]     == '\0' && strcmp(line, "Category")       == 0) {
+						strncpy(current.category,    sep, sizeof(current.category)-1);
 					} else if(current.version[0]      == '\0' && strcmp(line, "Version")        == 0) {
 						strncpy(current.version,     sep, sizeof(current.version)-1);
 					} else if(current.section[0]      == '\0' && strcmp(line, "Section")        == 0) {
