@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sqlite3.h>
+#include "get_paths.h"
 
 #if defined(_WIN32) || defined(__WIN32__)
 	#include "getopt.h"
@@ -73,6 +74,7 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 	return 0;
 }
 
+
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char sql[250] = "\0";
@@ -80,6 +82,7 @@ int main (int argc, char ** argv) {
 	char * include_cats = NULL;
 	char * exclude_cats = NULL;
 	char * order_by = "package";
+	char * db_path = NULL;
 	int verbose = 0;
 	int c;
 
@@ -115,9 +118,13 @@ int main (int argc, char ** argv) {
 		}
 	}
 
-	if(db == NULL && sqlite3_open("test.db", &db) != 0) {
+	db_path = get_db_path();
+	if(db == NULL && sqlite3_open(db_path, &db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
+	}
+	if(db_path) {
+		free(db_path);
 	}
 
 	if(query == NULL) {
