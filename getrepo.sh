@@ -4,7 +4,7 @@ oldwd="`pwd`"
 
 # Don't mess up the current directory
 if [ ! -z "$TMPDIR" ]; then
-	temp=$TMPDIR
+	temp="$TMPDIR"
 elif [ ! -z "$TEMP" ]; then
 	temp="$TEMP"
 elif [ ! -z "$TMP" ]; then
