@@ -12,7 +12,9 @@ if [ -z "$LISTFILE" -a ! -z "$TVELIST" ]; then
 	LISTFILE="$TVELIST"
 fi
 if [ -z "$LISTFILE" ]; then
-	if [ -f "$TVEROOT/etc/tve.list" ]; then
+	if [ -f "~/.tve.list" ]; then
+		LISTFILE="~/.tve.list"
+	elif [ -f "$TVEROOT/etc/tve.list" ]; then
 		LISTFILE="/etc/tve.list"
 	elif [ -f "/Program\ Files/TheVeeb/etc/tve.list" ]; then
 		LISTFILE="/Program\ Files/TheVeeb/etc/tve.list"
