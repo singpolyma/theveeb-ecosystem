@@ -119,7 +119,7 @@ fi
 mkdir -p "$PREFIX"
 
 if [ ! -z "$LOG" ]; then
-	cp -Rfpv "$temp/out/"* "$PREFIX" | cut -s -d'`' -f3 | cut -s -d\' -f1 > "$LOG"
+	cp -Rfpv "$temp/out/"* "$PREFIX" | cut -s -d'`' -f3 | cut -s -d\' -f1 >> "$LOG"
 else
 	cp -Rfp "$temp/out/"* "$PREFIX"
 fi
