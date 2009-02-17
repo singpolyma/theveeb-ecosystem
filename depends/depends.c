@@ -201,6 +201,10 @@ int main (int argc, char ** argv) {
 
 	print_depends(db, package);
 
+	if(printed_packages) {
+		free(printed_packages);
+	}
+
 	if(sqlite3_close(db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
