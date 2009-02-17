@@ -49,7 +49,15 @@ if [ -z "$ARCH" ]; then
 	exit 1
 fi
 
-GET="curl -sfLO" #OR "wget -q"
+# Find the network utility
+if which wget 1>&2; then
+	GET="wget -q"
+elif which curl 1>&2; then
+	GET="curl -sfLO"
+else
+	echo "You must have wget or curl installed." 1>&2
+	exit 1
+fi
 
 #Loop line-by-line through a setings file
 while read LINE ; do
@@ -93,7 +101,7 @@ while read LINE ; do
 					if $GET "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
 						#Verify size and MD5 from Release file
 						size="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f3`"
-						realsize="`ls -l Packages.gz | awk '{print $5}'`"
+						realsize="`wc -c Packages.gz | cut -d' ' -f1`"
 						if [ "$size" != "$realsize" ]; then
 							echo "ERROR: size of Packages.gz does not match" 1>&2
 							exit 1
