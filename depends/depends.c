@@ -97,7 +97,7 @@ void print_depends(sqlite3 *db, char *package);
  */
 int print_results(void *db, int field_count, char **row, char **fields) {
 	char status[112] = "SELECT status,version FROM packages WHERE package='";
-	char virtual[112] = "SELECT is_really FROM virtual_packages WHERE package='";
+	char virtual[107] = "SELECT is_really FROM virtual_packages WHERE package='";
 	(void)field_count;
 	(void)fields;
 	if(!did_print_package(row[0])) {
@@ -184,6 +184,13 @@ int main (int argc, char ** argv) {
 			case 'h': /* Usage message and exit */
 			default:
 				help();
+		}
+	}
+
+	if(!package && optind < argc) {
+		package = argv[optind];
+		if(package[0] == '\0' || package[0] == '-') {
+			package = NULL;
 		}
 	}
 
