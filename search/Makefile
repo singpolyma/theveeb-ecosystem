@@ -8,7 +8,7 @@ GETOPT=
 #ifeq is not POSIX. Other versions of make may require you to set these flags by hand.
 
 ifeq ($(TARGET),win32)
-	CFLAGS+= -D_WIN32 -D__WIN32__ -DTVEDB="\"C:\\\\Program Files\\\\TheVeeb\\\\var\\\\cache\\\\tve.db\""
+	CFLAGS+= -D_WIN32 -D__WIN32__ -DTVEDB="\"\\\\Program Files\\\\TheVeeb\\\\var\\\\cache\\\\tve.db\""
 	GETOPT=getopt.o
 endif
 
