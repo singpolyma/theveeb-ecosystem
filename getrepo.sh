@@ -2,6 +2,26 @@
 
 oldwd="`pwd`"
 
+if [ ! -z "$1" -a "`echo "$1" | cut -c-2`" = "-c" ]; then
+	LISTFILE="`echo "$1" | cut -c3-`"
+fi
+if [ -z "$LISTFILE" -a ! -z "$1" -a "$1" = "-c" ]; then
+	LISTFILE="$2"
+fi
+if [ -z "$LISTFILE" -a ! -z "$TVELIST" ]; then
+	LISTFILE="$TVELIST"
+fi
+if [ -z "$LISTFILE" ]; then
+	if [ -f "$TVEROOT/etc/tve.list" ]; then
+		LISTFILE="/etc/tve.list"
+	elif [ -f "/Program\ Files/TheVeeb/etc/tve.list" ]; then
+		LISTFILE="/Program\ Files/TheVeeb/etc/tve.list"
+	else
+		echo "No tve.list file found." 1>&2
+		exit 1
+	fi
+fi
+
 # Don't mess up the current directory
 if [ ! -z "$TMPDIR" ]; then
 	temp="$TMPDIR"
@@ -17,7 +37,6 @@ else
 fi
 temp="$temp/getrepo-$$-$RANDOM-$RANDOM"
 mkdir -p "$temp"
-cd "$temp"
 
 #Get system architechture
 if [ -z "$ARCH" ]; then
@@ -30,6 +49,7 @@ fi
 
 #Loop line-by-line through a setings file
 while read LINE ; do
+	cd "$temp" # In the loop so that resative paths will work for LISTFILE
 	#Strip whitespace from line
 	LINE="`echo "$LINE" | sed -e 's/^ *//g;s/ *$//g'`"
 	#Ignore blank lines
@@ -88,7 +108,7 @@ while read LINE ; do
 				;;
 		esac
 	fi
-done < "$oldwd/testrepo.txt" # Make this configurable on the command line
+done < "$LISTFILE"
 
 # Cleanup
 rm -rf "$temp"
