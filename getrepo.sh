@@ -49,6 +49,8 @@ if [ -z "$ARCH" ]; then
 	exit 1
 fi
 
+GET="curl -sfLO" #OR "wget -q"
+
 #Loop line-by-line through a setings file
 while read LINE ; do
 	cd "$temp" # In the loop so that resative paths will work for LISTFILE
@@ -67,8 +69,8 @@ while read LINE ; do
 				#Output '#' + baseurl to STDOUT
 				echo "#$baseurl"
 				#Get (baseurl + 'dists/' + distro + '/Release') and (baseurl + 'dists/' + distro + '/Release.gpg')
-				if wget -q "${baseurl}dists/${distro}/Release"; then
-					if wget -q "${baseurl}dists/${distro}/Release.gpg"; then
+				if $GET "${baseurl}dists/${distro}/Release"; then
+					if $GET "${baseurl}dists/${distro}/Release.gpg"; then
 						#Verify that the signature is valid
 						if ! gpg --verify Release.gpg Release; then
 							echo "ERROR: Could not verify Release signature" 1>&2
@@ -88,10 +90,10 @@ while read LINE ; do
 					if [ -z "$section" -o "deb" = "$section" -o "$baseurl" = "$section" -o "$distro" = "$section" ]; then
 						continue
 					fi
-					if wget -q "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
+					if $GET "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
 						#Verify size and MD5 from Release file
 						size="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f3`"
-						realsize="`ls -l Packages.gz | sed -e 's/[^ ]* [^ ] [^ ]* [^ ]* \([^ ]*\).*/\1/g'`"
+						realsize="`ls -l Packages.gz | awk '{print $5}'`"
 						if [ "$size" != "$realsize" ]; then
 							echo "ERROR: size of Packages.gz does not match" 1>&2
 							exit 1
