@@ -13,7 +13,7 @@ if [ -z "$LISTFILE" -a ! -z "$TVELIST" ]; then
 fi
 if [ -z "$LISTFILE" ]; then
 	if [ -f "~/.tve.list" ]; then
-		LISTFILE="~/.tve.list" # TODO: Apparently ~ is a bad assumption. Use $HOME &co
+		LISTFILE="~/.tve.list"
 	elif [ -f "$TVEROOT/etc/tve.list" ]; then
 		LISTFILE="/etc/tve.list"
 	elif [ -f "/Program\ Files/TheVeeb/etc/tve.list" ]; then
