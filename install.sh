@@ -27,7 +27,13 @@ if [ -d "$TVEROOT/Library/Caches" ]; then
 else
 	LOGDIR="$TVEROOT/var/cache/tve-remove"
 fi
-mkdir -p "$LOGDIR"
+if ! mkdir -p "$LOGDIR"; then
+	LOGDIR="~/.tve-remove"
+	if ! mkdir -p "$LOGDIR"; then
+		echo "Could not access the install log directory." 1>&2
+		exit 1
+	fi
+fi
 
 # Select a temporary directory
 if [ ! -z "$TMPDIR" ]; then
