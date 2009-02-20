@@ -87,9 +87,11 @@ fi
 EXT2INSTALL=""
 
 # Set IFS so that for splits on newlines and not spaces
+OIFS="$IFS"
 IFS="
 "
 for LINE in $DEP; do
+	IFS="$OIFS"
 	package="`echo "$LINE" | cut -d' ' -f2`"
 	if [ "`echo "$LINE" | cut -d' ' -f1`" = "E" ]; then
 		if [ -z "$EXTERNAL" ]; then
@@ -106,8 +108,12 @@ for LINE in $DEP; do
 				exit 2
 			fi
 		fi
-		echo "internal $package"
-		# TODO: Print remote path in depends/depends, download it here to temp file with wget or curl
+		# TODO sign request with OAuth tokens (use oauth-utils)
+		# Get remote URL and download deb file with GET
+		if ! $GET "`search/search -v "$package" | grep Download | cut -d' ' -f2`" > "$temp/$package.deb"; then
+			echo "Error downloading $package... Aborting..."
+			exit 1
+		fi
 		# TODO: Install deb file with $INTERNAL
 		# TODO: UPDATE status in DB for this package (write set-status C utility)
 		#LOG="$LOGDIR/$package" $INTERNAL "$path"
