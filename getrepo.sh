@@ -2,6 +2,11 @@
 
 oldwd="`pwd`"
 
+# Make sure HOME is set up
+if [ -z "$HOME" ]; then
+	HOME="`ls -d ~`"
+fi
+
 if [ ! -z "$1" -a "`echo "$1" | cut -c-2`" = "-c" ]; then
 	LISTFILE="`echo "$1" | cut -c3-`"
 fi
@@ -12,8 +17,8 @@ if [ -z "$LISTFILE" -a ! -z "$TVELIST" ]; then
 	LISTFILE="$TVELIST"
 fi
 if [ -z "$LISTFILE" ]; then
-	if [ -f "~/.tve.list" ]; then
-		LISTFILE="~/.tve.list"
+	if [ -f "$HOME/.tve.list" ]; then
+		LISTFILE="$HOME/.tve.list"
 	elif [ -f "$TVEROOT/etc/tve.list" ]; then
 		LISTFILE="/etc/tve.list"
 	elif [ -f "/Program\ Files/TheVeeb/etc/tve.list" ]; then
