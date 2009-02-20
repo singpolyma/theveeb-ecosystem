@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # TODO: Support switches -d, -c, -i
+INTERACTIVE=1
 
 # Check that a package was specified to install
 if [ -z "$1" ]; then
@@ -78,11 +79,12 @@ else
 fi
 
 # Install dependencies
-echo "$DEP" | {
-
 EXT2INSTALL=""
 
-while read LINE; do
+# Set IFS so that for splits on newlines and not spaces
+IFS="
+"
+for LINE in $DEP; do
 	package="`echo "$LINE" | cut -d' ' -f2`"
 	if [ "`echo "$LINE" | cut -d' ' -f1`" = "E" ]; then
 		if [ -z "$EXTERNAL" ]; then
@@ -91,8 +93,15 @@ while read LINE; do
 		fi
 		EXT2INSTALL="$EXT2INSTALL $package"
 	else
+		# If interactive, ask for confirmation
+		if [ $INTERACTIVE != 0 ]; then
+			read -p "Install dependency ${package}? [Yn] " YN
+			if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
+				echo "You opted not to install required dependency ${package}. Aborting install..."
+				exit 2
+			fi
+		fi
 		echo "internal $package"
-		# TODO: If interactive, ask for confirmation
 		# TODO: Print remote path in depends/depends, download it here to temp file with wget or curl
 		# TODO: Install deb file with $INTERNAL
 		# TODO: UPDATE status in DB for this package (write set-status C utility)
@@ -101,14 +110,20 @@ while read LINE; do
 done
 
 # Actually install external dependencies
-# TODO: If interactive, ask for confirmation
-$EXTERNAL $EXT2INSTALL
+# If interactive, ask for confirmation
+if [ $INTERACTIVE != 0 ]; then
+	read -p "Install external dependencies ${EXT2INSTALL}? [Yn] " YN
+	if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
+		echo "You opted not to install required dependencies ${EXT2INSTALL}. Aborting install..."
+		exit 2
+	fi
+fi
+#$EXTERNAL $EXT2INSTALL
+echo "would $EXTERNAL $EXT2INSTALL"
 if [ $? != 0 ]; then
 	echo "External dependency install failure." 1>&2
 	exit 1
 fi
-
-}
 
 # If all dependencies succeeded, install package
 # TODO
