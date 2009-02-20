@@ -69,6 +69,7 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 		puts("Status: not installed");
 	}
 	printf("Version: %s\n", row[2]);
+	printf("Download: %s\n", row[4]);
 	printf("Description: %s\n", row[3]);
 	puts("");
 	return 0;
@@ -127,7 +128,7 @@ int main (int argc, char ** argv) {
 	}
 
 	if(query == NULL) {
-		strcpy(sql, "SELECT status,package,version,description FROM packages WHERE 1=1");
+		strcpy(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE 1=1");
 	} else {
 		if(strchr(query, '\'') != NULL) {
 			fprintf(stderr, "Malformed query (single-quote not allowed).\n");
@@ -141,9 +142,9 @@ int main (int argc, char ** argv) {
 		}
 
 		if(sql[0] == '\0') {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
+			sprintf(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
 		} else {
-			sprintf(sql, "SELECT status,package,version,description FROM packages WHERE package LIKE '%%%s%%'", query);
+			sprintf(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE package LIKE '%%%s%%'", query);
 		}
 	}
 
