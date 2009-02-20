@@ -123,12 +123,19 @@ if [ $INTERACTIVE != 0 ]; then
 		exit 2
 	fi
 fi
-#$EXTERNAL $EXT2INSTALL
-echo "would $EXTERNAL $EXT2INSTALL"
+$EXTERNAL $EXT2INSTALL
 if [ $? != 0 ]; then
 	echo "External dependency install failure." 1>&2
 	exit 1
 fi
 
+# If interactive, ask for confirmation
+if [ $INTERACTIVE != 0 ]; then
+	read -p "Install ${1}? [Yn] " YN
+	if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
+		echo "You opted not to install ${1}. Aborting install..."
+		exit 2
+	fi
+fi
 # If all dependencies succeeded, install package
 # TODO
