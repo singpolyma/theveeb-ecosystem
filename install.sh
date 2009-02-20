@@ -1,7 +1,12 @@
 #!/bin/sh
 
 # TODO: Support switches -d, -c, -i
-INTERACTIVE=1
+INTERACTIVE=0
+
+# Make sure HOME is set up
+if [ -z "$HOME" ]; then
+	HOME="`ls -d ~`"
+fi
 
 # Check that a package was specified to install
 if [ -z "$1" ]; then
@@ -29,7 +34,7 @@ else
 	LOGDIR="$TVEROOT/var/cache/tve-remove"
 fi
 if ! mkdir -p "$LOGDIR"; then
-	LOGDIR="~/.tve-remove"
+	LOGDIR="$HOME/.tve-remove"
 	if ! mkdir -p "$LOGDIR"; then
 		echo "Could not access the install log directory." 1>&2
 		exit 1
