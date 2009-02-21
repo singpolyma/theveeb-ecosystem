@@ -121,9 +121,7 @@ while read LINE ; do
 							exit 1
 						fi
 						md5="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f2`"
-						echo "$md5"
 						realmd5="`"$oldwd/md5/md5" < Packages.gz`"
-						echo "$realmd5"
 						if [ "$md5" != "$realmd5" ]; then
 							echo "ERROR: md5 of Packages.gz does not match" 1>&2
 							exit 1
@@ -139,5 +137,5 @@ while read LINE ; do
 done < "$LISTFILE"
 
 # Cleanup
-#rm -rf "$temp" 1>&2
+rm -rf "$temp" 1>&2
 cd "$oldwd"
