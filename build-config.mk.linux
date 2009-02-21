@@ -1,5 +1,5 @@
+TARGET=unix
 CC=gcc
 STRIP=strip -x
-TARGET=unix
 CFLAGS=-O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET) -I.
 LDFLAGS=-lsqlite3
