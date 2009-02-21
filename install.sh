@@ -8,7 +8,7 @@ while [ $# -gt 1 ]; do
 			shift
 		;;
 		-d*)
-			TVEDB="`echo "$1" | cut -c2-`"
+			TVEDB="`echo "$1" | cut -c3-`"
 			if [ -z "$TVEDB" ]; then
 				TVEDB=">>"
 			fi
@@ -38,8 +38,23 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
+# Find the network utility
+if which wget 1>&2; then
+	GET="wget -q -O -"
+elif which curl 1>&2; then
+	GET="curl -sfL"
+else
+	echo "You must have wget or curl installed." 1>&2
+	exit 1
+fi
+
+if ! which oauthsign 1>&2; then
+	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
+	exit 1
+fi
+
 # Get dependencies
-DEP="`depends/depends "$1"`"
+DEP="`TVEDB="$TVEDB" depends/depends "$1"`"
 if [ $? != 0 ]; then
 	# Error message was already output by the depends command
 	exit 1
@@ -81,16 +96,6 @@ fi
 temp="$temp/tve-install-$$-$RANDOM-$RANDOM"
 mkdir -p "$temp"
 
-# Find the network utility
-if which wget 1>&2; then
-	GET="wget -q -O -"
-elif which curl 1>&2; then
-	GET="curl -sfL"
-else
-	echo "You must have wget or curl installed." 1>&2
-	exit 1
-fi
-
 # Determine if there is an external package manager to use
 EXTERNAL="`which apt-get`"
 if [ $? != 0 ]; then
@@ -101,10 +106,10 @@ fi
 
 # Determine which command to use for installing internal packages
 INTERNAL="`which dpkg`"
-if [ $? != 0 ]; then
-	INTERNAL="undeb"
+if [ $? != 0 -o "`whoami`" != "root" ]; then
+	INTERNAL="./undeb"
 else
-	INTERNAL="sudo dpkg -i"
+	INTERNAL="dpkg --root="$TVEROOT/" -i"
 fi
 
 # Install dependencies
@@ -132,31 +137,37 @@ for LINE in $DEP; do
 				exit 2
 			fi
 		fi
-		# TODO sign request with OAuth tokens (use oauth-utils)
+		# Extract the download URL from the database
+		URL="`TVEDB="$TVEDB" search/search -v "$package" | grep Download | cut -d' ' -f2`"
+		# TODO get keys from file... don't hard-code them
+		# Sign the URL with oauth utils (oauthsign)
+		URL="`oauthsign -c key123 -C sekret -t K7bSir10JPYlrWqGjhZsvQ -T 2H1QJAAz47KSfntAm1rUNWqHOYwtorKfQX7JsfuGDQ "$URL"`"
 		# Get remote URL and download deb file with GET
-		if ! $GET "`search/search -v "$package" | grep Download | cut -d' ' -f2`" > "$temp/$package.deb"; then
+		if ! $GET "$URL" > "$temp/$package.deb"; then
 			echo "Error downloading $package... Aborting..."
 			exit 1
 		fi
-		# TODO: Install deb file with $INTERNAL
+		# Install deb file with $INTERNAL
+		LOG="$LOGDIR/$package" PREFIX="$TVEROOT/" $INTERNAL "$temp/$package.deb"
 		# TODO: UPDATE status in DB for this package (write set-status C utility)
-		#LOG="$LOGDIR/$package" $INTERNAL "$path"
 	fi
 done
 
-# Actually install external dependencies
-# If interactive, ask for confirmation
-if [ $INTERACTIVE != 0 ]; then
-	read -p "Install external dependencies ${EXT2INSTALL}? [Yn] " YN
-	if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
-		echo "You opted not to install required dependencies ${EXT2INSTALL}. Aborting install..."
-		exit 2
+# Actually install external dependencies, if there are any
+if [ ! -z "$EXT2INSTALL" ]; then
+	# If interactive, ask for confirmation
+	if [ $INTERACTIVE != 0 ]; then
+		read -p "Install external dependencies ${EXT2INSTALL}? [Yn] " YN
+		if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
+			echo "You opted not to install required dependencies ${EXT2INSTALL}. Aborting install..."
+			exit 2
+		fi
 	fi
-fi
-$EXTERNAL $EXT2INSTALL
-if [ $? != 0 ]; then
-	echo "External dependency install failure." 1>&2
-	exit 1
+	$EXTERNAL $EXT2INSTALL
+	if [ $? != 0 ]; then
+		echo "External dependency install failure." 1>&2
+		exit 1
+	fi
 fi
 
 # If interactive, ask for confirmation
