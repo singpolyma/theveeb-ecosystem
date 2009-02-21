@@ -5,7 +5,7 @@ dirstack_$(sp)  := $(d)
 d               := $(dir)
 
 # Set up what goes into this target
-SRCS_$(d)       := $(d)/md5.c
+SRCS_$(d)       := $(d)/md5.c $(d)/md5main.c
 
 OBJS_$(d)       := $(SRCS_$(d):%.c=%.o)
 TGTS_$(d)       := $(d)/md5
