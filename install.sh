@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Tell zsh we expect to be treated like an sh script
+# zsh really should take the hint from the shebang line
+if which emulate 1>&2; then
+	emulate sh
+fi
+
 INTERACTIVE=0
 while [ $# -gt 1 ]; do
 	case "$1" in
