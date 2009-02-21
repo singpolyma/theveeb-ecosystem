@@ -42,9 +42,13 @@ int main(int argc, char *argv[]) {
 	int bufsize = 1;
 	int len = 0;
 	int nread = 0;
-	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-')) {
+	FILE *fp = stdin;
+	if(argc > 2 && strcmp(argv[1],"-b") == 0) {
+		fp = fopen(argv[2],"rb");
+	}
+	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-') || fp != stdin) {
 		/* Don't treat it as a string, because it may be binary data */
-		while((nread = fread(string+len, 1, bufsize-len, stdin)) == (bufsize-len)) { 
+		while((nread = fread(string+len, 1, bufsize-len, fp)) == (bufsize-len)) { 
 			len = bufsize;
 			bufsize = 2*(bufsize+1)*sizeof(*string);
 			string = realloc(string, bufsize);
@@ -60,5 +64,11 @@ int main(int argc, char *argv[]) {
 	}
 	md5(out, string, len);
 	printf("%s\n", out);
+	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-')) {
+		free(string);
+	}
+	if(argc > 2 && strcmp(argv[1],"-b") == 0) {
+		fclose(fp);
+	}
 	exit(EXIT_SUCCESS);
 }
