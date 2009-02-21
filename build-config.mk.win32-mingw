@@ -1,5 +1,5 @@
 TARGET=win32
 CC=gcc
-STRIP=strip -x
+STRIP=strip
 CFLAGS=-O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET) -D_WIN32 -D__WIN32__ -DTVEDB="\"\\\\Program Files\\\\TheVeeb\\\\var\\\\cache\\\\tve.db\"" -I.
 LDFLAGS=-lsqlite3

@@ -21,6 +21,7 @@ targets_$(d):   $(TGTS_$(d))
 
 # Arrange for this target to be part of a global build
 CLEAN           := $(CLEAN) $(CLEAN_$(d))
+TOSTRIP         := $(TOSTRIP) $(TGTS_$(d))
 targets:        targets_$(d)
 
 # Keep track of where we are and where we've been

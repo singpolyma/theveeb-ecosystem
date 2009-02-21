@@ -1,5 +1,5 @@
 TARGET=unix
 CC=gcc
-STRIP=strip -x
+STRIP=strip
 CFLAGS=-O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET) -DTVEDB=\"/Library/Caches/tve.db\" -I.
 LDFLAGS=-lsqlite3

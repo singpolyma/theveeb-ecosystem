@@ -14,4 +14,7 @@ include         Rules.mk
 clean:
 	$(RM) $(CLEAN)
 
+strip: targets
+	$(STRIP) $(TOSTRIP)
+
 distclean: clean
