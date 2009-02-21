@@ -107,7 +107,7 @@ int check_order_by(const char *s) {
 	size_t num=sizeof valid / sizeof valid[0];
 
 	for(i=0;i<num;i++)
-		if(strcmp(s,valid[i]))
+		if(strcmp(s,valid[i]) == 0)
 			return 1;
 	return 0;
 }
