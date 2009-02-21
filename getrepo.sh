@@ -1,5 +1,11 @@
 #!/bin/sh
 
+# Tell zsh we expect to be treated like an sh script
+# zsh really should take the hint from the shebang line
+if which emulate 1>&2; then
+	emulate sh
+fi
+
 oldwd="`pwd`"
 
 # Make sure HOME is set up
@@ -52,6 +58,9 @@ fi
 if [ -z "$ARCH" ]; then
 	echo "Could not detect the system architecture. Please set ARCH manually." 1>&2
 	exit 1
+fi
+if [ "$ARCH" = "x86" ]; then
+	ARCH="i386"
 fi
 
 # Find the network utility
@@ -106,13 +115,15 @@ while read LINE ; do
 					if $GET "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
 						#Verify size and MD5 from Release file
 						size="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f3`"
-						realsize="`wc -c Packages.gz | cut -d' ' -f1`"
+						realsize="`wc -c Packages.gz | awk '{ print $1 }'`"
 						if [ "$size" != "$realsize" ]; then
 							echo "ERROR: size of Packages.gz does not match" 1>&2
 							exit 1
 						fi
 						md5="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f2`"
+						echo "$md5"
 						realmd5="`"$oldwd/md5/md5" < Packages.gz`"
+						echo "$realmd5"
 						if [ "$md5" != "$realmd5" ]; then
 							echo "ERROR: md5 of Packages.gz does not match" 1>&2
 							exit 1
@@ -128,5 +139,5 @@ while read LINE ; do
 done < "$LISTFILE"
 
 # Cleanup
-rm -rf "$temp"
+#rm -rf "$temp" 1>&2
 cd "$oldwd"
