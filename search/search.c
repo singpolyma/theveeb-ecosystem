@@ -119,6 +119,13 @@ int main (int argc, char ** argv) {
 		}
 	}
 
+	if(!query && optind < argc) {
+		query = argv[optind];
+		if(query[0] == '\0' || query[0] == '-') {
+			query = NULL;
+		}
+	}
+
 	if(db == NULL && (db_path = get_db_path()) && sqlite3_open(db_path, &db) != 0) {
 		fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 		exit(EXIT_FAILURE);
