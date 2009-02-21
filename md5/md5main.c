@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
 		len = strlen(string);
 	}
 	md5(out, string, len);
-	printf("%s\n", out);
+	printf("%s", out);
 	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-')) {
 		free(string);
 	}
