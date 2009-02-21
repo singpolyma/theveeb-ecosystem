@@ -1,16 +1,12 @@
-CC=gcc
-STRIP=strip -x
-CFLAGS=-c -O3 -Wextra -Wall -Werror -ansi -pedantic
-LDFLAGS=
 
-md5: md5main.o md5.o
-	$(CC) $(LDFLAGS) -o $@ md5.o md5main.o
-	$(STRIP) $@
- 
-.PHONY: clean distclean
- 
-clean:
-	$(RM) md5main *.o
+#Is there some way to make this magical?  --DV
+dir     := ./md5
 
-distclean: clean
+.PHONY: targets all
+localtargets:
+	$(MAKE) -C .. targets_$(dir)
+all:
+	$(MAKE) -C .. all
 
+%:
+	$(MAKE) -C .. $*

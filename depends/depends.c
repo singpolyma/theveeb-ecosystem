@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <sqlite3.h>
 #include "version_compare.h"
-#include "get_paths.h"
+#include "common/get_paths.h"
 
 #if defined(_WIN32) || defined(__WIN32__)
-	#include "getopt.h"
+	#include "common/getopt.h"
 #else
 	#include <unistd.h>
 	int getopt(int argc, char * const argv[], const char *optstring);

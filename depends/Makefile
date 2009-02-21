@@ -1,28 +1,12 @@
-CC=gcc
-STRIP=strip -x
-TARGET=unix
-CFLAGS=-O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET)
-LDFLAGS=-lsqlite3
-GETOPT=
 
-#ifeq is not POSIX. Other versions of make may require you to set these flags by hand.
+#Is there some way to make this magical?  --DV
+dir     := ./depends
 
-ifeq ($(TARGET),win32)
-	CFLAGS+= -D_WIN32 -D__WIN32__ -DTVEDB="\"\\\\Program Files\\\\TheVeeb\\\\var\\\\cache\\\\tve.db\""
-	GETOPT=getopt.o
-endif
+.PHONY: targets all
+localtargets:
+	$(MAKE) -C .. targets_$(dir)
+all:
+	$(MAKE) -C .. all
 
-ifeq ($(TARGET),osx)
-	CFLAGS+= -DTVEDB=\"/Library/Caches/tve.db\"
-endif
-
-depends: depends.o version_compare.o get_paths.o $(GETOPT)
-	$(CC) $(LDFLAGS) -o $@ depends.o version_compare.o get_paths.o $(GETOPT)
-	$(STRIP) $@
-
-.PHONY: clean distclean
- 
-clean:
-	$(RM) depends *.o
-
-distclean: clean
+%:
+	$(MAKE) -C .. $*
