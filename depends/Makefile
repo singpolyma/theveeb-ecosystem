@@ -1,6 +1,6 @@
 
 #Is there some way to make this magical?  --DV
-dir     := ./md5
+dir     := ./depends
 
 .PHONY: targets all
 localtargets:

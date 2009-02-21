@@ -14,14 +14,14 @@ if `which apt-get` != ''
 	$external[:install] = "sudo apt-get install -y '%s'"
 end
 
-$internal_install = "undeb '%s'"
+$internal_install = "PREFIX='#{ENV['TVEROOT']}/' LOG='#{ENV['TVEROOT']}/var/cache/tve-remove/%p' undeb '%s'"
 if `which dpkg` != ''
 	$internal_install = "sudo dpkg -i '%s'"
 end
 
 options = {
-	:config => 'testrepo.txt',
-	:database => 'test.db',
+	:config => nil,
+	:database => nil,
 	:interactive => false
 }
 
@@ -41,6 +41,38 @@ OptionParser.new do |opts|
 		exit
 	end
 end.parse!
+
+unless options[:config]
+	if ENV['TVELIST']
+		options[:config] = ENV['TVELIST']
+	elsif File.exist?(File.expand_path('~/.tve.list'))
+		options[:config] = File.expand_path('~/.tve.list')
+	elsif File.exist?("#{ENV['TVEROOT']}/etc/tve.list")
+		options[:config] = "#{ENV['TVEROOT']}/etc/tve.list"
+	elsif File.exist?('/Program Files/TheVeeb/etc/tve.list')
+		options[:config] = '/Program Files/TheVeeb/etc/tve.list'
+	else
+		warn 'No tve.list file found.'
+		exit 1
+	end
+end
+
+unless options[:database]
+	if ENV['TVEDB']
+		options[:database] = ENV['TVEDB']
+	elsif File.exist?(File.expand_path('~/.tve.db'))
+		options[:database] = File.expand_path('~/.tve.list')
+	elsif File.exist?("#{ENV['TVEROOT']}/var/cache/tve.db")
+		options[:database] = "#{ENV['TVEROOT']}/var/cache/tve.db"
+	elsif File.exist?('/Program Files/TheVeeb/var/cache/tve.db')
+		options[:database] = '/Program Files/TheVeeb/var/cache/tve.db'
+	elsif File.exist?('/Library/Caches/tve.db')
+		options[:database] = '/Library/Caches/tve.db'
+	else
+		warn 'No tve.db file found.'
+		exit 1
+	end
+end
 
 $db = SQLite3::Database.new(options[:database])
 $db.results_as_hash = true
@@ -64,9 +96,15 @@ def install(pkg, interactive=false)
 
 	$db.execute("SELECT depend,version FROM depends WHERE package='#{SQLite3::Database::quote(pkg)}'") do |row|
 		next if $done[row['depend']] && $done[row['depend']] >= VersionNumber.new(row['version'])
-		available = $db.execute("SELECT version FROM packages WHERE package='#{SQLite3::Database::quote(row['depend'])}' LIMIT 1")[0]['version'] rescue nil
-		if available && VersionNumber.new(available) >= VersionNumber.new(row['version'])
-			if status = install(row['depend'], interactive) < 0
+		available = $db.execute("SELECT package,version FROM packages WHERE package='#{SQLite3::Database::quote(row['depend'])}' LIMIT 1")[0] rescue nil
+		unless available
+			available = $db.execute("SELECT is_really FROM virtual_packages WHERE package='#{SQLite3::Database::quote(row['depend'])}' LIMIT 1")[0]['is_really'] rescue nil
+			if available
+				available = $db.execute("SELECT package,version FROM packages WHERE package='#{SQLite3::Database::quote(available)}' LIMIT 1")[0] rescue nil
+			end
+		end
+		if available && VersionNumber.new(available['version']) >= VersionNumber.new(row['version'])
+			if status = install(row['package'], interactive) < 0
 				return status
 			end
 		else
@@ -113,7 +151,7 @@ def install(pkg, interactive=false)
 		fh = Tempfile.new($0)
 		fh.write open(package['remote_path']).read
 		fh.close
-		unless system($internal_install.sub(/%s/,fh.path))
+		unless system($internal_install.sub(/%s/,fh.path).sub(/%p/,pkg))
 			warn "Error installing #{pkg} (#{fh.path}) using #{$internal_install}"
 			return -3
 		end

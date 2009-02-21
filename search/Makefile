@@ -1,17 +1,12 @@
-search: search.o
-	gcc -lsqlite3 -o search getopt.o search.o
-	strip -s search
 
-getopt.o: getopt.c
-	gcc -c -O3  -o getopt.o getopt.c
+#Is there some way to make this magical?  --DV
+dir     := ./search
 
-search.o: search.c getopt.o
-	gcc -c -O3  -o search.o search.c
- 
-.PHONY: clean distclean
- 
-clean:
-	rm -f search search.o getopt.o
+.PHONY: targets all
+localtargets:
+	$(MAKE) -C .. targets_$(dir)
+all:
+	$(MAKE) -C .. all
 
-distclean: clean
-
+%:
+	$(MAKE) -C .. $*

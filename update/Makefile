@@ -1,17 +1,11 @@
-update: update.o
-	gcc -lsqlite3 -o update getopt.o update.o
-	strip -s update
- 
-getopt.o: getopt.c
-	gcc -c -O3  -o getopt.o getopt.c
+#Is there some way to make this magical?  --DV
+dir     := ./update
 
-update.o: update.c getopt.o
-	gcc -c -O3 -o update.o update.c
- 
-.PHONY: clean distclean
- 
-clean:
-	rm -f update update.o getopt.o
+.PHONY: targets all
+localtargets:
+	$(MAKE) -C .. targets_$(dir)
+all:
+	$(MAKE) -C .. all
 
-distclean: clean
-
+%:
+	$(MAKE) -C .. $*
