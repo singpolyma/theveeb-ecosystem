@@ -27,15 +27,15 @@ char *get_home() {
 	char *other;
 #if ! defined(_WIN32) && ! defined(__WIN32__)
 	if((path = getenv("HOME")) && path[0] != '\0') {
-		return xstrdup(path, "get_home");
+		return xstrdup(path, "get_home: xstrdup");
 	}
 #endif
 	if((path = getenv("USERPROFILE")) && path[0] != '\0') {
-		return xstrdup(path, "get_home");
+		return xstrdup(path, "get_home: xstrdup");
 	}
 	if((path = getenv("HOMEDRIVE")) && path[0] != '\0') {
 		if((other = getenv("HOMEPATH")) && other[0] != '\0') {
-			home = xmalloc( (strlen(path) + strlen(other) + 1) * sizeof(*home), "get_home" );
+			home = xmalloc( (strlen(path) + strlen(other) + 1) * sizeof(*home), "get_home: malloc" );
 			strcpy(home, path);
 			strcat(home, other);
 			return home;
@@ -48,12 +48,12 @@ char *get_db_path() {
 	char *path;
 	FILE *fp;
 	if((path = getenv("TVEDB")) && path[0] != '\0') {
-		return xstrdup(path, "get_db_path");
+		return xstrdup(path, "get_db_path: xstrdup");
 	}
 	if((path = get_home())) {
 		path = realloc(path, (strlen(path) + 8 + 1) * sizeof(*path));
 		if(!path) {
-			perror("get_db_path");
+			perror("get_db_path: realloc");
 			exit(EXIT_FAILURE);
 		}
 		strcat(path, "/.tve.db");
@@ -63,6 +63,6 @@ char *get_db_path() {
 			return path;
 		}
 	}
-	return xstrdup(TVEDB, "get_db_path");
+	return xstrdup(TVEDB, "get_db_path: xstrdup");
 }
 
