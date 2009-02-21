@@ -1,7 +1,31 @@
 #!/bin/sh
 
-# TODO: Support switches -d, -c, -i
 INTERACTIVE=0
+while [ $# -gt 1 ]; do
+	case "$1" in
+		-i)
+			INTERACTIVE=1
+			shift
+		;;
+		-d*)
+			TVEDB="`echo "$1" | cut -c2-`"
+			if [ -z "$TVEDB" ]; then
+				TVEDB=">>"
+			fi
+			shift
+		;;
+		-*)
+			echo "Unsupported switch $1" 1>&2
+			exit 1
+		;;
+		*)
+			if [ "$TVEDB" = ">>" ]; then
+				TVEDB="$1"
+				shift
+			fi
+		;;
+	esac
+done
 
 # Make sure HOME is set up
 if [ -z "$HOME" ]; then
