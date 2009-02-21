@@ -13,43 +13,49 @@
 	extern int optind, opterr, optopt;
 #endif
 
-#ifndef EXIT_SUCCESS
-	#define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-	#define EXIT_FAILURE -1
-#endif
-
 /* Print usage message */
 void help() {
-	puts(
-"search for packages\n"
-"Usage: search [OPTION] [QUERY]\n"
-"   QUERY           Pattern to search for\n"
-"   -h              help menu (this screen)\n"
-"   -l              list (search package names only)\n"
-"   -v              verbose (more complete output)\n"
-"   -i[category]    category/section to restrict search to\n"
-"   -x[category]    category/section to exclude from results\n"
-"   -s[field]       field to sort by\n"
-"   -d[path]        path to database file\n"
-	);
-	exit(EXIT_FAILURE);
+	puts("search for packages");
+	puts("Usage: search [OPTION] [QUERY]");
+	puts("   QUERY           Pattern to search for");
+	puts("   -h              help menu (this screen)");
+	puts("   -l              list (search package names only)");
+	puts("   -v              verbose (more complete output)");
+	puts("   -i[category]    category/section to restrict search to");
+	puts("   -x[category]    category/section to exclude from results");
+	puts("   -s[field]       field to sort by: package, version, description, or rating");
+	puts("   -d[path]        path to database file");
 }
 
 /* Callback for query: print row */
 int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 	char status = ' ';
 	char * end;
-	if(dummy && field_count && fields) {} /* Supress "unused parameters" warning. */
-	if((end = strchr(row[3], '\n'))) {
+
+	(void)dummy;
+	(void)field_count;
+	(void)fields;
+
+	end = strchr(row[3], '\n');
+	if(end) {
 		*end = '\0';
 	}
-	if(row[0] != NULL) {
-		switch(atoi(row[0])) {
-			case 1: status = 'I'; break;
-			case -1: status = 'U'; break;
+	if(row[0]) {
+		int status_val=strtol(row[0],&end,10);
+		if(*end) {
+			fprintf(stderr,"Database interface error: Invalid integer!\n");
+			abort();
+		}
+		/*If we extend the negative end of the status value range,
+		    both the offset here and the status string in the
+		    "else" branch will need to be updated.   --DV
+		*/
+		status_val++;
+		if(status_val < 0 || status_val > 3) {
+			status='?';
+		} else {
+			/*Array indexing magic!*/
+			status="U ID"[status_val];
 		}
 	}
 	printf("%c %-20s %-10s %s\n", status, row[1], row[2], row[3]);
@@ -58,16 +64,31 @@ int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 
 /* Callback for query: print row (verbose) */
 int print_results_verbose(void * dummy, int field_count, char ** row, char ** fields) {
-	if(dummy && field_count && fields) {} /* Supress "unused parameters" warning. */
+	int status_val;
+
+	(void)dummy;
+	(void)field_count;
+	(void)fields;
+
 	printf("Package: %s\n", row[1]);
-	if(row[0] != NULL) {
-		switch(atoi(row[0])) {
-			case 1: puts("Status: installed"); break;
-			case -1: puts("Status: update available"); break;
+
+	if(row[0]) {
+		char *end;
+		status_val=strtol(row[0],&end,10);
+		if(*end) {
+			fprintf(stderr,"Database interface error: Invalid integer!\n");
+			abort();
 		}
 	} else {
-		puts("Status: not installed");
+		status_val=0;
 	}
+	switch(status_val) {
+		case 1: puts("Status: installed"); break;
+		case 2: puts("Status: installed as dependency"); break;
+		case -1: puts("Status: update available"); break;
+		case 0: puts("Status: not installed"); break;
+	}
+
 	printf("Version: %s\n", row[2]);
 	printf("Download: %s\n", row[4]);
 	printf("Description: %s\n", row[3]);
@@ -75,25 +96,41 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 	return 0;
 }
 
+int check_order_by(const char *s) {
+	size_t i;
+	char *valid[]={
+		"package",
+		"version",
+		"description",
+		"rating"
+	};
+	size_t num=sizeof valid / sizeof valid[0];
+
+	for(i=0;i<num;i++)
+		if(strcmp(s,valid[i]))
+			return 1;
+	return 0;
+}
 
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
-	char sql[250] = "\0";
+	char sql[250] = "";
 	char * query = NULL;
 	char * include_cats = NULL;
 	char * exclude_cats = NULL;
 	char * order_by = "package";
 	char * db_path = NULL;
-	int verbose = 0;
+	int (*output_callback)(void *,int,char **,char **)=print_results;
 	int c;
+	int search_description=1;
 
 	while((c = getopt(argc, argv, "-lvhi:x:s:d:")) != -1) {
 		switch(c) {
 			case 'l': /* Search package names only */
-				sql[0] = 1;
+				search_description=0;
 				break;
 			case 'v':
-				verbose = 1;
+				output_callback=print_results_verbose;
 				break;
 			case 'i':
 				include_cats = optarg;
@@ -102,20 +139,35 @@ int main (int argc, char ** argv) {
 				exclude_cats = optarg;
 				break;
 			case 's':
-				order_by = optarg;
+				if(check_order_by(optarg)) {
+					order_by = optarg;
+				} else {
+					fprintf(stderr,"Invalid sort field: `%s'\n",optarg);
+					help();
+					exit(EXIT_FAILURE);
+				}
 				break;
 			case 'd': /* Specify database */
+				/*XXX We might want to sanity-check that the database does
+				    actually exist.   --DV
+				*/
 				if(sqlite3_open(optarg, &db) != 0) {
 					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 					exit(EXIT_FAILURE);
 				}
 				break;
 			case '\1': /* Search query */
+				/*XXX Not a very sensible way to handle possible multiple
+				    search query arguments.   --DV
+				*/
 				query = optarg;
 				break;
 			case 'h': /* Usage message and exit */
-			default:
 				help();
+				exit(EXIT_SUCCESS);
+			default:  /* Unrecognized option */
+				help();
+				exit(EXIT_FAILURE);
 		}
 	}
 
@@ -137,11 +189,11 @@ int main (int argc, char ** argv) {
 
 		/* Static buffers are retarded, block long searches */
 		if(strlen(query) > 43) {
-			fprintf(stderr,"Your query is too long.\n");
+			fprintf(stderr,"Your query is too long.  Go beat Stephen with the cluebat.\n");
 			exit(EXIT_FAILURE);
 		}
 
-		if(sql[0] == '\0') {
+		if(search_description) {
 			sprintf(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
 		} else {
 			sprintf(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE package LIKE '%%%s%%'", query);
@@ -150,33 +202,26 @@ int main (int argc, char ** argv) {
 
 	if(include_cats) {
 		strcat(sql, " AND (section='");
-		strcat(sql, include_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, include_cats);/* FIXME: sanitize, split by comma and support multiple cats */
 		strcat(sql, "' OR category='");
-		strcat(sql, include_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, include_cats);/* FIXME: sanitize, split by comma and support multiple cats */
 		strcat(sql, "')");
 	}
 
 	if(exclude_cats) {
 		strcat(sql, " AND (section!='");
-		strcat(sql, exclude_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, exclude_cats);/* FIXME: sanitize, split by comma and support multiple cats */
 		strcat(sql, "' AND category!='");
-		strcat(sql, exclude_cats);/* FIXME: split by comma and support multiple cats */
+		strcat(sql, exclude_cats);/* FIXME: sanitize, split by comma and support multiple cats */
 		strcat(sql, "')");
 	}
 
 	strcat(sql, " ORDER BY ");
 	strcat(sql, order_by);
 
-	if(verbose) {
-		if(sqlite3_exec(db, sql, &print_results_verbose, NULL, NULL) != 0) {
-			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
-			exit(EXIT_FAILURE);
-		}
-	} else {
-		if(sqlite3_exec(db, sql, &print_results, NULL, NULL) != 0) {
-			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
-			exit(EXIT_FAILURE);
-		}
+	if(sqlite3_exec(db, sql, output_callback, NULL, NULL) != 0) {
+		fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+		exit(EXIT_FAILURE);
 	}
 
 	if(sqlite3_close(db) != 0) {
