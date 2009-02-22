@@ -186,3 +186,5 @@ if [ $INTERACTIVE != 0 ]; then
 fi
 # If all dependencies succeeded, install package
 # TODO
+
+# TODO: remove temp dir
