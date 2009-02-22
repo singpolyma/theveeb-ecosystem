@@ -1,14 +1,11 @@
-get: get.o
-	gcc -lcurl -o get get.o
-	strip -s get
- 
-get.o: get.c
-	gcc -c -O3 -Wall -Werror -ansi -pedantic -o get.o get.c
- 
-.PHONY: clean distclean
- 
-clean:
-	rm -f get get.o
+#Is there some way to make this magical?  --DV
+dir     := ./get
 
-distclean: clean
+.PHONY: localtargets all
+localtargets:
+	$(MAKE) -C .. targets_$(dir)
+all:
+	$(MAKE) -C .. all
 
+%:
+	$(MAKE) -C .. $*
