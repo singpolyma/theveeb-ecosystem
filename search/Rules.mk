@@ -15,6 +15,8 @@ OBJS_$(d)       := $(SRCS_$(d):%.c=%.o)
 TGTS_$(d)       := $(d)/search
 CLEAN_$(d)      := $(OBJS_$(d)) $(TGTS_$(d))
 
+$(TGTS_$(d)):   LL_TGT+=-lsqlite3
+
 .PHONY:         targets_$(d)
 $(TGTS_$(d)):   $(OBJS_$(d))
 targets_$(d):   $(TGTS_$(d))
