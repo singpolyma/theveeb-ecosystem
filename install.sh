@@ -86,6 +86,23 @@ if ! mkdir -p "$LOGDIR"; then
 	fi
 fi
 
+# Find the file where OAuth tokens are and get them
+OAUTHTOKENS="$HOME/.tve-oauth-tokens"
+if [ "`whoami`" = "root" -o ! -r "$OAUTHTOKENS" ]; then
+	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
+fi
+if [ ! -r "$OAUTHTOKENS" ]; then
+	echo "You don't seem to have valid OAuth tokens in $TVEROOT/etc/tve-oauth-tokens or $HOME/.tve-oauth-tokens" 1>&2
+	exit 1
+fi
+TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENS"`"
+SECRET="`cut -d' ' -f2 < "$OAUTHTOKENS"`"
+
+# OAuth Consumer token and secret
+# TODO get a better consumer keypair set up
+CONSUMER_TOKEN="key123"
+CONSUMER_SECRET="sekret"
+
 # Select a temporary directory
 if [ ! -z "$TMPDIR" ]; then
 	temp="$TMPDIR"
@@ -145,14 +162,14 @@ for LINE in $DEP; do
 		fi
 		# Extract the download URL from the database
 		URL="`TVEDB="$TVEDB" search/search -v "$package" | grep Download | cut -d' ' -f2`"
-		# TODO get keys from file... don't hard-code them
 		# Sign the URL with oauth utils (oauthsign)
-		URL="`oauthsign -c key123 -C sekret -t K7bSir10JPYlrWqGjhZsvQ -T 2H1QJAAz47KSfntAm1rUNWqHOYwtorKfQX7JsfuGDQ "$URL"`"
+		URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
 		# Get remote URL and download deb file with GET
 		if ! $GET "$URL" > "$temp/$package.deb"; then
 			echo "Error downloading $package... Aborting..."
 			exit 1
 		fi
+		# TODO: Verify size and MD5 from database (needs modification to search)
 		# Install deb file with $INTERNAL
 		LOG="$LOGDIR/$package" PREFIX="$TVEROOT/" $INTERNAL "$temp/$package.deb"
 		# TODO: UPDATE status in DB for this package (write set-status C utility)
@@ -185,6 +202,17 @@ if [ $INTERACTIVE != 0 ]; then
 	fi
 fi
 # If all dependencies succeeded, install package
-# TODO
+URL="`TVEDB="$TVEDB" search/search -v "$1" | grep Download | cut -d' ' -f2`"
+# Sign the URL with oauth utils (oauthsign)
+URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
+# Get remote URL and download deb file with GET
+if ! $GET "$URL" > "$temp/$package.deb"; then
+	echo "Error downloading $package... Aborting..."
+	exit 1
+fi
+# TODO: Verify size and MD5 from database (needs modification to search)
+# Install deb file with $INTERNAL
+LOG="$LOGDIR/$package" PREFIX="$TVEROOT/" $INTERNAL "$temp/$package.deb"
+# TODO: UPDATE status in DB for this package (write set-status C utility)
 
 # TODO: remove temp dir
