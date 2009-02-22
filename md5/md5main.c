@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
 	int len = 0;
 	int nread = 0;
 	FILE *fp = stdin;
-	if(argc > 2 && strcmp(argv[1],"-b") == 0) {
+	if(argc > 2 && strcmp(argv[1],"-q") == 0) {
 		fp = fopen(argv[2],"rb");
 	}
 	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-') || fp != stdin) {
@@ -63,7 +63,7 @@ int main(int argc, char *argv[]) {
 		len = strlen(string);
 	}
 	md5(out, string, len);
-	printf("%s", out);
+	printf("%s\n", out);
 	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-')) {
 		free(string);
 	}
