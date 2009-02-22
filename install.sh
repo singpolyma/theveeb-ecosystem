@@ -82,6 +82,10 @@ do_install () {
 	# TODO: Verify size and MD5 from database (needs modification to search)
 	# Install deb file with $INTERNAL
 	LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"
+	if [ $? != 0 ]; then
+		echo "Error unpacking ${2}."
+		exit 1
+	fi
 	# TODO: UPDATE status in DB for this 2 (write set-status C utility)
 }
 
@@ -201,4 +205,7 @@ fi
 
 do_install "" "$1"
 
-# TODO: remove temp dir
+# remove temp dir
+rm -rf "$temp"
+
+echo "$1 sucessfully installed (with all dependencies)."
