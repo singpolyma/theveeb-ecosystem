@@ -5,7 +5,8 @@ dirstack_$(sp)  := $(d)
 d               := $(dir)
 
 # Set up what goes into this target
-SRCS_$(d)       := $(d)/md5.c $(d)/md5main.c
+SRCS_$(d)       := $(d)/md5.c
+SRCS_$(d)       := $(SRCS_$(d)) $(d)/md5main.c
 
 OBJS_$(d)       := $(SRCS_$(d):%.c=%.o)
 TGTS_$(d)       := $(d)/md5
@@ -17,7 +18,6 @@ targets_$(d):   $(TGTS_$(d))
 
 # Arrange for this target to be part of a global build
 CLEAN           := $(CLEAN) $(CLEAN_$(d))
-TOSTRIP         := $(TOSTRIP) $(TGTS_$(d))
 targets:        targets_$(d)
 
 # Keep track of where we are and where we've been

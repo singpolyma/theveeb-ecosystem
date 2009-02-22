@@ -15,13 +15,14 @@ OBJS_$(d)       := $(SRCS_$(d):%.c=%.o)
 TGTS_$(d)       := $(d)/search
 CLEAN_$(d)      := $(OBJS_$(d)) $(TGTS_$(d))
 
+$(TGTS_$(d)):   LL_TGT+=-lsqlite3
+
 .PHONY:         targets_$(d)
 $(TGTS_$(d)):   $(OBJS_$(d))
 targets_$(d):   $(TGTS_$(d))
 
 # Arrange for this target to be part of a global build
 CLEAN           := $(CLEAN) $(CLEAN_$(d))
-TOSTRIP         := $(TOSTRIP) $(TGTS_$(d))
 targets:        targets_$(d)
 
 # Keep track of where we are and where we've been

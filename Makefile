@@ -10,11 +10,12 @@ dir             := .
 include         Rules.mk
 
 .PHONY: targets clean distclean
+
+%: %.o
+	$(CC) $(LDFLAGS) $^ $(LL_ALL) $(LL_TGT) -o $@
+	$(STRIP) $@
  
 clean:
 	$(RM) $(CLEAN)
-
-strip: targets
-	$(STRIP) $(TOSTRIP)
 
 distclean: clean

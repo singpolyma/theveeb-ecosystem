@@ -1,0 +1,6 @@
+*.o
+depends/depends
+md5/md5
+search/search
+update/update
+get/get

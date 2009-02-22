@@ -14,6 +14,7 @@
  * WARNING: each element in ptr is size bytes, not guarenteed to be a char. */
 size_t print_result(void * ptr, size_t size, size_t nmemb, void * stream) {
 	size_t i;
+	(void)stream;
 	for(i = 0; i < nmemb; i++) {
 		putchar(((char*)ptr)[i]);
 	}
