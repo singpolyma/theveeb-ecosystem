@@ -6,6 +6,11 @@ if which emulate 1>&2; then
 	emulate sh
 fi
 
+# Make sure HOME is set up
+if [ -z "$HOME" ]; then
+	HOME="`ls -d ~`"
+fi
+
 INTERACTIVE=0
 while [ $# -gt 1 ]; do
 	case "$1" in
@@ -33,11 +38,6 @@ while [ $# -gt 1 ]; do
 	esac
 done
 
-# Make sure HOME is set up
-if [ -z "$HOME" ]; then
-	HOME="`ls -d ~`"
-fi
-
 # Check that a package was specified to install
 if [ -z "$1" ]; then
 	echo "No package was specified." 1>&2
@@ -54,10 +54,36 @@ else
 	exit 1
 fi
 
+# Verify the presence of oauthsign
 if ! which oauthsign 1>&2; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
 	exit 1
 fi
+
+# do_install KIND PACKAGE
+do_install () {
+	# If interactive, ask for confirmation
+	if [ $INTERACTIVE != 0 ]; then
+		read -p "Install $1 ${2}? [Yn] " YN
+		if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
+			echo "You opted not to install $1 ${2}. Aborting install..."
+			exit 2
+		fi
+	fi
+	# Extract the download URL from the database
+	URL="`TVEDB="$TVEDB" search/search -v "$2" | grep Download | cut -d' ' -f2`"
+	# Sign the URL with oauth utils (oauthsign)
+	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
+	# Get remote URL and download deb file with GET
+	if ! $GET "$URL" > "$temp/$2.deb"; then
+		echo "Error downloading ${2}... Aborting..."
+		exit 1
+	fi
+	# TODO: Verify size and MD5 from database (needs modification to search)
+	# Install deb file with $INTERNAL
+	LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"
+	# TODO: UPDATE status in DB for this 2 (write set-status C utility)
+}
 
 # Get dependencies
 DEP="`TVEDB="$TVEDB" depends/depends "$1"`"
@@ -152,27 +178,7 @@ for LINE in $DEP; do
 		fi
 		EXT2INSTALL="$EXT2INSTALL $package"
 	else
-		# If interactive, ask for confirmation
-		if [ $INTERACTIVE != 0 ]; then
-			read -p "Install dependency ${package}? [Yn] " YN
-			if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
-				echo "You opted not to install required dependency ${package}. Aborting install..."
-				exit 2
-			fi
-		fi
-		# Extract the download URL from the database
-		URL="`TVEDB="$TVEDB" search/search -v "$package" | grep Download | cut -d' ' -f2`"
-		# Sign the URL with oauth utils (oauthsign)
-		URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
-		# Get remote URL and download deb file with GET
-		if ! $GET "$URL" > "$temp/$package.deb"; then
-			echo "Error downloading $package... Aborting..."
-			exit 1
-		fi
-		# TODO: Verify size and MD5 from database (needs modification to search)
-		# Install deb file with $INTERNAL
-		LOG="$LOGDIR/$package" PREFIX="$TVEROOT/" $INTERNAL "$temp/$package.deb"
-		# TODO: UPDATE status in DB for this package (write set-status C utility)
+		do_install "dependency" "$package"
 	fi
 done
 
@@ -193,26 +199,6 @@ if [ ! -z "$EXT2INSTALL" ]; then
 	fi
 fi
 
-# If interactive, ask for confirmation
-if [ $INTERACTIVE != 0 ]; then
-	read -p "Install ${1}? [Yn] " YN
-	if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
-		echo "You opted not to install ${1}. Aborting install..."
-		exit 2
-	fi
-fi
-# If all dependencies succeeded, install package
-URL="`TVEDB="$TVEDB" search/search -v "$1" | grep Download | cut -d' ' -f2`"
-# Sign the URL with oauth utils (oauthsign)
-URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
-# Get remote URL and download deb file with GET
-if ! $GET "$URL" > "$temp/$package.deb"; then
-	echo "Error downloading $package... Aborting..."
-	exit 1
-fi
-# TODO: Verify size and MD5 from database (needs modification to search)
-# Install deb file with $INTERNAL
-LOG="$LOGDIR/$package" PREFIX="$TVEROOT/" $INTERNAL "$temp/$package.deb"
-# TODO: UPDATE status in DB for this package (write set-status C utility)
+do_install "" "$1"
 
 # TODO: remove temp dir
