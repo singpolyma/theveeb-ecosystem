@@ -1,3 +1,4 @@
+build-config.mk
 *.o
 depends/depends
 md5/md5
