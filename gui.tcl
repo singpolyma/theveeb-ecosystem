@@ -138,27 +138,21 @@ set viewarea [scrollableThing .viewarea]
 $viewarea configure -yscrollcommand {.viewyscroll set}
 scrollbar .viewyscroll -orient vertical -command {$viewarea yview}
 
-# Make the search area.
-set searchArea [frame .searchArea]
-set searchBar [entry ${searchArea}.bar -width 20 -textvariable searchQuery]
-set searchButton [button ${searchArea}.button -text "Search" -command getDataAndFilter]
-bind $searchBar <Return> "$searchButton invoke"
-grid $searchBar $searchButton
-grid $searchBar -sticky ew
-grid $searchButton -sticky e
-grid columnconfigure $searchArea 0 -weight 1
-
-# Grid the search box
-grid $searchArea -sticky ew
+# Make the top area.
+set topBar [frame .topBar]
 
 # Make the category box
 set categoryArea [frame .categoryArea]
+
 # Set the map that maps from display name to data name
 array set filterCategoryDisplayNameMap [list Action actiongame Adventure adventuregame Arcade arcadegame "Board Game" boardgame "Blocks Game" blocksgame "Card Game" cardgame "Kids" kidsgame "Logic" logicgame "Role Playing" roleplaying Simulation simulation Sports sportsgame Strategy strategy]
+
 # Then get the sorted list of categories, with "All" at the start
 set categoryList [concat All [lsort [array names filterCategoryDisplayNameMap]]]
+
 # Add the mapping form "All" to the filter
 set filterCategoryDisplayNameMap(All) ""
+
 # Find the required width of the combobox
 set categoryMaxWidth 0
 foreach item [concat "Category" $categoryList] {
@@ -166,14 +160,25 @@ foreach item [concat "Category" $categoryList] {
 		set categoryMaxWidth [string length $item]
 	}
 }
-set categoryCombo [ttk::combobox ${categoryArea}.categoryCombo -value $categoryList -width $categoryMaxWidth]
+# Make the actual box
+set categoryCombo [ttk::combobox ${topBar}.categoryCombo -value $categoryList -width $categoryMaxWidth]
 # Set the categoryCombo boxes value to Category
 $categoryCombo set "Category"
+# Set up the binding
 bind $categoryCombo <<ComboboxSelected>> {categoryUpdate %W}
-grid $categoryCombo
 
-# Grid the category area
-grid $categoryArea -sticky ew
+# Make seach Bar
+set searchBar [entry ${topBar}.bar -width 20 -textvariable searchQuery]
+set searchButton [button ${topBar}.button -text "Search" -command getDataAndFilter]
+bind $searchBar <Return> "$searchButton invoke"
+grid $categoryCombo $searchBar $searchButton
+grid $searchBar -sticky ew
+grid $searchButton -sticky e
+# Make the seach box expand when the window does
+grid columnconfigure $topBar 1 -weight 1
+
+# Grid the top bar
+grid $topBar -sticky ew
 
 # Grid the canvas and scrollbar
 grid $canvas .yscroll
