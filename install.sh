@@ -167,7 +167,7 @@ EXTERNAL="`which apt-get`"
 if [ $? != 0 ]; then
 	EXTERNAL=""
 else
-	EXTERNAL="sudo apt-get install -y"
+	EXTERNAL="apt-get install -y"
 fi
 
 # Determine which command to use for installing internal packages
