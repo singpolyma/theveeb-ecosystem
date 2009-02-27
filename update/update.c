@@ -29,7 +29,7 @@ struct Package {
 	char category      [  50]; /* Plenty large */
 	char version       [  50]; /* Plenty large */
 	char section       [  50]; /* Plenty large */
-	char md5           [  32]; /* MD5s are 32 characters */
+	char md5           [  33]; /* MD5s are 32 characters */
 	char maintainer    [ 100]; /* In Ubuntu, largest is 78 */
 	char remote_path   [ 256]; /* In Ubuntu, largest subpath is 106 */
 	char homepage      [ 256]; /* URLs are specced to a max length of 255 */
@@ -169,6 +169,7 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	sprintf(sql, "%sinstalled_size=%d,size=%d WHERE package=", sql, current->installed_size, current->size);
 	quotecat(sql, current->package, size, 0);
 	strncat (sql, ";",             size);
+	puts(sql);
 }
 
 /* Display usage message */
