@@ -19,7 +19,7 @@ void help() {
 	puts("Usage: search [OPTION] [QUERY]");
 	puts("   QUERY           Pattern to search for");
 	puts("   -h              help menu (this screen)");
-	puts("   -l              list (search package names only)");
+	puts("   -n              search package names only");
 	puts("   -v              verbose (more complete output)");
 	puts("   -i[category]    category/section to restrict search to");
 	puts("   -x[category]    category/section to exclude from results");
@@ -125,14 +125,14 @@ int main (int argc, char ** argv) {
 	char * exclude_cats = NULL;
 	char * order_by = "package";
 	char * db_path = NULL;
-	int (*output_callback)(void *,int,char **,char **)=print_results;
+	int (*output_callback)(void *,int,char **,char **) = print_results;
+	int search_description = 1;
 	int c;
-	int search_description=1;
 
 	while((c = getopt(argc, argv, "-lvhi:x:s:d:")) != -1) {
 		switch(c) {
-			case 'l': /* Search package names only */
-				search_description=0;
+			case 'n': /* Search package names only */
+				search_description = 0;
 				break;
 			case 'v':
 				output_callback=print_results_verbose;
