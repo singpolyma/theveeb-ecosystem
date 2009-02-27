@@ -71,7 +71,8 @@ do_install () {
 		fi
 	fi
 	# Extract the download URL from the database
-	URL="`TVEDB="$TVEDB" search/search -v "$2" | grep Download | cut -d' ' -f2`"
+	DATA="`TVEDB="$TVEDB" search/search -v "$2"`"
+	URL="`echo "$DATA" | grep Download | cut -d' ' -f2`"
 	# Sign the URL with oauth utils (oauthsign)
 	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
 	# Get remote URL and download deb file with GET
@@ -79,7 +80,19 @@ do_install () {
 		echo "Error downloading ${2}... Aborting..."
 		exit 1
 	fi
-	# TODO: Verify size and MD5 from database (needs modification to search)
+	# Verify size and MD5 from database
+	SIZE="`echo "$DATA" | grep Size | cut -d' ' -f2`"
+	REALSIZE="`wc -c "$temp/$2.deb" | awk '{ print $1 }'`"
+	if [ "$SIZE" != "$REALSIZE" ]; then
+		echo "Integrity check for $1 failed. Size does not match." 1>&2
+		exit 1
+	fi
+	MD5="`echo "$DATA" | grep MD5sum | cut -d' ' -f2`"
+	REALMD5="`md5/md5 -q "$temp/$2.deb"`"
+	if [ "$MD5" != "$REALMD5" ]; then
+		echo "Integrity check for $1 failed. MD5 sum does not match." 1>&2
+		exit 1
+	fi
 	# Install deb file with $INTERNAL
 	LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"
 	if [ $? != 0 ]; then
