@@ -71,6 +71,9 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 	(void)fields;
 
 	printf("Package: %s\n", row[1]);
+	if(strcmp(row[5],"") != 0) {
+		printf("Name: %s\n", row[5]);
+	}
 
 	if(row[0]) {
 		char *end;
@@ -91,6 +94,8 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 
 	printf("Version: %s\n", row[2]);
 	printf("Download: %s\n", row[4]);
+	printf("Size: %s\n", row[7]);
+	printf("MD5sum: %s\n", row[6]);
 	printf("Description: %s\n", row[3]);
 	puts("");
 	return 0;
@@ -114,7 +119,7 @@ int check_order_by(const char *s) {
 
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
-	char sql[250] = "";
+	char sql[300] = "";
 	char * query = NULL;
 	char * include_cats = NULL;
 	char * exclude_cats = NULL;
@@ -187,7 +192,7 @@ int main (int argc, char ** argv) {
 	}
 
 	if(query == NULL) {
-		strcpy(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE 1=1");
+		strcpy(sql, "SELECT status,package,version,description,remote_path,name,md5,size FROM packages WHERE 1=1");
 	} else {
 		if(strchr(query, '\'') != NULL) {
 			fprintf(stderr, "Malformed query (single-quote not allowed).\n");
@@ -195,15 +200,15 @@ int main (int argc, char ** argv) {
 		}
 
 		/* Static buffers are retarded, block long searches */
-		if(strlen(query) > 43) {
+		if(strlen(query) > 50) {
 			fprintf(stderr,"Your query is too long.  Go beat Stephen with the cluebat.\n");
 			exit(EXIT_FAILURE);
 		}
 
 		if(search_description) {
-			sprintf(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
+			sprintf(sql, "SELECT status,package,version,description,remote_path,name,md5,size FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
 		} else {
-			sprintf(sql, "SELECT status,package,version,description,remote_path FROM packages WHERE package LIKE '%%%s%%'", query);
+			sprintf(sql, "SELECT status,package,version,description,remote_path,name,md5,size FROM packages WHERE package LIKE '%%%s%%'", query);
 		}
 	}
 
