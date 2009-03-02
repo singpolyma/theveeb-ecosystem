@@ -87,7 +87,7 @@ proc getPackList {text category} {
 
 		#This part runs all of the parses, and if any of them fail the error part runs
 		if {!(
-			[regexp {Package: ([^\n]*)\n} $pack mat temp(title)] && 
+			[regexp {Package: ([^\n]*)\n} $pack mat temp(package)] && 
 			[regexp {Status: ([^\n]*)\n} $pack mat temp(status)] &&
 			[regexp {Description: ([^\n]*)\n(.*)} $pack mat temp(descText) temp(longDesc)]
 			)
@@ -97,6 +97,15 @@ proc getPackList {text category} {
 			return [list]
 		}
 		lineTrim temp(longDesc)
+
+		#If it exists (It doesn't have to), fill in the name
+		if {[regexp {Name: ([^\n]*)\n} $pack mat temp(name)]} {
+			#There is a name
+			set temp(title) $temp(name)
+		} else {
+			#There is no name, show the package name instead
+			set temp(title) $temp(package)
+		}
 
 		lappend packList [array get temp]
 	}
