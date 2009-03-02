@@ -140,6 +140,12 @@ proc getDataAndFilter {} {
 	filter $canvas $searchQuery $filterCategory
 }
 
+# This function does all that's needed to quit
+proc safeQuit {} {
+	# For now, just quit
+	exit
+}
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
 $canvas configure -yscrollcommand {.yscroll set}
@@ -240,6 +246,15 @@ $tabArea add $reviews -text "Reviews" -state disabled -sticky news
 $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
+
+# Set up the bottom bar
+set bottomBar [frame .buttonBar]
+
+set quitButton [button ${bottomBar}.quit -text "Quit" -command safeQuit]
+set commitButton [button ${bottomBar}.commit -text "Do it"]
+
+grid $quitButton $commitButton
+grid $bottomBar
 
 # Initialize Filter
 set searchQuery ""
