@@ -29,11 +29,11 @@ proc drawPackageList {destination data} {
 
 		# When reading the database, only use its value if we haven't already picked one
 		# This fixes the problem where anytime the list is reread it would clobber your selection changes.
-		if {![info exists selectedPackages($temp(title))]} {
+		if {![info exists selectedPackages($temp(package))]} {
 			if {$temp(status) != "not installed"} {
-				set selectedPackages($temp(title)) 1
+				set selectedPackages($temp(package)) 1
 			} else {
-				set selectedPackages($temp(title)) 0
+				set selectedPackages($temp(package)) 0
 			}
 		}
 
