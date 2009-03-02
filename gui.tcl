@@ -37,7 +37,7 @@ proc drawPackageList {destination data} {
 			}
 		}
 
-		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package))]
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
@@ -146,6 +146,48 @@ proc safeQuit {} {
 	exit
 }
 
+# This function is called when a checkbutton is clicked
+# It manages the "original" thing
+proc checkChanged {package} {
+	global originalValues
+	global selectedPackages
+
+	if {[info exists originalValues($package)]} {
+		# There's already a value here
+		if {$selectedPackages($package) == $originalValues($package)} {
+			# If the new value is the same as the original, get rid of that entry in the original
+			unset originalValues($package)
+		}
+	} else {
+		# We don't have an original, so we can only guess it's the opposite of the current
+		if {$selectedPackages($package) == 0} {
+			set originalValues($package) 1
+		} else {
+			set originalValues($package) 0
+		}
+	}
+}
+
+# This function gets a list of all packages to be changed
+# The output list is a list of lists
+# Each element is the packages name and the operation, either "1" for install, or "0" for uninstall
+proc getDiff {} {
+	global originalValues
+	global selectedPackages
+	set result [list]
+	# Go through each entry in originalValues, use the selectedValue
+	foreach {package} [array names originalValues] {
+		lappend result [list $package $selectedPackages($package)]
+	}
+
+	return $result
+}
+
+# This is the command of the "Do It" button
+proc DoIt {} {
+	puts [getDiff]
+}
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
 $canvas configure -yscrollcommand {.yscroll set}
@@ -251,7 +293,7 @@ pack $tabArea -fill both -expand 1 -side top
 set bottomBar [frame .buttonBar]
 
 set quitButton [button ${bottomBar}.quit -text "Quit" -command safeQuit]
-set commitButton [button ${bottomBar}.commit -text "Do it"]
+set commitButton [button ${bottomBar}.commit -text "Do it" -command DoIt]
 
 grid $quitButton $commitButton
 grid $bottomBar
