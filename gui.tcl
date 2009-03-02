@@ -37,7 +37,7 @@ proc drawPackageList {destination data} {
 			}
 		}
 
-		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(title))]
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package))]
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
