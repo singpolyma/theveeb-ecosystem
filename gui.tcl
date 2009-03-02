@@ -41,11 +41,13 @@ proc drawPackageList {destination data} {
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
+		set price [label ${destination}.frame.row$i.price -text $temp(price) -anchor e]
 
 		# Should get longer info from search eventually
 		set handler "set currentPackage(title) {$temp(title)}
 								 set currentPackage(caption) {$temp(descText)}
 								 set currentPackage(longText) {$temp(longDesc)}
+								 set currentPackage(price) {$temp(price)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
 								 set highlightedrow $i
 								 ${destination}.frame.row$i configure -highlightthickness 2
@@ -59,6 +61,7 @@ proc drawPackageList {destination data} {
 		grid $icon -column 1 -rowspan 2 -padx 5 -row $i
 		grid $name -column 2 -padx 5 -pady 2 -sticky nwe -row $i
 		grid $desc -column 2 -padx 5 -pady 2 -sticky nwe -row [expr {1+$i}]
+		grid $price -column 3 -sticky e -row $i
 
 		grid columnconfigure ${destination}.frame.row$i 2 -weight 1
 
@@ -105,6 +108,12 @@ proc getPackList {text category} {
 		} else {
 			#There is no name, show the package name instead
 			set temp(title) $temp(package)
+		}
+
+		if {![regexp {Price: ([^\n]*)\n} $pack mat temp(price)]} { 
+			#If no price
+			#Free
+			set temp(price) "Free"
 		}
 
 		lappend packList [array get temp]
@@ -259,9 +268,11 @@ grid columnconfigure ${canvas}.frame 0 -weight 1
 set tabArea [ttk::notebook ${viewarea}.tabArea]
 
 set description [frame ${tabArea}.description]
-set description.title [label ${description}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
+set description.topLine [frame ${description}.topLine]
+set description.title [label ${description.topLine}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
 set description.caption [label ${description}.caption -textvariable currentPackage(caption) -justify left]
 set description.longText [text ${description}.longText -wrap word]
+set description.price [label ${description.topLine}.price -textvariable currentPackage(price) -justify right]
 
 # Set up the scrolling
 set description.scrollbar [scrollbar ${description}.scrollbar -command "${description.longText} yview"]
@@ -270,7 +281,14 @@ ${description.longText} configure -yscrollcommand "${description.scrollbar} set"
 # Set up the text box to update when the variable's changed.
 textvariable ${description.longText} currentPackage(longText)
 
+# Layout the top line
+grid ${description.title} ${description.price}
 grid ${description.title} -sticky nw
+grid ${description.price} -sticky ne
+# And set price to expand to fill its size 
+grid columnconfigure ${description.topLine} 1 -weight 1
+
+grid ${description.topLine} -sticky ew
 grid ${description.caption} -sticky nw
 grid ${description.longText} ${description.scrollbar}
 
