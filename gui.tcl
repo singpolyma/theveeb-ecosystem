@@ -198,6 +198,30 @@ proc DoIt {} {
 	puts [getDiff]
 }
 
+# This is the command to send feedback
+proc sendFeedback {textWindow typeWindow} {
+	global tcl_platform
+	global currentPackage
+
+	if {![info exists currentPackage(package)]} {
+		tk_messageBox -message "You must select a package before you can send feedback about it" -type ok
+		return
+	}
+	set feedback(body) [$textWindow get 1.0 end]
+	$textWindow delete 1.0 end
+
+	set feedback(type) [$typeWindow get]
+
+	set feedback(package) $currentPackage(package)
+
+	set feedback(os) $tcl_platform(os)
+	set feedback(osVersion) $tcl_platform(osVersion)
+	set feedback(machine) $tcl_platform(machine)
+	set feedback(platform) $tcl_platform(platform)
+
+	puts [array get feedback]
+}
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
 $canvas configure -yscrollcommand {.yscroll set}
@@ -300,11 +324,31 @@ grid columnconfigure $description 0 -weight 1
 grid rowconfigure $description 2 -weight 1
 
 set reviews [frame ${tabArea}.review]
+
+# Setup Feedback page
 set feedback [frame ${tabArea}.feedback]
+# Type box
+set feedback.typeBox [frame ${feedback}.typeBox]
+set feedback.typeLabel [label ${feedback.typeBox}.typeLabel -text "Type: "]
+set feedback.type [ttk::combobox ${feedback.typeBox}.type -value [list "Report Bug" "Request Feature" "Other"]]
+${feedback.type} set "Other"
+grid ${feedback.typeLabel} ${feedback.type}
+
+# Main Feedback form
+set feedback.box [text ${feedback}.box]
+set feedback.scroll [scrollbar ${feedback}.scroll -command [list ${feedback.box} yview]]
+${feedback.box} configure -yscrollcommand [list ${feedback.scroll} set]
+# And send button
+set feedback.send [button ${feedback}.send -text "Send" -command [list sendFeedback ${feedback.box} ${feedback.type}]]
+grid ${feedback.typeBox} -sticky w
+grid ${feedback.box} ${feedback.scroll} -sticky news
+grid ${feedback.send} -sticky n
+grid columnconfigure $feedback 0 -weight 1
+grid rowconfigure $feedback 1 -weight 1
 
 $tabArea add $description -text "Package Description" -sticky news
 $tabArea add $reviews -text "Reviews" -state disabled -sticky news
-$tabArea add $feedback -text "Feedback" -state disabled -sticky news
+$tabArea add $feedback -text "Feedback" -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
 
