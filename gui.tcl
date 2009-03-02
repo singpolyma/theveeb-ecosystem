@@ -7,6 +7,7 @@ if [catch {ttk::setTheme aqua}] {
 }
 catch {namespace import -force ttk::*}
 source scrollable.tcl
+source textvariable.tcl
 
 proc clearScrollableThing {widget} {
 	foreach item [grid slaves ${widget}.frame] {
@@ -134,9 +135,7 @@ $canvas configure -yscrollcommand {.yscroll set}
 scrollbar .yscroll -orient vertical -command {$canvas yview}
 
 # Get scrollable view area
-set viewarea [scrollableThing .viewarea]
-$viewarea configure -yscrollcommand {.viewyscroll set}
-scrollbar .viewyscroll -orient vertical -command {$viewarea yview}
+set viewarea [frame .viewarea]
 
 # Make the top area.
 set topBar [frame .topBar]
@@ -185,32 +184,42 @@ grid $canvas .yscroll
 grid $canvas -sticky news
 grid .yscroll -sticky ns
 
-# Grid the viewarea and scrollbar
-grid $viewarea .viewyscroll
+# Grid the viewarea
+grid $viewarea -
 grid $viewarea -sticky news
-grid .viewyscroll -sticky ns
 
 # Make grid fill window
-grid rowconfigure . 2 -weight 1
-grid rowconfigure . 3 -weight 1
+grid rowconfigure . 1 -weight 1
+grid rowconfigure . 2 -weight 2
 grid columnconfigure . 0 -weight 1
 
 # And make rows fill canvas
 grid columnconfigure ${canvas}.frame 0 -weight 1
 
 # Add label to viewarea
-set tabArea [ttk::notebook ${viewarea}.frame.tabArea]
+set tabArea [ttk::notebook ${viewarea}.tabArea]
 
 set description [frame ${tabArea}.description]
 set description.title [label ${description}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
 set description.caption [label ${description}.caption -textvariable currentPackage(caption) -justify left]
-set description.longText [label ${description}.longText -textvariable currentPackage(longText) -justify left -anchor w]
+set description.longText [text ${description}.longText -wrap word]
 
-bind . <Configure> [concat [list ${description.longText} configure -wraplength ] {[expr {[winfo width .]-20}]}]
+# Set up the scrolling
+set description.scrollbar [scrollbar ${description}.scrollbar -command "${description.longText} yview"]
+${description.longText} configure -yscrollcommand "${description.scrollbar} set"
+
+# Set up the text box to update when the variable's changed.
+textvariable ${description.longText} currentPackage(longText)
 
 grid ${description.title} -sticky nw
 grid ${description.caption} -sticky nw
-grid ${description.longText} -sticky nwes
+grid ${description.longText} ${description.scrollbar}
+
+grid ${description.longText} -sticky news
+grid ${description.scrollbar} -sticky ns
+
+grid columnconfigure $description 0 -weight 1
+grid rowconfigure $description 2 -weight 1
 
 set reviews [frame ${tabArea}.review]
 set feedback [frame ${tabArea}.feedback]
