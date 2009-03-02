@@ -73,10 +73,12 @@ proc lineTrim {words} {
 }
 
 proc getPackList {text category} {
+	set command [list search/search -v]
 	if {$category !=""} {
-		set category "-i$category"
+		lappend command "-i$category"
 	}
-	set rawOutput [exec search/search -v $category $text]
+	lappend command $text
+	set rawOutput [eval "exec $command"]
 	set output [split [string map [list "\n\n" \0] $rawOutput] \0]
 
 	set packList [list]
