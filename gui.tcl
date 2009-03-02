@@ -48,6 +48,7 @@ proc drawPackageList {destination data} {
 								 set currentPackage(caption) {$temp(descText)}
 								 set currentPackage(longText) {$temp(longDesc)}
 								 set currentPackage(price) {$temp(price)}
+								 set currentPackage(package) {$temp(package)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
 								 set highlightedrow $i
 								 ${destination}.frame.row$i configure -highlightthickness 2
