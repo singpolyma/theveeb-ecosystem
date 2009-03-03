@@ -50,6 +50,7 @@ proc drawPackageList {destination data} {
 								 set currentPackage(price) {$temp(price)}
 								 set currentPackage(package) {$temp(package)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
+								 \$tabArea tab \$feedback -state normal
 								 set highlightedrow $i
 								 ${destination}.frame.row$i configure -highlightthickness 2
 								 "
@@ -357,7 +358,7 @@ grid rowconfigure $feedback 1 -weight 1
 
 $tabArea add $description -text "Package Description" -sticky news
 $tabArea add $reviews -text "Reviews" -state disabled -sticky news
-$tabArea add $feedback -text "Feedback" -sticky news
+$tabArea add $feedback -text "Feedback" -state disabled -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
 
