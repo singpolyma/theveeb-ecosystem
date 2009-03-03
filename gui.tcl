@@ -82,7 +82,16 @@ proc getPackList {text category} {
 		lappend command "-i$category"
 	}
 	lappend command $text
-	set rawOutput [eval "exec $command"]
+	if {[catch {eval "exec $command"} rawOutput]!=0} {
+		if {[string match "*database may not exist*" $rawOutput]} {
+			tk_messageBox -message "We seem to be having trouble finding the database.\nMake sure the environment is set up properly, and the database file exists."
+		} else {
+			# If we have nothing more important to say
+			# Print out the error raw.
+			tk_messageBox -message "Internal Error:\n$rawOutput" -type ok
+		}
+		exit
+	}
 	set output [split [string map [list "\n\n" \0] $rawOutput] \0]
 
 	set packList [list]
