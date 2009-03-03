@@ -74,7 +74,7 @@ proc drawPackageList {destination data} {
 proc lineTrim {words} {
 	upvar $words temp
 	set temp [string trim $temp]
-	regsub {\s*\n\s*} $temp {\n} temp
+	regsub {\s*\n\s*} $temp \n temp
 }
 
 proc getPackList {text category} {
