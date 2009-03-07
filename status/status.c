@@ -16,7 +16,7 @@
 
 /* Status values */
 #define STATUS_NOT_SET         100
-#define UP_TO_DATE             101
+#define UP_TO_DATE             101 /* Magic value flag to say the package is up-to-date */
 #define NOT_INSTALLED            0
 #define INSTALLED                1
 #define DEPENDENCY               2
@@ -33,11 +33,28 @@ void help() {
 }
 
 /* Callback for query: print row */
-int print_results(void * dummy, int field_count, char ** row, char ** fields) {
-	(void)dummy;
-	(void)field_count;
-	(void)row;
+int print_results(void * status, int field_count, char ** row, char ** fields) {
 	(void)fields;
+	(void)field_count;
+	if(row[0] == NULL) {
+		row[0] = "0";
+	}
+	if(*((int*)status) == UP_TO_DATE) {
+		errno = 0;
+		*((int*)status) = strtol(row[0], NULL, 10);
+		if(*((int*)status) < 0) {
+			*((int*)status) *= -1;
+		}
+		if(*((int*)status) == 0) {
+			*((int*)status) = 1;
+		}
+		if(errno) {
+			fputs("Fatal error.", stderr);
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		printf("%s\n",row[0]);
+	}
 	return 0;
 }
 
@@ -45,6 +62,7 @@ int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char * db_path = NULL;
 	char * package = NULL;
+	char sql[150];
 	int status = STATUS_NOT_SET;
 	int c;
 
@@ -119,8 +137,10 @@ int main (int argc, char ** argv) {
 		help();
 		exit(EXIT_FAILURE);
 	}
-
-printf("%s (%d)\n", package, status);
+	if(strlen(package) > 50) {
+		fputs("Package names are not longer than 50 characters.", stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	/* Get default DB path if not passed in switches */
 	if(db == NULL && (db_path = get_db_path()) && sqlite3_open(db_path, &db) != 0) {
@@ -129,6 +149,22 @@ printf("%s (%d)\n", package, status);
 	}
 	if(db_path) {
 		free(db_path);
+	}
+
+	if(status == STATUS_NOT_SET || status == UP_TO_DATE) {
+		sprintf(sql,"SELECT status FROM packages WHERE package='%s';", package);
+		if(sqlite3_exec(db, sql, print_results, &status, NULL) != 0) {
+			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+	if(status != STATUS_NOT_SET) {
+		sprintf(sql,"UPDATE packages SET status=%d WHERE package='%s';", status, package);
+		if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
+			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+			exit(EXIT_FAILURE);
+		}
+		printf("%d\n", status);
 	}
 
 	if(sqlite3_close(db) != 0) {
