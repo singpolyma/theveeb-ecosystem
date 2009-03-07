@@ -99,7 +99,16 @@ do_install () {
 		echo "Error unpacking ${2}."
 		exit 1
 	fi
-	# TODO: UPDATE status in DB for this 2 (write set-status C utility)
+	# UPDATE status in DB for this 2 (write set-status C utility)
+	if [ "$1" = "dependency" ]; then
+		if [ "`status/status "$2"`" -ne 0 ]; then
+			status/status "$2" .
+		else
+			status/status "$2" 2 # Set to 2 if installing for the first time as a dependency
+		fi
+	else
+		status/status "$2" .
+	fi
 }
 
 # Get dependencies
