@@ -162,17 +162,28 @@ if [ -z "$PREFIX" ]; then
 	PREFIX="/"
 fi
 
-mkdir -p "$PREFIX"
+if ! mkdir -p "$PREFIX"; then
+	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+	exit 1
+fi
+
+if [ ! -w "$PREFIX" ]; then
+	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+	exit 1
+fi
 
 if [ ! -z "$LOG" ]; then
 	cp -Rfpv "$temp/out/"* "$PREFIX" | cut -s -d'`' -f3 | cut -s -d\' -f1 >> "$LOG"
+	if [ $? != 0 ]; then
+		echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+		exit 1
+	fi
 else
 	cp -Rfp "$temp/out/"* "$PREFIX"
-fi
-
-if [ $? != 0 ]; then
-	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
-	exit 1
+	if [ $? != 0 ]; then
+		echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+		exit 1
+	fi
 fi
 
 if [ -f "$temp/postinst" ]; then
