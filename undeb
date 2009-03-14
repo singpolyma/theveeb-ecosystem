@@ -43,11 +43,15 @@ else
 fi
 
 # Get a random directory name and try to create it
-temp="$temp/undeb$$-$RANDOM-$RANDOM"
-mkdir "$temp"
-if [ $? != 0 ]; then
-	echo "ERROR: $temp is not writable (it may already exist)." 1>&2
-	exit 1
+if which mktemp 1>&2; then # Try to use mktemp
+	temp="`mktemp -d "$temp/undeb-$$-XXXXXX"`"
+else
+	temp="$temp/undeb-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
+	mkdir -p "$temp"
+	if [ $? != 0 ]; then
+		echo "ERROR: $temp is not writable (it may already exist)." 1>&2
+		exit 1
+	fi
 fi
 
 # Get the name of where we want the package file to live

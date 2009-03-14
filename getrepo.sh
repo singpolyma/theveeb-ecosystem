@@ -48,8 +48,13 @@ else
 	#fallback
 	temp="."
 fi
-temp="$temp/getrepo-$$-$RANDOM-$RANDOM"
-mkdir -p "$temp"
+# Try to use mktemp
+if which mktemp 1>&2; then
+	temp="`mktemp -d "$temp/tve-getrepo-$$-XXXXXX"`"
+else
+	temp="$temp/tve-getrepo-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
+	mkdir -p "$temp"
+fi
 
 #Get system architechture
 if [ -z "$ARCH" ]; then

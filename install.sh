@@ -106,8 +106,13 @@ else
 	#fallback
 	temp="."
 fi
-temp="$temp/tve-install-$$-$RANDOM-$RANDOM"
-mkdir -p "$temp"
+# Try to use mktemp
+if which mktemp 1>&2; then
+	temp="`mktemp -d "$temp/tve-install-$$-XXXXXX"`"
+else
+	temp="$temp/tve-install-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
+	mkdir -p "$temp"
+fi
 
 # Determine if there is an external package manager to use
 EXTERNAL="`which apt-get`"
