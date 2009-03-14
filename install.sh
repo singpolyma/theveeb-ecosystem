@@ -145,6 +145,10 @@ do_install () {
 	# Extract the download URL from the database
 	DATA="`TVEDB="$TVEDB" search/search -v "$2"`"
 	URL="`echo "$DATA" | grep Download | cut -d' ' -f2`"
+	if [ -z "$URL" ]; then
+		echo "Package $2 not found." 1>&2
+		exit 1
+	fi
 	# Sign the URL with oauth utils (oauthsign)
 	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
 	# Get remote URL and download deb file with GET
