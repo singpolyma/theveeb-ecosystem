@@ -6,6 +6,7 @@ if which emulate 1>&2; then
 	emulate sh
 fi
 
+# Handle switches
 INTERACTIVE=0
 while [ $# -gt 1 ]; do
 	case "$1" in
@@ -52,64 +53,6 @@ fi
 # Verify the presence of oauthsign
 if ! which oauthsign 1>&2; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
-	exit 1
-fi
-
-# do_install KIND PACKAGE
-do_install () {
-	# If interactive, ask for confirmation
-	if [ $INTERACTIVE != 0 ]; then
-		read -p "Install $1 ${2}? [Yn] " YN
-		if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
-			echo "You opted not to install $1 ${2}. Aborting install..."
-			exit 2
-		fi
-	fi
-	# Extract the download URL from the database
-	DATA="`TVEDB="$TVEDB" search/search -v "$2"`"
-	URL="`echo "$DATA" | grep Download | cut -d' ' -f2`"
-	# Sign the URL with oauth utils (oauthsign)
-	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
-	# Get remote URL and download deb file with GET
-	if ! $GET "$URL" > "$temp/$2.deb"; then
-		echo "Error downloading ${2}... Aborting..."
-		exit 1
-	fi
-	# Verify size and MD5 from database
-	SIZE="`echo "$DATA" | grep Size | cut -d' ' -f2`"
-	REALSIZE="`wc -c "$temp/$2.deb" | awk '{ print $1 }'`"
-	if [ "$SIZE" != "$REALSIZE" ]; then
-		echo "Integrity check for $1 failed. Size does not match." 1>&2
-		exit 1
-	fi
-	MD5="`echo "$DATA" | grep MD5sum | cut -d' ' -f2`"
-	REALMD5="`md5/md5 -q "$temp/$2.deb"`"
-	if [ "$MD5" != "$REALMD5" ]; then
-		echo "Integrity check for $1 failed. MD5 sum does not match." 1>&2
-		exit 1
-	fi
-	# Install deb file with $INTERNAL
-	LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"
-	if [ $? != 0 ]; then
-		echo "Error unpacking ${2}."
-		exit 1
-	fi
-	# UPDATE status in DB for this 2 (write set-status C utility)
-	if [ "$1" = "dependency" ]; then
-		if [ "`status/status "$2"`" -ne 0 ]; then
-			status/status "$2" .
-		else
-			status/status "$2" 2 # Set to 2 if installing for the first time as a dependency
-		fi
-	else
-		status/status "$2" .
-	fi
-}
-
-# Get dependencies
-DEP="`TVEDB="$TVEDB" depends/depends "$1"`"
-if [ $? != 0 ]; then
-	# Error message was already output by the depends command
 	exit 1
 fi
 
@@ -180,6 +123,64 @@ if [ $? != 0 -o "`whoami`" != "root" ]; then
 	INTERNAL="./undeb"
 else
 	INTERNAL="dpkg --root="$TVEROOT/" -i"
+fi
+
+# do_install KIND PACKAGE
+do_install () {
+	# If interactive, ask for confirmation
+	if [ $INTERACTIVE != 0 ]; then
+		read -p "Install $1 ${2}? [Yn] " YN
+		if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
+			echo "You opted not to install $1 ${2}. Aborting install..."
+			exit 2
+		fi
+	fi
+	# Extract the download URL from the database
+	DATA="`TVEDB="$TVEDB" search/search -v "$2"`"
+	URL="`echo "$DATA" | grep Download | cut -d' ' -f2`"
+	# Sign the URL with oauth utils (oauthsign)
+	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
+	# Get remote URL and download deb file with GET
+	if ! $GET "$URL" > "$temp/$2.deb"; then
+		echo "Error downloading ${2}... Aborting..."
+		exit 1
+	fi
+	# Verify size and MD5 from database
+	SIZE="`echo "$DATA" | grep Size | cut -d' ' -f2`"
+	REALSIZE="`wc -c "$temp/$2.deb" | awk '{ print $1 }'`"
+	if [ "$SIZE" != "$REALSIZE" ]; then
+		echo "Integrity check for $1 failed. Size does not match." 1>&2
+		exit 1
+	fi
+	MD5="`echo "$DATA" | grep MD5sum | cut -d' ' -f2`"
+	REALMD5="`md5/md5 -q "$temp/$2.deb"`"
+	if [ "$MD5" != "$REALMD5" ]; then
+		echo "Integrity check for $1 failed. MD5 sum does not match." 1>&2
+		exit 1
+	fi
+	# Install deb file with $INTERNAL
+	LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"
+	if [ $? != 0 ]; then
+		echo "Error unpacking ${2}."
+		exit 1
+	fi
+	# UPDATE status in DB for this 2 (write set-status C utility)
+	if [ "$1" = "dependency" ]; then
+		if [ "`status/status "$2"`" -ne 0 ]; then
+			status/status "$2" .
+		else
+			status/status "$2" 2 # Set to 2 if installing for the first time as a dependency
+		fi
+	else
+		status/status "$2" .
+	fi
+}
+
+# Get dependencies
+DEP="`TVEDB="$TVEDB" depends/depends "$1"`"
+if [ $? != 0 ]; then
+	# Error message was already output by the depends command
+	exit 1
 fi
 
 # Install dependencies
