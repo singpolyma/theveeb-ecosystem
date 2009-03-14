@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 #include <sqlite3.h>
 #include "common/get_paths.h"
 
@@ -13,6 +14,8 @@
 	extern int optind, opterr, optopt;
 #endif
 
+#define STATUS_NOT_SET 100
+
 /* Print usage message */
 void help() {
 	puts("search for packages");
@@ -21,8 +24,10 @@ void help() {
 	puts("   -h              help menu (this screen)");
 	puts("   -n              search package names only");
 	puts("   -v              verbose (more complete output)");
+	puts("   -1              display package names only (opposite of verbose)");
 	puts("   -i[category]    category/section to restrict search to");
 	puts("   -x[category]    category/section to exclude from results");
+	puts("   -S[status]      restrict search to packages with this status");
 	puts("   -s[field]       field to sort by: package, version, description, or rating");
 	puts("   -d[path]        path to database file");
 }
@@ -50,15 +55,26 @@ int print_results(void * dummy, int field_count, char ** row, char ** fields) {
 		    both the offset here and the status string in the
 		    "else" branch will need to be updated.   --DV
 		*/
-		status_val++;
-		if(status_val < 0 || status_val > 3) {
+		status_val += 2;
+		if(status_val < 0 || status_val > 4) {
 			status='?';
 		} else {
 			/*Array indexing magic!*/
-			status="U ID"[status_val];
+			status="UU ID"[status_val];
 		}
 	}
 	printf("%c %-20s %-10s %s\n", status, row[1], row[2], row[3]);
+	return 0;
+}
+
+/* Callback for query: print row (compact) */
+int print_results_packages(void * dummy, int field_count, char ** row, char ** fields) {
+	(void)dummy;
+	(void)field_count;
+	(void)fields;
+	if(row[1]) {
+		puts(row[1]);
+	}
 	return 0;
 }
 
@@ -88,6 +104,7 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 	switch(status_val) {
 		case 1: puts("Status: installed"); break;
 		case 2: puts("Status: installed as dependency"); break;
+		case -2:
 		case -1: puts("Status: update available"); break;
 		case 0: puts("Status: not installed"); break;
 	}
@@ -119,20 +136,24 @@ int check_order_by(const char *s) {
 
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
-	char sql[300] = "";
+	char sql[314] = "";
 	char * query = NULL;
 	char * include_cats = NULL;
 	char * exclude_cats = NULL;
 	char * order_by = "package";
 	char * db_path = NULL;
 	int (*output_callback)(void *,int,char **,char **) = print_results;
+	int status = STATUS_NOT_SET;
 	int search_description = 1;
 	int c;
 
-	while((c = getopt(argc, argv, "-lvhi:x:s:d:")) != -1) {
+	while((c = getopt(argc, argv, "-l1vhi:x:S:s:d:")) != -1) {
 		switch(c) {
 			case 'n': /* Search package names only */
 				search_description = 0;
+				break;
+			case '1':
+				output_callback=print_results_packages;
 				break;
 			case 'v':
 				output_callback=print_results_verbose;
@@ -142,6 +163,14 @@ int main (int argc, char ** argv) {
 				break;
 			case 'x':
 				exclude_cats = optarg;
+				break;
+			case 'S':
+				errno = 0;
+				status = strtol(optarg, NULL, 10);
+				if(errno || status < -2 || status > 2) {
+					fputs("Status argument invalid.\n", stderr);
+					exit(EXIT_FAILURE);
+				}
 				break;
 			case 's':
 				if(check_order_by(optarg)) {
@@ -226,6 +255,10 @@ int main (int argc, char ** argv) {
 		strcat(sql, "' AND category!='");
 		strcat(sql, exclude_cats);/* FIXME: sanitize, split by comma and support multiple cats */
 		strcat(sql, "')");
+	}
+
+	if(status != STATUS_NOT_SET) {
+		sprintf(sql + strlen(sql), " AND status=%d", status);
 	}
 
 	strcat(sql, " ORDER BY ");
