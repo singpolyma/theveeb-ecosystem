@@ -50,6 +50,7 @@ proc drawPackageList {destination data} {
 								 set currentPackage(price) {$temp(price)}
 								 set currentPackage(package) {$temp(package)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
+								 \$tabArea tab \$feedback -state normal
 								 set highlightedrow $i
 								 ${destination}.frame.row$i configure -highlightthickness 2
 								 "
@@ -73,7 +74,7 @@ proc drawPackageList {destination data} {
 proc lineTrim {words} {
 	upvar $words temp
 	set temp [string trim $temp]
-	regsub {\s*\n\s*} $temp {\n} temp
+	regsub {\s*\n\s*} $temp \n temp
 }
 
 proc getPackList {text category} {
@@ -82,7 +83,16 @@ proc getPackList {text category} {
 		lappend command "-i$category"
 	}
 	lappend command $text
-	set rawOutput [eval "exec $command"]
+	if {[catch {eval "exec $command"} rawOutput]!=0} {
+		if {[string match "*database may not exist*" $rawOutput]} {
+			tk_messageBox -message "We seem to be having trouble finding the database.\nMake sure the environment is set up properly, and the database file exists."
+		} else {
+			# If we have nothing more important to say
+			# Print out the error raw.
+			tk_messageBox -message "Internal Error:\n$rawOutput" -type ok
+		}
+		exit
+	}
 	set output [split [string map [list "\n\n" \0] $rawOutput] \0]
 
 	set packList [list]
@@ -348,7 +358,7 @@ grid rowconfigure $feedback 1 -weight 1
 
 $tabArea add $description -text "Package Description" -sticky news
 $tabArea add $reviews -text "Reviews" -state disabled -sticky news
-$tabArea add $feedback -text "Feedback" -sticky news
+$tabArea add $feedback -text "Feedback" -state disabled -sticky news
 
 pack $tabArea -fill both -expand 1 -side top
 
