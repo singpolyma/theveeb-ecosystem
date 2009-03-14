@@ -6,11 +6,6 @@ if which emulate 1>&2; then
 	emulate sh
 fi
 
-# Make sure HOME is set up
-if [ -z "$HOME" ]; then
-	HOME="`ls -d ~`"
-fi
-
 INTERACTIVE=0
 while [ $# -gt 1 ]; do
 	case "$1" in
