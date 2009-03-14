@@ -8,7 +8,7 @@ fi
 
 # Handle switches
 INTERACTIVE=0
-while [ $# -gt 1 ]; do
+while [ $# -gt 0 ]; do
 	case "$1" in
 		-i)
 			INTERACTIVE=1
@@ -29,6 +29,8 @@ while [ $# -gt 1 ]; do
 			if [ "$TVEDB" = ">>" ]; then
 				TVEDB="$1"
 				shift
+			else # We have hit the first non-switch
+				break
 			fi
 		;;
 	esac
