@@ -187,54 +187,64 @@ do_install () {
 	fi
 }
 
-# Get dependencies
-DEP="`TVEDB="$TVEDB" depends/depends "$1"`"
-if [ $? != 0 ]; then
-	# Error message was already output by the depends command
-	exit 1
-fi
+# do_manual PACKAGE
+do_manual() {
 
-# Install dependencies
-EXT2INSTALL=""
-
-# Set IFS so that for splits on newlines and not spaces
-OIFS="$IFS"
-IFS="
-"
-for LINE in $DEP; do
-	IFS="$OIFS"
-	package="`echo "$LINE" | cut -d' ' -f2`"
-	if [ "`echo "$LINE" | cut -d' ' -f1`" = "E" ]; then
-		if [ -z "$EXTERNAL" ]; then
-			echo "No external package manager found to install ${package}." 1>&2
-			exit 1
-		fi
-		EXT2INSTALL="$EXT2INSTALL $package"
-	else
-		do_install "dependency" "$package"
-	fi
-done
-
-# Actually install external dependencies, if there are any
-if [ ! -z "$EXT2INSTALL" ]; then
-	# If interactive, ask for confirmation
-	if [ $INTERACTIVE != 0 ]; then
-		read -p "Install external dependencies ${EXT2INSTALL}? [Yn] " YN
-		if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
-			echo "You opted not to install required dependencies ${EXT2INSTALL}. Aborting install..."
-			exit 2
-		fi
-	fi
-	$EXTERNAL $EXT2INSTALL
+	# Get dependencies
+	DEP="`TVEDB="$TVEDB" depends/depends "$1"`"
 	if [ $? != 0 ]; then
-		echo "External dependency install failure." 1>&2
+		# Error message was already output by the depends command
 		exit 1
 	fi
-fi
 
-do_install "" "$1"
+	# Install dependencies
+	EXT2INSTALL=""
+
+	# Set IFS so that for splits on newlines and not spaces
+	OIFS="$IFS"
+	IFS="
+	"
+	for LINE in $DEP; do
+		IFS="$OIFS"
+		package="`echo "$LINE" | cut -d' ' -f2`"
+		if [ "`echo "$LINE" | cut -d' ' -f1`" = "E" ]; then
+			if [ -z "$EXTERNAL" ]; then
+				echo "No external package manager found to install ${package}." 1>&2
+				exit 1
+			fi
+			EXT2INSTALL="$EXT2INSTALL $package"
+		else
+			do_install "dependency" "$package"
+		fi
+	done
+
+	# Actually install external dependencies, if there are any
+	if [ ! -z "$EXT2INSTALL" ]; then
+		# If interactive, ask for confirmation
+		if [ $INTERACTIVE != 0 ]; then
+			read -p "Install external dependencies ${EXT2INSTALL}? [Yn] " YN
+			if [ "$YN" = "N" -o "$YN" = "n" -o "$YN" = "No" -o "$YN" = "no" ]; then
+				echo "You opted not to install required dependencies ${EXT2INSTALL}. Aborting install..."
+				exit 2
+			fi
+		fi
+		$EXTERNAL $EXT2INSTALL
+		if [ $? != 0 ]; then
+			echo "External dependency install failure." 1>&2
+			exit 1
+		fi
+	fi
+
+	do_install "" "$1"
+
+	echo "$1 sucessfully installed (with all dependencies)."
+
+}
+
+while [ $# -gt 0 ]; do
+	do_manual "$1"
+	shift
+done
 
 # remove temp dir
 rm -rf "$temp"
-
-echo "$1 sucessfully installed (with all dependencies)."
