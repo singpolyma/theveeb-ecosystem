@@ -130,7 +130,7 @@ int print_results(void *db, int field_count, char **row, char **fields) {
 		} else {
 			if(version_compare(status, row[1]) <= 0) {
 				/* Version available is high enough */
-				if(status[0] != '1') {
+				if(status[0] != '1' && status[0] != '2') {
 					/* If the package is not already installed at the newest version
 					 * then this needs to be installed as an internal dependency */
 					printf("I %s %s\n", row[0], row[1]);
