@@ -128,35 +128,38 @@ void parse_depends(sqlite3 * db, char * package, char * sep) {
 
 /* Generate SQL statement to insert a package */
 void package_insert_sql(struct Package * current, char * sql, size_t size) {
-	strncpy(sql, "INSERT INTO packages (package, name, version, maintainer, homepage, section, remote_path, md5, description, installed_size, size) VALUES (", size);
+	strncpy(sql, "INSERT INTO packages (package, name, category, version, section, md5, maintainer, remote_path, homepage, description, installed_size, size) VALUES (", size);
 	quotecat(sql, current->package,     size, 1);
 	quotecat(sql, current->name,        size, 1);
+	quotecat(sql, current->category,    size, 1);
 	quotecat(sql, current->version,     size, 1);
-	quotecat(sql, current->maintainer,  size, 1);
-	quotecat(sql, current->homepage,    size, 1);
 	quotecat(sql, current->section,     size, 1);
-	quotecat(sql, current->remote_path, size, 1);
 	quotecat(sql, current->md5,         size, 1);
+	quotecat(sql, current->maintainer,  size, 1);
+	quotecat(sql, current->remote_path, size, 1);
+	quotecat(sql, current->homepage,    size, 1);
 	quotecat(sql, current->description, size, 1);
 	sprintf(sql, "%s%d,%d);", sql, current->installed_size, current->size);
 }
 
 /* Generate SQL statement to update a package */
 void package_update_sql(struct Package * current, char * sql, size_t size) {
-	strncpy(sql, "UPDATE packages SET version=", size);
-	quotecat(sql, current->version,     size, 1);
-	strncat (sql, "name=",   size);
-	quotecat(sql, current->name,  size, 1);
-	strncat (sql, "maintainer=",   size);
-	quotecat(sql, current->maintainer,  size, 1);
-	strncat (sql, "homepage=",     size);
-	quotecat(sql, current->homepage,    size, 1);
+	strncpy(sql, "UPDATE packages SET name=", size);
+	quotecat(sql, current->name,     size, 1);
+	strncat (sql, "category=",   size);
+	quotecat(sql, current->category,  size, 1);
+	strncat (sql, "version=",   size);
+	quotecat(sql, current->version,  size, 1);
 	strncat (sql, "section=",      size);
 	quotecat(sql, current->section,     size, 1);
-	strncat (sql, "remote_path=",  size);
-	quotecat(sql, current->remote_path, size, 1);
 	strncat (sql, "md5=",          size);
 	quotecat(sql, current->md5,         size, 1);
+	strncat (sql, "maintainer=",   size);
+	quotecat(sql, current->maintainer,  size, 1);
+	strncat (sql, "remote_path=",  size);
+	quotecat(sql, current->remote_path, size, 1);
+	strncat (sql, "homepage=",     size);
+	quotecat(sql, current->homepage,    size, 1);
 	strncat (sql, "description=",  size);
 	quotecat(sql, current->description, size, 1);
 	sprintf(sql, "%sinstalled_size=%d,size=%d WHERE package=", sql, current->installed_size, current->size);
