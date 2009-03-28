@@ -246,6 +246,7 @@ int main(int argc, char ** argv) {
 	            );
 
 	/* TODO: fetch ratings from API. */ 
+	/* TODO: price */
 
 	if(!chained_call) {
 		safe_execute(db, "DELETE FROM virtual_packages;");
