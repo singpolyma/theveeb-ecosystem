@@ -29,6 +29,7 @@ struct Package {
 	int installed_size       ;
 	int size                 ;
 };
+struct Package const blank_package = {"","","","","","","","","","",0,0};
 
 static int print_sql = 0;
 
@@ -182,7 +183,7 @@ int main(int argc, char ** argv) {
 	char * sep;
 	char baseurl[256] = "\0";
 	sqlite3 * db = NULL;
-	struct Package current = {"","","","","","","","","","",0,0};
+	struct Package current = blank_package;
 	char line[sizeof(current.homepage)]; /* No line will be larger than the largest field */
 	int code;
 	int chained_call = 0;
@@ -278,7 +279,7 @@ int main(int argc, char ** argv) {
 
 			/* Reset things */
 			code = 0;
-			memset(&current, 0, sizeof(current)); /* XXX: This may not be portable */
+			current = blank_package;
 		} else {
 			/* Chomp */
 			if((sep = strchr(line, '\n'))) {
