@@ -144,26 +144,47 @@ void package_insert_sql(struct Package * current, char * sql, size_t size) {
 
 /* Generate SQL statement to update a package */
 void package_update_sql(struct Package * current, char * sql, size_t size) {
-	strncpy (sql, "UPDATE packages SET", size);
-	strncat (sql, "name=",         size);
-	quotecat(sql, current->name,        size, 1);
-	strncat (sql, "category=",     size);
-	quotecat(sql, current->category,    size, 1);
-	strncat (sql, "version=",   size);
-	quotecat(sql, current->version,     size, 1);
-	strncat (sql, "section=",      size);
-	quotecat(sql, current->section,     size, 1);
-	strncat (sql, "md5=",          size);
-	quotecat(sql, current->md5,         size, 1);
-	strncat (sql, "maintainer=",   size);
-	quotecat(sql, current->maintainer,  size, 1);
-	strncat (sql, "remote_path=",  size);
-	quotecat(sql, current->remote_path, size, 1);
-	strncat (sql, "homepage=",     size);
-	quotecat(sql, current->homepage,    size, 1);
-	strncat (sql, "description=",  size);
-	quotecat(sql, current->description, size, 1);
-	sprintf (sql, "%sinstalled_size=%d,size=%d WHERE package=", sql, current->installed_size, current->size);
+	strncpy (sql, "UPDATE packages SET ", size);
+	if(current->name[0] != '\0') {
+		strncat (sql, "name=",         size);
+		quotecat(sql, current->name,        size, 1);
+	}
+	if(current->category[0] != '\0') {
+		strncat (sql, "category=",     size);
+		quotecat(sql, current->category,    size, 1);
+	}
+	if(current->version[0] != '\0') {
+		strncat (sql, "version=",   size);
+		quotecat(sql, current->version,     size, 1);
+	}
+	if(current->section[0] != '\0') {
+		strncat (sql, "section=",      size);
+		quotecat(sql, current->section,     size, 1);
+	}
+	if(current->md5[0] != '\0') {
+		strncat (sql, "md5=",          size);
+		quotecat(sql, current->md5,         size, 1);
+	}
+	if(current->maintainer[0] != '\0') {
+		strncat (sql, "maintainer=",   size);
+		quotecat(sql, current->maintainer,  size, 1);
+	}
+	if(current->remote_path[0] != '\0') {
+		strncat (sql, "remote_path=",  size);
+		quotecat(sql, current->remote_path, size, 1);
+	}
+	if(current->homepage[0] != '\0') {
+		strncat (sql, "homepage=",     size);
+		quotecat(sql, current->homepage,    size, 1);
+	}
+	if(current->description[0] != '\0') {
+		strncat (sql, "description=",  size);
+		quotecat(sql, current->description, size, 1);
+	}
+	if(current->installed_size > 0 && current->size > 0) {
+		sprintf (sql, "%sinstalled_size=%d,size=%d", sql, current->installed_size, current->size);
+	}
+	strncat (sql, " WHERE package=",  size);
 	quotecat(sql, current->package,     size, 0);
 	strncat (sql, ";",             size);
 }
