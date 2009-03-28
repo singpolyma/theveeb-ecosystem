@@ -13,14 +13,6 @@
 	extern int optind, opterr, optopt;
 #endif
 
-#ifndef EXIT_SUCCESS
-	#define EXIT_SUCCESS 0
-#endif
-
-#ifndef EXIT_FAILURE
-	#define EXIT_FAILURE -1
-#endif
-
 /* Need somewhere to store data as we parse,
  * because order is not guarenteed */
 struct Package {
