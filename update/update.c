@@ -162,7 +162,6 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	sprintf(sql, "%sinstalled_size=%d,size=%d WHERE package=", sql, current->installed_size, current->size);
 	quotecat(sql, current->package, size, 0);
 	strncat (sql, ";",             size);
-	puts(sql);
 }
 
 /* Display usage message */
