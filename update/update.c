@@ -338,7 +338,7 @@ int main(int argc, char ** argv) {
 						strncpy(current.maintainer,  sep, sizeof(current.maintainer)-1);
 					} else if(current.remote_path[0]  == '\0' && strcmp(line, "Filename")       == 0) {
 						if(baseurl[0] == '\0') {
-							fputs("Invalid input data.", stderr);
+							fputs("Invalid input data.\n", stderr);
 							exit(EXIT_FAILURE);
 						}
 						strncpy(current.remote_path, baseurl, sizeof(current.remote_path)-1);
