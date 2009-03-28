@@ -34,7 +34,7 @@ struct Package const blank_package = {"","","","","","","","","","",0,0};
 static int print_sql = 0;
 
 /* Cat src onto dst, double single quote (') characters,
- * prefix and postfix with single quote and, optionally, postpend
+ * prefix and postfix with single quote and, optionally, append
  * a comma. Pass the size of dst as n and the function will do
  * bounds-checking, returning -1 if it truncates data. */
 int quotecat(char * dst, char * src, size_t n, int comma) {
