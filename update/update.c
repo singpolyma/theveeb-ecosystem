@@ -144,12 +144,13 @@ void package_insert_sql(struct Package * current, char * sql, size_t size) {
 
 /* Generate SQL statement to update a package */
 void package_update_sql(struct Package * current, char * sql, size_t size) {
-	strncpy(sql, "UPDATE packages SET name=", size);
-	quotecat(sql, current->name,     size, 1);
-	strncat (sql, "category=",   size);
-	quotecat(sql, current->category,  size, 1);
+	strncpy (sql, "UPDATE packages SET", size);
+	strncat (sql, "name=",         size);
+	quotecat(sql, current->name,        size, 1);
+	strncat (sql, "category=",     size);
+	quotecat(sql, current->category,    size, 1);
 	strncat (sql, "version=",   size);
-	quotecat(sql, current->version,  size, 1);
+	quotecat(sql, current->version,     size, 1);
 	strncat (sql, "section=",      size);
 	quotecat(sql, current->section,     size, 1);
 	strncat (sql, "md5=",          size);
@@ -162,8 +163,8 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	quotecat(sql, current->homepage,    size, 1);
 	strncat (sql, "description=",  size);
 	quotecat(sql, current->description, size, 1);
-	sprintf(sql, "%sinstalled_size=%d,size=%d WHERE package=", sql, current->installed_size, current->size);
-	quotecat(sql, current->package, size, 0);
+	sprintf (sql, "%sinstalled_size=%d,size=%d WHERE package=", sql, current->installed_size, current->size);
+	quotecat(sql, current->package,     size, 0);
 	strncat (sql, ";",             size);
 }
 
