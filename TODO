@@ -1,8 +1,0 @@
-Complete install.rb, remove.rb, translate to C/shell
-
-Need to add oauth GET to install.rb
-
-NOTE: the security of this system relies on the security of test.db
-      if an attacker adds data to that database, then anything can happen
-      the only real solution to this is per-package signing, which has been
-      discussed.
