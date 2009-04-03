@@ -127,7 +127,7 @@ fi
 # Determine which command to use for installing internal packages
 INTERNAL="`which dpkg`"
 if [ $? != 0 -o "`whoami`" != "root" ]; then
-	INTERNAL="./undeb"
+	INTERNAL="./undeb.sh"
 else
 	INTERNAL="dpkg --root="$TVEROOT/" -i"
 fi
