@@ -161,30 +161,51 @@ cd - # Pop back to where we were, just in case we forget where we are later
 if [ -z "$PREFIX" ]; then
 	PREFIX="/"
 fi
+# Get the absolute path for PREFIX
+cd "$PREFIX"
+PREFIX="`pwd`"
+PREFIX="${PREFIX%/}"
+cd -
 
 if ! mkdir -p "$PREFIX"; then
 	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+	# Clean up our temporary directory
+	rm -rf "$temp"
 	exit 1
 fi
 
 if [ ! -w "$PREFIX" ]; then
 	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+	# Clean up our temporary directory
+	rm -rf "$temp"
 	exit 1
 fi
 
-if [ ! -z "$LOG" ]; then
-	cp -Rfpv "$temp/out/"* "$PREFIX" | cut -s -d'`' -f3 | cut -s -d\' -f1 >> "$LOG"
-	if [ $? != 0 ]; then
-		echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
-		exit 1
+IFS="
+"
+for FILE in `find "$temp/out/" | sed -e"s#^$temp/out/##"`; do
+	if [ -d "$temp/out/$FILE" ]; then
+		if ! mkdir -p "$PREFIX/$FILE"; then
+			echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+			# Clean up our temporary directory
+			rm -rf "$temp"
+			exit 1
+		fi
+	else
+		if ! mv -f "$temp/out/$FILE" "$PREFIX/$FILE"; then
+			echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+			# Clean up our temporary directory
+			rm -rf "$temp"
+			exit 1
+		fi
+		# Only adds files to the remove log... so that we don't remove shared folders.
+		# May result in empty dirs left behind.
+		if [ ! -z "$LOG" ]; then
+			echo "$PREFIX/$FILE" >> "$LOG"
+		fi
 	fi
-else
-	cp -Rfp "$temp/out/"* "$PREFIX"
-	if [ $? != 0 ]; then
-		echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
-		exit 1
-	fi
-fi
+done
+IFS=" "
 
 if [ -f "$temp/postinst" ]; then
 	sh "$temp/postinst"
@@ -193,4 +214,4 @@ fi
 # Clean up our temporary directory
 rm -rf "$temp"
 
-echo "Package $1 installed to $PREFIX successfully."
+echo "Package '$1' installed to '$PREFIX' successfully."
