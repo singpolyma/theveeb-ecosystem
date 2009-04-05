@@ -132,6 +132,8 @@ else
 	INTERNAL="dpkg --root="$TVEROOT/" -i"
 fi
 
+MUST_REBOOT=0
+
 # do_install KIND PACKAGE
 do_install () {
 	# If interactive, ask for confirmation
@@ -170,10 +172,13 @@ do_install () {
 		exit 1
 	fi
 	# Install deb file with $INTERNAL
-	LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"
-	if [ $? != 0 ]; then
-		echo "Error unpacking ${2}."
-		exit 1
+	if ! LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"; then
+		if [ $? -eq 110 ]; then
+			MUST_REBOOT=1
+		else
+			echo "Error unpacking ${2}."
+			exit 1
+		fi
 	fi
 	# UPDATE status in DB for this 2 (write set-status C utility)
 	if [ "$1" = "dependency" ]; then
@@ -248,3 +253,7 @@ done
 
 # remove temp dir
 rm -rf "$temp"
+
+if [ $MUST_REBOOT -eq 1 ]; then
+	exit 110
+fi

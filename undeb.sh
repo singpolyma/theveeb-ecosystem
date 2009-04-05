@@ -181,6 +181,7 @@ if [ ! -w "$PREFIX" ]; then
 	exit 1
 fi
 
+MUST_REBOOT=0
 IFS="
 "
 for FILE in `find "$temp/out/" | sed -e"s#^$temp/out/##"`; do
@@ -193,10 +194,14 @@ for FILE in `find "$temp/out/" | sed -e"s#^$temp/out/##"`; do
 		fi
 	else
 		if ! mv -f "$temp/out/$FILE" "$PREFIX/$FILE"; then
-			echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
-			# Clean up our temporary directory
-			rm -rf "$temp"
-			exit 1
+			if [ $? -eq 110 ]; then
+				MUST_REBOOT=1
+			else
+				echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
+				# Clean up our temporary directory
+				rm -rf "$temp"
+				exit 1
+			fi
 		fi
 		# Only adds files to the remove log... so that we don't remove shared folders.
 		# May result in empty dirs left behind.
@@ -215,3 +220,7 @@ fi
 rm -rf "$temp"
 
 echo "Package '$1' installed to '$PREFIX' successfully."
+if [ $MUST_REBOOT -eq 1 ]; then
+	echo "You must reboot before installation will be complete."
+	exit 110
+fi
