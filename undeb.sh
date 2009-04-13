@@ -78,7 +78,9 @@ elif [ "$DEB_VERSION" != "2.0" ]; then
 	echo "WARN: debian-binary says $DEB_VERSION, expected 2.0 " 1>&2
 fi
 
-# XXX: Should check dependencies? Should check md5sums. Should check _gpgorigin.
+# NOTE: We do not check dependencies. Use a wrapper script.
+
+# TODO: Should check _gpgorigin.
 
 if [ -f "$temp/control.tar" ]; then
 	echo "Not compressed, no decompression necessary."
@@ -112,8 +114,9 @@ cd "$temp"
 tar xvf "$temp/control.tar"
 cd -
 
-if [ -f "$temp/preinst" ]; then
-	sh "$temp/preinst"
+if [ ! -r "$temp/md5sums" ]; then
+	echo "FATAL: Could not verify package integrity." 1>&2
+	exit 1
 fi
 
 # Determine what kind of data ball is being used and decompress it
@@ -151,11 +154,29 @@ mkdir -p "$temp/out"
 # Copy the data tar into it
 cp "$temp/data.tar" "$temp/out"
 
+if [ -f "$temp/preinst" ]; then
+	sh "$temp/preinst"
+fi
+
 # Unpack using tar
 cd "$temp/out"
 tar xvf data.tar
 rm -f data.tar
 cd - # Pop back to where we were, just in case we forget where we are later
+
+IFS="
+"
+for LINE in `cat "$temp/md5sums"`; do
+	MD5="`echo "$LINE" | cut -d' ' -f1`"
+	FILE="`echo "$LINE" | awk '{ print $2; }'`"
+	if [ "$MD5" != "`md5 -q "$temp/out/$FILE"`" ]; then
+		echo "Package integrity check failed." 1>&2
+		exit 1
+	fi
+done
+IFS=" "
+
+echo "Package integrity check succeeded." 1>&2
 
 # Copy the data to the dir where it will be installed
 if [ -z "$PREFIX" ]; then
