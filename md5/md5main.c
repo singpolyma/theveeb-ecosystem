@@ -45,6 +45,10 @@ int main(int argc, char *argv[]) {
 	FILE *fp = stdin;
 	if(argc > 2 && strcmp(argv[1],"-q") == 0) {
 		fp = fopen(argv[2],"rb");
+		if(!fp) {
+			fprintf(stderr, "'%s' does not exist, or is not readable.\n", argv[2]);
+			exit(EXIT_FAILURE);
+		}
 	}
 	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-') || fp != stdin) {
 		/* Don't treat it as a string, because it may be binary data */
