@@ -216,6 +216,12 @@ if [ -f "$temp/postinst" ]; then
 	sh "$temp/postinst"
 fi
 
+# Keep rm scripts around if we've been told what to do with them
+if [ ! -z "$RMPATH" ]; then
+	mv -f "$temp/prerm" "$RMPATH".prerm
+	mv -f "$temp/postrm" "$RMPATH".prerm
+fi
+
 # Clean up our temporary directory
 rm -rf "$temp"
 

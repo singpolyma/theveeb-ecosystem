@@ -172,7 +172,7 @@ do_install () {
 		exit 1
 	fi
 	# Install deb file with $INTERNAL
-	if ! LOG="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"; then
+	if ! LOG="$LOGDIR/$2" RMPATH="$LOGDIR/$2" PREFIX="$TVEROOT/" $INTERNAL "$temp/$2.deb"; then
 		if [ $? -eq 110 ]; then
 			MUST_REBOOT=1
 		else
