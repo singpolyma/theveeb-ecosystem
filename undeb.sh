@@ -80,7 +80,21 @@ fi
 
 # NOTE: We do not check dependencies. Use a wrapper script.
 
-# TODO: Should check _gpgorigin.
+# Find and verify PGP signature (currently only supports using GPG for this)
+if [ -r "$temp/_gpgorigin" ]; then
+	if which gpg 1>&2; then
+		if gpg --verify "$temp/_gpgorigin" "$temp/debian-binary" "$temp/control.tar"* "$temp/data.tar"*; then
+			echo "PGP signature found and verified." 1>&2
+		else
+			echo "FATAL: PGP signature found and invalid." 1>&2
+			exit 1
+		fi
+	else
+		echo "WARN: PGP signature found, but GPG not installed." 1>&2
+	fi
+else
+	echo "WARN: no PGP signature found for '$1'." 1>&2
+fi
 
 if [ -f "$temp/control.tar" ]; then
 	echo "Not compressed, no decompression necessary."
@@ -164,6 +178,7 @@ tar xvf data.tar
 rm -f data.tar
 cd - # Pop back to where we were, just in case we forget where we are later
 
+# Verify integrity with md5sums
 IFS="
 "
 for LINE in `cat "$temp/md5sums"`; do
