@@ -68,6 +68,10 @@ else
 	INTERNAL="dpkg --root="$TVEROOT/" -r"
 fi
 
+if [ -r "$LOGDIR/$1.prerm" ]; then
+	sh "$LOGDIR/$1.prerm"
+fi
+
 if [ "$INTERNAL" != "undeb" ]; then
 	if ! $INTERNAL "$1"; then
 		echo "Removal failed." 1>&2
@@ -87,6 +91,10 @@ if [ -r "$LOGDIR/$1" ]; then
 elif [ "$INTERNAL" = "undeb" ]; then
 	echo "$1 not installed." 1>&2
 	exit 1
+fi
+
+if [ -r "$LOGDIR/$1.postrm" ]; then
+	sh "$LOGDIR/$1.postrm"
 fi
 
 echo "$1 sucessfully removed."
