@@ -165,14 +165,15 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	UPDATE_SQL_FOR(homepage);
 	UPDATE_SQL_FOR(description);
 	if(current->rating > 0) {
-		sprintf(sql, "%srating=%d", sql, current->rating);
+		sprintf(sql, "%srating=%d,", sql, current->rating);
 	}
 	if(current->price > 0) {
-		sprintf(sql, "%sprice=%d", sql, current->price);
+		sprintf(sql, "%sprice=%d,", sql, current->price);
 	}
 	if(current->installed_size > 0 && current->size > 0) {
-		sprintf(sql, "%sinstalled_size=%d,size=%d", sql, current->installed_size, current->size);
+		sprintf(sql, "%sinstalled_size=%d,size=%d,", sql, current->installed_size, current->size);
 	}
+	sql[strlen(sql)-1] = '\0'; /* chomp final , */
 	strncat (sql, " WHERE package=",  size);
 	quotecat(sql, current->package,     size, 0);
 	strncat (sql, ";",             size);
