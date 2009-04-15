@@ -16,6 +16,8 @@
 
 #define STATUS_NOT_SET 100
 
+#define FIELDS "status,package,version,description,remote_path,name,md5,size,rating,price"
+
 /* Print usage message */
 void help() {
 	puts("search for packages");
@@ -111,6 +113,8 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 
 	printf("Version: %s\n", row[2]);
 	printf("Download: %s\n", row[4]);
+	printf("Rating: %s\n", row[8]);
+	printf("Price: %s\n", row[9]);
 	printf("Size: %s\n", row[7]);
 	printf("MD5sum: %s\n", row[6]);
 	printf("Description: %s\n", row[3]);
@@ -136,7 +140,7 @@ int check_order_by(const char *s) {
 
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
-	char sql[314] = "";
+	char sql[125 + sizeof(FIELDS) + 50*2 + 50*2 + 1] = "";
 	char * query = NULL;
 	char * include_cats = NULL;
 	char * exclude_cats = NULL;
@@ -221,7 +225,7 @@ int main (int argc, char ** argv) {
 	}
 
 	if(query == NULL) {
-		strcpy(sql, "SELECT status,package,version,description,remote_path,name,md5,size FROM packages WHERE 1=1");
+		strcpy(sql, "SELECT "FIELDS" FROM packages WHERE 1=1");
 	} else {
 		if(strchr(query, '\'') != NULL) {
 			fprintf(stderr, "Malformed query (single-quote not allowed).\n");
@@ -235,9 +239,9 @@ int main (int argc, char ** argv) {
 		}
 
 		if(search_description) {
-			sprintf(sql, "SELECT status,package,version,description,remote_path,name,md5,size FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
+			sprintf(sql, "SELECT "FIELDS" FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
 		} else {
-			sprintf(sql, "SELECT status,package,version,description,remote_path,name,md5,size FROM packages WHERE package LIKE '%%%s%%'", query);
+			sprintf(sql, "SELECT "FIELDS" FROM packages WHERE package LIKE '%%%s%%'", query);
 		}
 	}
 
