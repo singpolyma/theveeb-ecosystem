@@ -15,8 +15,7 @@ void *xmalloc(size_t size, const char *caller) {
 }
 
 char *xstrdup(const char *str, const char *caller) {
-	char *out;
-	out = xmalloc( (strlen(str) + 1) * sizeof(*out), caller);
+	char *out = xmalloc( (strlen(str) + 1) * sizeof(*out), caller);
 	strcpy(out, str);
 	return out;
 }
