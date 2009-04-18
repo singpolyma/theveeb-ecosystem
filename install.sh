@@ -163,13 +163,13 @@ do_install () {
 	SIZE="`echo "$DATA" | grep Size | cut -d' ' -f2`"
 	REALSIZE="`wc -c "$temp/$2.deb" | awk '{ print $1 }'`"
 	if [ "$SIZE" != "$REALSIZE" ]; then
-		echo "Integrity check for $1 failed. Size does not match." 1>&2
+		echo "Integrity check for $2 failed. Size does not match." 1>&2
 		exit 1
 	fi
 	MD5="`echo "$DATA" | grep MD5sum | cut -d' ' -f2`"
 	REALMD5="`md5/md5 -q "$temp/$2.deb"`"
 	if [ "$MD5" != "$REALMD5" ]; then
-		echo "Integrity check for $1 failed. MD5 sum does not match." 1>&2
+		echo "Integrity check for $2 failed. MD5 sum does not match." 1>&2
 		exit 1
 	fi
 	# Install deb file with $INTERNAL
