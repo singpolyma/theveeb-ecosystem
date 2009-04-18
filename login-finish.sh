@@ -1,9 +1,20 @@
 #!/bin/sh
 
 # Verify tokens were passed in
-if [ "$#" -ne 2 ]; then
+if [ "$#" -eq 2 ]; then
+	# We've been passed two tokens
+	REQ_TOKEN="$1"
+	REQ_SECRET="$2"
+elif [ "$#" -eq 1 -a "$1" == "-" ]; then
+	# Read tokens from stdin
+	TOKEN_IN="`cat`"
+	REQ_TOKEN="`echo "$TOKEN_IN" | cut -d ' ' -f 1`"
+	REQ_SECRET="`echo "$TOKEN_IN" | cut -d ' ' -f 2`"
+else
+	# No tokens
 	echo "Expected two tokens" 1>&2
 	echo "USAGE: login-finish TOKEN SECRET" 1>&2
+	echo "   OR  login-finish -" 1>&2
 	exit 1
 fi
 
@@ -23,7 +34,7 @@ if ! command -v oauthsign 1>&2; then
 	exit 1
 fi
 
-REQUEST="`oauthsign -c key123 -C sekret -t "$1" -T "$2" http://csclub.uwaterloo.ca:4567/oauth/access_token`"
+REQUEST="`oauthsign -c key123 -C sekret -t "$REQ_TOKEN" -T "$REQ_SECRET" http://csclub.uwaterloo.ca:4567/oauth/access_token`"
 TOKENS="`$GET "$REQUEST"`"
 
 # Verify the expected output was returned
