@@ -234,8 +234,8 @@ proc sendFeedback {textWindow typeWindow} {
 
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
-$canvas configure -yscrollcommand {.yscroll set}
-scrollbar .yscroll -orient vertical -command {$canvas yview}
+set canvasScroll [scrollbar .yscroll -orient vertical -command {$canvas yview}]
+$canvas configure -yscrollcommand [list $canvasScroll set]
 
 # Get scrollable view area
 set viewarea [frame .viewarea]
@@ -283,9 +283,9 @@ grid columnconfigure $topBar 1 -weight 1
 grid $topBar -sticky ew
 
 # Grid the canvas and scrollbar
-grid $canvas .yscroll
+grid $canvas $canvasScroll
 grid $canvas -sticky news
-grid .yscroll -sticky ns
+grid $canvasScroll -sticky ns
 
 # Grid the viewarea
 grid $viewarea -
