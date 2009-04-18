@@ -38,3 +38,5 @@ TOKEN="`echo $TOKENS | sed 's/^oauth_token=\([^&]*\).*/\1/'`"
 SECRET="`echo $TOKENS | sed 's/^[^&]*&oauth_token_secret=\(.*\)/\1/'`"
 
 echo "$TOKEN $SECRET" > "$HOME/.tve-oauth-tokens"
+
+echo "Authentication Successful"
