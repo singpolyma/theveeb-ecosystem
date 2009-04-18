@@ -232,6 +232,40 @@ proc sendFeedback {textWindow typeWindow} {
 	puts [array get feedback]
 }
 
+proc clearUi {} {
+	foreach widget [grid slave .] {
+		grid forget $widget
+	}
+}
+
+# This function is in charge of putting all the root widgets on the root window
+proc drawUi {} {
+	# Pull in all the root widgets
+	global canvas
+	global canvasScroll
+	global viewarea
+	global topBar
+	global categoryArea
+	global bottomBar
+
+	# And put them on the screen
+
+	# Grid the top bar
+	grid $topBar -sticky ew
+
+	# Grid the canvas and scrollbar
+	grid $canvas $canvasScroll
+	grid $canvas -sticky news
+	grid $canvasScroll -sticky ns
+
+	# Grid the viewarea
+	grid $viewarea -
+	grid $viewarea -sticky news
+
+	# Grid the bottom bar
+	grid $bottomBar
+}
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
 set canvasScroll [scrollbar .yscroll -orient vertical -command {$canvas yview}]
@@ -278,18 +312,6 @@ grid $searchBar -sticky ew
 grid $searchButton -sticky e
 # Make the seach box expand when the window does
 grid columnconfigure $topBar 1 -weight 1
-
-# Grid the top bar
-grid $topBar -sticky ew
-
-# Grid the canvas and scrollbar
-grid $canvas $canvasScroll
-grid $canvas -sticky news
-grid $canvasScroll -sticky ns
-
-# Grid the viewarea
-grid $viewarea -
-grid $viewarea -sticky news
 
 # Make grid fill window
 grid rowconfigure . 1 -weight 1
@@ -369,7 +391,6 @@ set quitButton [button ${bottomBar}.quit -text "Quit" -command safeQuit]
 set commitButton [button ${bottomBar}.commit -text "Do it" -command DoIt]
 
 grid $quitButton $commitButton
-grid $bottomBar
 
 # Initialize Filter
 set searchQuery ""
@@ -378,3 +399,5 @@ set filterCategory ""
 set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
+
+drawUi
