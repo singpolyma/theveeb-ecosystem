@@ -2,19 +2,19 @@
 
 # Tell zsh we expect to be treated like an sh script
 # zsh really should take the hint from the shebang line
-if which emulate 1>&2; then
+if command -v emulate 1>&2; then
 	emulate sh
 fi
 
 # Ensure we have neccesary utils (ar, tar)
 
-AR=`which ar`
+AR=`command -v ar`
 if [ -z "$AR" ]; then
 	echo "You must have a POSIXly-compliant version of ar to use $0" 1>&2
 	exit 1
 fi
 
-TAR=`which tar`
+TAR=`command -v tar`
 if [ -z "$TAR" ]; then
 	echo "You must have a POSIXly-compliant version of tar to use $0" 1>&2
 	exit 1
@@ -43,7 +43,7 @@ else
 fi
 
 # Get a random directory name and try to create it
-if which mktemp 1>&2; then # Try to use mktemp
+if command -v mktemp 1>&2; then # Try to use mktemp
 	temp="`mktemp -d "$temp/undeb-$$-XXXXXX"`"
 else
 	temp="$temp/undeb-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
@@ -82,7 +82,7 @@ fi
 
 # Find and verify PGP signature (currently only supports using GPG for this)
 if [ -r "$temp/_gpgorigin" ]; then
-	if which gpg 1>&2; then
+	if command -v gpg 1>&2; then
 		if gpg --verify "$temp/_gpgorigin" "$temp/debian-binary" "$temp/control.tar"* "$temp/data.tar"*; then
 			echo "PGP signature found and verified." 1>&2
 		else
@@ -99,21 +99,21 @@ fi
 if [ -f "$temp/control.tar" ]; then
 	echo "Not compressed, no decompression necessary."
 elif [ -f "$temp/control.tar.gz" ]; then
-	GZIP="`which gzip`"
+	GZIP="`command -v gzip`"
 	if [ -z "$GZIP" ]; then
 		echo "You must have a version of gzip to unpack $1" 1>&2
 		exit 1
 	fi
 	"$GZIP" -d "$temp/control.tar.gz"
 elif [ -f "$temp/control.tar.bz2" ]; then
-	BZIP2="`which bzip2`"
+	BZIP2="`command -v bzip2`"
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
 	"$BZIP2" -d "$temp/control.tar.bz2"
 elif [ -f "$temp/control.tar.bzip2" ]; then
-	BZIP2="`which bzip2`"
+	BZIP2="`command -v bzip2`"
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
@@ -137,21 +137,21 @@ fi
 if [ -f "$temp/data.tar" ]; then
 	echo "Not compressed, no decompression necessary."
 elif [ -f "$temp/data.tar.gz" ]; then
-	GZIP="`which gzip`"
+	GZIP="`command -v gzip`"
 	if [ -z "$GZIP" ]; then
 		echo "You must have a version of gzip to unpack $1" 1>&2
 		exit 1
 	fi
 	"$GZIP" -d "$temp/data.tar.gz"
 elif [ -f "$temp/data.tar.bz2" ]; then
-	BZIP2="`which bzip2`"
+	BZIP2="`command -v bzip2`"
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
 	"$BZIP2" -d "$temp/data.tar.bz2"
 elif [ -f "$temp/data.tar.bzip2" ]; then
-	BZIP2="`which bzip2`"
+	BZIP2="`command -v bzip2`"
 	if [ -z "$BZIP2" ]; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
