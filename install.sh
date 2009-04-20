@@ -21,6 +21,13 @@ while [ $# -gt 0 ]; do
 			fi
 			shift
 		;;
+		-t*)
+			OAUTHTOKENFILE="`echo "$1" | cut -c3-`"
+			if [ -z "$OAUTHTOKENFILE" ]; then
+				OAUTHTOKENFILE=">>"
+			fi
+			shift
+		;;
 		-*)
 			echo "Unsupported switch $1" 1>&2
 			exit 1
@@ -28,6 +35,9 @@ while [ $# -gt 0 ]; do
 		*)
 			if [ "$TVEDB" = ">>" ]; then
 				TVEDB="$1"
+				shift
+			elif [ "$OAUTHTOKENFILE" = ">>" ]; then
+				OAUTHTOKENFILE="$1"
 				shift
 			else # We have hit the first non-switch
 				break
@@ -79,19 +89,22 @@ if ! mkdir -p "$LOGDIR"; then
 fi
 
 # Find the file where OAuth tokens are and get them
-OAUTHTOKENS="$HOME/.tve-oauth-tokens"
-if [ ! -r "$OAUTHTOKENS" ]; then
-	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
+if [ -z "$OAUTHTOKENFILE" ]; then
+	OAUTHTOKENFILE="HOME/.tve-oauth-tokens"
 fi
-if [ ! -r "$OAUTHTOKENS" ]; then
-	echo "You don't seem to have valid OAuth tokens in $TVEROOT/etc/tve-oauth-tokens or $HOME/.tve-oauth-tokens" 1>&2
+if [ ! -r "$OAUTHTOKENFILE" ]; then
+	OAUTHTOKENFILE="$TVEROOT/etc/tve-oauth-tokens"
+fi
+
+if [ ! -r "$OAUTHTOKENFILE" ]; then
+	echo "You don't seem to have valid OAuth tokens in $OAUTHTOKENFILE or $HOME/.tve-oauth-tokens" 1>&2
 	exit 1
 fi
-TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENS"`"
-SECRET="`cut -d' ' -f2 < "$OAUTHTOKENS"`"
+
+TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENFILE"`"
+SECRET="`cut -d' ' -f2 < "$OAUTHTOKENFILE"`"
 
 # OAuth Consumer token and secret
-# TODO get a better consumer keypair set up
 CONSUMER_TOKEN="key123"
 CONSUMER_SECRET="sekret"
 
