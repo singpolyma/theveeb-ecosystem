@@ -61,4 +61,9 @@ fi
 
 echo "$TOKEN $SECRET" > "$TOKENPATH"
 
+# Make sure the tokens have sane permissions
+if command -v chmod 1>&2; then
+	chmod 0600 "$TOKENPATH"
+fi
+
 echo "Authentication Successful"

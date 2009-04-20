@@ -18,7 +18,7 @@ fi
 
 # Find the file where OAuth tokens are and get them
 OAUTHTOKENS="$HOME/.tve-oauth-tokens"
-if [ "`whoami`" = "root" -o ! -r "$OAUTHTOKENS" ]; then
+if [ ! -r "$OAUTHTOKENS" ]; then
 	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
 fi
 
