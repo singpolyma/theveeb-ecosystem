@@ -48,6 +48,17 @@ fi
 TOKEN="`echo $TOKENS | sed 's/^oauth_token=\([^&]*\).*/\1/'`"
 SECRET="`echo $TOKENS | sed 's/^[^&]*&oauth_token_secret=\(.*\)/\1/'`"
 
-echo "$TOKEN $SECRET" > "$HOME/.tve-oauth-tokens"
+if [ "`whoami`" = "root" ]; then
+	TOKENPATH="$TVEROOT/etc/tve-oauth-tokens"
+else
+	TOKENPATH="$HOME/.tve-oauth-tokens"
+fi
+
+if [ -e "$TOKENPATH" -a ! -w "$TOKENPATH" ]; then
+	echo "ERROR: $TOKENPATH not writable." 1>&2
+	exit 1
+fi
+
+echo "$TOKEN $SECRET" > "$TOKENPATH"
 
 echo "Authentication Successful"
