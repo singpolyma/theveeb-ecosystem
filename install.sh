@@ -2,7 +2,7 @@
 
 # Tell zsh we expect to be treated like an sh script
 # zsh really should take the hint from the shebang line
-if which emulate 1>&2; then
+if command -v emulate 1>&2; then
 	emulate sh
 fi
 
@@ -43,9 +43,9 @@ if [ -z "$1" ]; then
 fi
 
 # Find the network utility
-if which wget 1>&2; then
+if command -v wget 1>&2; then
 	GET="wget -q -O -"
-elif which curl 1>&2; then
+elif command -v curl 1>&2; then
 	GET="curl -sfL"
 else
 	echo "You must have wget or curl installed." 1>&2
@@ -53,7 +53,7 @@ else
 fi
 
 # Verify the presence of oauthsign
-if ! which oauthsign 1>&2; then
+if ! command -v oauthsign 1>&2; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
 	exit 1
 fi
@@ -109,7 +109,7 @@ else
 	temp="."
 fi
 # Try to use mktemp
-if which mktemp 1>&2; then
+if command -v mktemp 1>&2; then
 	temp="`mktemp -d "$temp/tve-install-$$-XXXXXX"`"
 else
 	temp="$temp/tve-install-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
@@ -117,7 +117,7 @@ else
 fi
 
 # Determine if there is an external package manager to use
-EXTERNAL="`which apt-get`"
+EXTERNAL="`command -v apt-get`"
 if [ $? != 0 ]; then
 	EXTERNAL=""
 else
@@ -125,7 +125,7 @@ else
 fi
 
 # Determine which command to use for installing internal packages
-INTERNAL="`which dpkg`"
+INTERNAL="`command -v dpkg`"
 if [ $? != 0 -o "`whoami`" != "root" ]; then
 	INTERNAL="./undeb.sh"
 else
@@ -154,7 +154,8 @@ do_install () {
 	# Sign the URL with oauth utils (oauthsign)
 	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
 	# Get remote URL and download deb file with GET
-	if ! $GET "$URL" > "$temp/$2.deb"; then
+	# FIXME eval because Apple is a *whore*
+	if ! eval "$GET \"$URL\" > \"$temp/$2.deb\""; then
 		echo "Error downloading ${2}... Aborting..."
 		exit 1
 	fi
@@ -162,13 +163,13 @@ do_install () {
 	SIZE="`echo "$DATA" | grep Size | cut -d' ' -f2`"
 	REALSIZE="`wc -c "$temp/$2.deb" | awk '{ print $1 }'`"
 	if [ "$SIZE" != "$REALSIZE" ]; then
-		echo "Integrity check for $1 failed. Size does not match." 1>&2
+		echo "Integrity check for $2 failed. Size does not match." 1>&2
 		exit 1
 	fi
 	MD5="`echo "$DATA" | grep MD5sum | cut -d' ' -f2`"
 	REALMD5="`md5/md5 -q "$temp/$2.deb"`"
 	if [ "$MD5" != "$REALMD5" ]; then
-		echo "Integrity check for $1 failed. MD5 sum does not match." 1>&2
+		echo "Integrity check for $2 failed. MD5 sum does not match." 1>&2
 		exit 1
 	fi
 	# Install deb file with $INTERNAL

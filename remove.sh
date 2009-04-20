@@ -2,7 +2,7 @@
 
 # Tell zsh we expect to be treated like an sh script
 # zsh really should take the hint from the shebang line
-if which emulate 1>&2; then
+if command -v emulate 1>&2; then
 	emulate sh
 fi
 
@@ -61,7 +61,7 @@ if ! mkdir -p "$LOGDIR"; then
 fi
 
 # Determine which command to use for installing internal packages
-INTERNAL="`which dpkg`"
+INTERNAL="`command -v dpkg`"
 if [ $? != 0 -o "`whoami`" != "root" ]; then
 	INTERNAL="undeb"
 else

@@ -21,7 +21,7 @@ mkdir -p "./debian/$1/usr/share/doc/$1"
 
 if [ -f ./configure ]; then
 	echo "Running configure..."
-	if ! which gcc; then
+	if ! command -v gcc; then
 		echo "No gcc found in PATH." 1>&2
 		exit 1
 	fi
@@ -30,7 +30,7 @@ fi
 
 if [ -f ./Makefile ]; then
 	echo "Running make..."
-	if which make; then
+	if command -v make; then
 		make prefix="`pwd`/debian/$1/usr" install
 	fi
 fi

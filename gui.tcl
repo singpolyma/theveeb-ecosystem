@@ -232,10 +232,130 @@ proc sendFeedback {textWindow typeWindow} {
 	puts [array get feedback]
 }
 
+proc clearUi {} {
+	foreach widget [grid slave .] {
+		grid forget $widget
+	}
+}
+
+# This function is in charge of putting all the root widgets on the root window
+proc drawUi {} {
+	# Pull in all the root widgets
+	global canvas
+	global canvasScroll
+	global viewarea
+	global topBar
+	global categoryArea
+	global bottomBar
+
+	# And put them on the screen
+
+	# Grid the top bar
+	grid $topBar -sticky ew
+
+	# Grid the canvas and scrollbar
+	grid $canvas $canvasScroll
+	grid $canvas -sticky news
+	grid $canvasScroll -sticky ns
+
+	# Grid the viewarea
+	grid $viewarea -
+	grid $viewarea -sticky news
+
+	# Grid the bottom bar
+	grid $bottomBar
+}
+
+proc loginStart {} {
+	global TOKEN
+	global SECRET
+	global URL
+	# Call login-start.sh
+	if [catch {exec "./login-start.sh" 2>@1} loginOutput] {
+		# Error occured
+		tk_messageBox -message "An Error Occurred: $loginOutput"
+		return 
+	}
+	# Login-start seems to have succeeded
+	# Look for a url, if one's given
+	if [regexp "Go to \"(\[^\"\])\"" $loginOutput mat gUrl] {
+		# We couldn't find a way to open the given url, give it to them manually.
+		set URL $gUrl
+	} else {
+		# The browser's opened on its own
+		set URL ""
+	}
+
+	if {![regexp {(\w{22}) (\w*)} $loginOutput mat TOKEN SECRET]} {
+		# Something bad happened, I can't find the tokens
+		tk_messageBox -message "Can't find tokens: $loginOutput"
+		return
+	}
+
+	clearUi
+	drawLoginFinish
+}
+
+proc loginFinish {} {
+	global TOKEN
+	global SECRET
+	
+	#Call login-finish.sh
+	if [catch {exec "./login-finish.sh" $TOKEN $SECRET 2>@1} loginOutput] {
+		# Error Occured
+		tk_messageBox -message "An Error Occurred: $loginOutput"
+		clearUi
+		drawLoginStart
+		return
+	}
+
+	#At this point let's just assume we've succeeded
+	clearUi
+	drawUi
+}
+
+# This function draws the login elements
+proc drawLoginStart {} {
+	global loginLabel
+	global loginButton
+
+	grid $loginLabel -sticky ew
+	grid $loginButton
+}
+
+# This function draws the screen where we wait for authentication.
+proc drawLoginFinish {} {
+	global URL
+	global loginWait
+	global loginUrlWait
+	global loginUrl
+	global loginContinue
+
+	if {$URL == ""} {
+		# Browser opened on its own
+		grid $loginWait
+	} else {
+		# Need to give them the url
+		grid $loginWait
+		grid $loginUrl
+	}
+
+	grid $loginContinue
+}
+
+# Login Stuff
+set loginLabel [label .loginLabel -text "Welcome to The Veeb Ecosystem"]
+set loginButton [button .loginButton -text "Click Here to Login" -command loginStart]
+
+set loginWait [label .loginWait -text "After Authenticating in your browser, click below to continue"]
+set loginUrlWait [label .loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
+set loginUrl [entry .loginUrl -textvariable URL -state readonly]
+set loginContinue [button .loginContinue -text "Continue" -command loginFinish]
+
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
-$canvas configure -yscrollcommand {.yscroll set}
-scrollbar .yscroll -orient vertical -command {$canvas yview}
+set canvasScroll [scrollbar .yscroll -orient vertical -command {$canvas yview}]
+$canvas configure -yscrollcommand [list $canvasScroll set]
 
 # Get scrollable view area
 set viewarea [frame .viewarea]
@@ -278,18 +398,6 @@ grid $searchBar -sticky ew
 grid $searchButton -sticky e
 # Make the seach box expand when the window does
 grid columnconfigure $topBar 1 -weight 1
-
-# Grid the top bar
-grid $topBar -sticky ew
-
-# Grid the canvas and scrollbar
-grid $canvas .yscroll
-grid $canvas -sticky news
-grid .yscroll -sticky ns
-
-# Grid the viewarea
-grid $viewarea -
-grid $viewarea -sticky news
 
 # Make grid fill window
 grid rowconfigure . 1 -weight 1
@@ -369,7 +477,6 @@ set quitButton [button ${bottomBar}.quit -text "Quit" -command safeQuit]
 set commitButton [button ${bottomBar}.commit -text "Do it" -command DoIt]
 
 grid $quitButton $commitButton
-grid $bottomBar
 
 # Initialize Filter
 set searchQuery ""
@@ -378,3 +485,5 @@ set filterCategory ""
 set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
+
+drawLoginStart
