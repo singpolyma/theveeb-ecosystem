@@ -90,7 +90,7 @@ fi
 
 # Find the file where OAuth tokens are and get them
 if [ -z "$OAUTHTOKENFILE" ]; then
-	OAUTHTOKENFILE="HOME/.tve-oauth-tokens"
+	OAUTHTOKENFILE="$HOME/.tve-oauth-tokens"
 fi
 if [ ! -r "$OAUTHTOKENFILE" ]; then
 	OAUTHTOKENFILE="$TVEROOT/etc/tve-oauth-tokens"
