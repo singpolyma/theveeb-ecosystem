@@ -1,21 +1,62 @@
 #!/bin/sh
 
+# Some stuff from setup.sh... we want undeb to remain independent
+
+# Get value for HOME on Windows
+if [ -n "$USERPROFILE" ]; then
+	HOME="$USERPROFILE"
+elif [ -n "$HOMEPATH" ]; then
+	HOME="$HOMEDRIVE$HOMEPATH"
+fi
+
+# How are we to tell if a command exists?
+if ! N="`type this-does-not-exist 2>&1`" && N="`type type 2>&1`"; then
+	cmdexists() {
+		N="`type "$1" 2>&1`"
+	}
+else
+	cmdexists() {
+		N="`command -v "$1" 2>&1`" # -v switch not guarenteed to exist
+	}
+fi
+
+# If we're under cygwin, fix paths
+# TODO: check a cygwin-only env?
+if cmdexists cygpath; then
+	HOME="`cygpath -mas "$HOME"`"
+	TEMP="`cygpath -mas "$TEMP"`"
+	pwd() {
+		PWD="`sh -c pwd`"
+		cygpath -mas "$PWD"
+	}
+	abspth() {
+		cygpath -mas "$1"
+	}
+else
+	abspth() {
+		# Get the absolute path for $1
+		cd "$1"
+		PTH="`pwd`"
+		PTH="${PTH%/}"
+		cd -
+		echo "$PTH"
+	}
+fi
+
 # Tell zsh we expect to be treated like an sh script
 # zsh really should take the hint from the shebang line
-if command -v emulate 1>&2; then
+if cmdexists emulate; then
 	emulate sh
 fi
 
 # Ensure we have neccesary utils (ar, tar)
 
-AR=`command -v ar`
-if [ -z "$AR" ]; then
+if ! cmdexists ar; then
 	echo "You must have a POSIXly-compliant version of ar to use $0" 1>&2
 	exit 1
 fi
 
-TAR=`command -v tar`
-if [ -z "$TAR" ]; then
+if ! cmdexists tar; then
 	echo "You must have a POSIXly-compliant version of tar to use $0" 1>&2
 	exit 1
 fi
@@ -43,7 +84,7 @@ else
 fi
 
 # Get a random directory name and try to create it
-if command -v mktemp 1>&2; then # Try to use mktemp
+if cmdexists mktemp; then # Try to use mktemp
 	temp="`mktemp -d "$temp/undeb-$$-XXXXXX"`"
 else
 	temp="$temp/undeb-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
@@ -66,7 +107,7 @@ fi
 
 # Unpack the package with ar
 cd "$temp"
-"$AR" xv "$deb"
+ar xv "$deb"
 cd - # Pop back to where we were, just in case we forget where we are later
 
 # Check that the package unpacked and is a package we can understand
@@ -82,7 +123,7 @@ fi
 
 # Find and verify PGP signature (currently only supports using GPG for this)
 if [ -r "$temp/_gpgorigin" ]; then
-	if command -v gpg 1>&2; then
+	if cmdexists gpg; then
 		if gpg --verify "$temp/_gpgorigin" "$temp/debian-binary" "$temp/control.tar"* "$temp/data.tar"*; then
 			echo "PGP signature found and verified." 1>&2
 		else
@@ -99,26 +140,23 @@ fi
 if [ -f "$temp/control.tar" ]; then
 	echo "Not compressed, no decompression necessary."
 elif [ -f "$temp/control.tar.gz" ]; then
-	GZIP="`command -v gzip`"
-	if [ -z "$GZIP" ]; then
+	if ! cmdexists gzip; then
 		echo "You must have a version of gzip to unpack $1" 1>&2
 		exit 1
 	fi
-	"$GZIP" -d "$temp/control.tar.gz"
+	gzip -d "$temp/control.tar.gz"
 elif [ -f "$temp/control.tar.bz2" ]; then
-	BZIP2="`command -v bzip2`"
-	if [ -z "$BZIP2" ]; then
+	if ! cmdexists bzip2; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	"$BZIP2" -d "$temp/control.tar.bz2"
+	bzip2 -d "$temp/control.tar.bz2"
 elif [ -f "$temp/control.tar.bzip2" ]; then
-	BZIP2="`command -v bzip2`"
-	if [ -z "$BZIP2" ]; then
+	if ! cmdexists bzip2; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	"$BZIP2" -d "$temp/control.tar.bzip2"
+	bzip2 -d "$temp/control.tar.bzip2"
 else
 	echo "ERROR: No control.tar.* found." 1>&2
 	exit 1
@@ -137,26 +175,23 @@ fi
 if [ -f "$temp/data.tar" ]; then
 	echo "Not compressed, no decompression necessary."
 elif [ -f "$temp/data.tar.gz" ]; then
-	GZIP="`command -v gzip`"
-	if [ -z "$GZIP" ]; then
+	if ! cmdexists gzip; then
 		echo "You must have a version of gzip to unpack $1" 1>&2
 		exit 1
 	fi
-	"$GZIP" -d "$temp/data.tar.gz"
+	gzip -d "$temp/data.tar.gz"
 elif [ -f "$temp/data.tar.bz2" ]; then
-	BZIP2="`command -v bzip2`"
-	if [ -z "$BZIP2" ]; then
+	if ! cmdexists; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	"$BZIP2" -d "$temp/data.tar.bz2"
+	bzip2 -d "$temp/data.tar.bz2"
 elif [ -f "$temp/data.tar.bzip2" ]; then
-	BZIP2="`command -v bzip2`"
-	if [ -z "$BZIP2" ]; then
+	if ! cmdexists; then
 		echo "You must have a version of bzip2 to unpack $1" 1>&2
 		exit 1
 	fi
-	"$BZIP2" -d "$temp/data.tar.bzip2"
+	bzip2 -d "$temp/data.tar.bzip2"
 else
 	echo "ERROR: No data.tar.* found." 1>&2
 	exit 1
@@ -197,11 +232,9 @@ echo "Package integrity check succeeded." 1>&2
 if [ -z "$PREFIX" ]; then
 	PREFIX="/"
 fi
+
 # Get the absolute path for PREFIX
-cd "$PREFIX"
-PREFIX="`pwd`"
-PREFIX="${PREFIX%/}"
-cd -
+PREFIX="`abspth "$PREFIX"`"
 
 if ! mkdir -p "$PREFIX"; then
 	echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
@@ -262,6 +295,7 @@ fi
 rm -rf "$temp"
 
 echo "Package '$1' installed to '$PREFIX' successfully."
+
 if [ $MUST_REBOOT -eq 1 ]; then
 	echo "You must reboot before installation will be complete."
 	exit 110
