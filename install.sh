@@ -158,7 +158,7 @@ do_install () {
 		fi
 	fi
 	# Extract the download URL from the database
-	DATA="`TVEDB="$TVEDB" search/search -v "$2"`"
+	DATA="`TVEDB="$TVEDB" search/search -nve "$2"`"
 	URL="`echo "$DATA" | grep Download | cut -d' ' -f2`"
 	if [ -z "$URL" ]; then
 		echo "Package $2 not found." 1>&2
