@@ -1,10 +1,6 @@
 #!/bin/sh
 
-# Tell zsh we expect to be treated like an sh script
-# zsh really should take the hint from the shebang line
-if command -v emulate 1>&2; then
-	emulate sh
-fi
+. ./setup.sh
 
 # Handle switches
 INTERACTIVE=0
@@ -52,18 +48,8 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-# Find the network utility
-if command -v wget 1>&2; then
-	GET="wget -q -O -"
-elif command -v curl 1>&2; then
-	GET="curl -sfL"
-else
-	echo "You must have wget or curl installed." 1>&2
-	exit 1
-fi
-
 # Verify the presence of oauthsign
-if ! command -v oauthsign 1>&2; then
+if ! cmdexists oauthsign; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
 	exit 1
 fi
@@ -122,7 +108,7 @@ else
 	temp="."
 fi
 # Try to use mktemp
-if command -v mktemp 1>&2; then
+if cmdexists mktemp; then
 	temp="`mktemp -d "$temp/tve-install-$$-XXXXXX"`"
 else
 	temp="$temp/tve-install-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
@@ -130,15 +116,14 @@ else
 fi
 
 # Determine if there is an external package manager to use
-EXTERNAL="`command -v apt-get`"
-if [ $? != 0 ]; then
+if ! cmdexists apt-get; then
 	EXTERNAL=""
 else
 	EXTERNAL="apt-get install -y"
 fi
 
 # Determine which command to use for installing internal packages
-INTERNAL="`command -v dpkg`"
+INTERNAL="`cmdexists dpkg`"
 if [ $? != 0 -o "`whoami`" != "root" ]; then
 	INTERNAL="./undeb.sh"
 else
@@ -167,8 +152,7 @@ do_install () {
 	# Sign the URL with oauth utils (oauthsign)
 	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
 	# Get remote URL and download deb file with GET
-	# FIXME eval because Apple is a *whore*
-	if ! eval "$GET \"$URL\" > \"$temp/$2.deb\""; then
+	if ! net2stdout "$URL" > "$temp/$2.deb""; then
 		echo "Error downloading ${2}... Aborting..."
 		exit 1
 	fi
