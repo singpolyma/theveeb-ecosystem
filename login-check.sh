@@ -1,17 +1,9 @@
 #!/bin/sh
 
-# Find the network utility
-if command -v wget 1>&2; then
-	GET="wget -q -O -"
-elif command -v curl 1>&2; then
-	GET="curl -sfL"
-else
-	echo "You must have wget or curl installed." 1>&2
-	exit 1
-fi
+. ./setup.sh
 
 # Verify the presence of oauthsign
-if ! command -v oauthsign 1>&2; then
+if ! cmdexists oauthsign; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
 	exit 1
 fi
@@ -31,7 +23,7 @@ TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENS"`"
 SECRET="`cut -d' ' -f2 < "$OAUTHTOKENS"`"
 
 REQUEST="`oauthsign -c key123 -C sekret -t "$TOKEN" -T "$SECRET" http://singpolyma.net/theveeb/api/nickname.cgi`"
-NICK="`$GET "$REQUEST"`"
+NICK="`net2stdout "$REQUEST"`"
 if [ $? -ne 0 ]; then
 	echo "Not properly logged in." 1>&2
 	exit 2

@@ -1,39 +1,25 @@
 #!/bin/sh
 
-# Find the network utility
-if command -v wget 1>&2; then
-	GET="wget -q -O -"
-elif command -v curl 1>&2; then
-	GET="curl -sfL"
-else
-	echo "You must have wget or curl installed." 1>&2
-	exit 1
-fi
+. ./setup.sh
 
 # Verify the presence of oauthsign
-if ! command -v oauthsign 1>&2; then
+if ! cmdexists oauthsign; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
 	exit 1
 fi
 
 # Find the command to open a URL, if there is one
 OPEN=""
-if command -v xdg-open 1>&2; then
+if cmdexists xdg-open; then
 	OPEN="xdg-open"
-elif command -v open 1>&2; then
+elif cmdexists -v open; then
 	OPEN="open"
-elif command -v cmd 1>&2; then
-	# Why do we need zsh? win-bash won't call cmd correctly
-	# Why not fix win-bash? I can't get it to compile
-	# Why not use zsh for primary shell? It doesn't have -v on command builtin
-	if command -v zsh 1>&2; then
-		USE_ZSH=1
-		OPEN="cmd /c start"
-	fi
+elif cmdexists cmd; then
+	OPEN="cmd /c start"
 fi
 
 REQUEST="`oauthsign -c key123 -C sekret http://csclub.uwaterloo.ca:4567/oauth/request_token`"
-TOKENS="`$GET "$REQUEST"`"
+TOKENS="`net2stdout "$REQUEST"`"
 
 # Verify the expected output was returned
 if [ "`echo $TOKENS | cut -c 1-11`" != "oauth_token" ]; then
@@ -47,18 +33,14 @@ TOKEN="`echo $TOKENS | sed 's/^oauth_token=\([^&]*\).*/\1/'`"
 SECRET="`echo $TOKENS | sed 's/^[^&]*&oauth_token_secret=\(.*\)/\1/'`"
 
 # This is the url to send the user to
-URL="http://singpolyma.net/theveeb/authorize.php?oauth_token=$TOKEN" 
+URL="http://singpolyma.net/theveeb/authorize.php?oauth_token=$TOKEN"
 
 # Output the tokens
 echo "$TOKEN $SECRET"
 
 if [ -n "$OPEN" ]; then
 	# If we can open urls for the user, do so
-	if [ $USE_ZSH -eq 1 ]; then
-		zsh -c "$OPEN '$URL'"
-	else
-		$OPEN "$URL" &
-	fi
+	$OPEN "$URL" &
 else
 	# If we can't, output the url they should go to on their own
 	echo "Go to \"$URL\" in a browser to continue authentication." 1>&2

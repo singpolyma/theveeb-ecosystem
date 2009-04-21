@@ -1,11 +1,13 @@
 #!/bin/sh
 
+. ./setup.sh
+
 # Verify tokens were passed in
 if [ "$#" -eq 2 ]; then
 	# We've been passed two tokens
 	REQ_TOKEN="$1"
 	REQ_SECRET="$2"
-elif [ "$#" -eq 1 -a "$1" == "-" ]; then
+elif [ "$#" -eq 1 -a "$1" = "-" ]; then
 	# Read tokens from stdin
 	TOKEN_IN="`cat`"
 	REQ_TOKEN="`echo "$TOKEN_IN" | cut -d ' ' -f 1`"
@@ -18,24 +20,14 @@ else
 	exit 1
 fi
 
-# Find the network utility
-if command -v wget 1>&2; then
-	GET="wget -q -O -"
-elif command -v curl 1>&2; then
-	GET="curl -sfL"
-else
-	echo "You must have wget or curl installed." 1>&2
-	exit 1
-fi
-
 # Verify the presence of oauthsign
-if ! command -v oauthsign 1>&2; then
+if ! cmdexists oauthsign; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
 	exit 1
 fi
 
 REQUEST="`oauthsign -c key123 -C sekret -t "$REQ_TOKEN" -T "$REQ_SECRET" http://csclub.uwaterloo.ca:4567/oauth/access_token`"
-TOKENS="`$GET "$REQUEST"`"
+TOKENS="`net2stdout "$REQUEST"`"
 
 # Verify the expected output was returned
 if [ "`echo $TOKENS | cut -c 1-11`" != "oauth_token" ]; then
@@ -62,7 +54,7 @@ fi
 echo "$TOKEN $SECRET" > "$TOKENPATH"
 
 # Make sure the tokens have sane permissions
-if command -v chmod 1>&2; then
+if cmdexists chmod; then
 	chmod 0600 "$TOKENPATH"
 fi
 
