@@ -17,14 +17,19 @@ if ! command -v oauthsign 1>&2; then
 fi
 
 # Find the command to open a URL, if there is one
+OPEN=""
 if command -v xdg-open 1>&2; then
 	OPEN="xdg-open"
 elif command -v open 1>&2; then
 	OPEN="open"
-elif command -v run 1>&2; then
-	OPEN="run"
-else 
-	OPEN=""
+elif command -v cmd 1>&2; then
+	# Why do we need zsh? win-bash won't call cmd correctly
+	# Why not fix win-bash? I can't get it to compile
+	# Why not use zsh for primary shell? It doesn't have -v on command builtin
+	if command -v zsh 1>&2; then
+		USE_ZSH=1
+		OPEN="cmd /c start"
+	fi
 fi
 
 REQUEST="`oauthsign -c key123 -C sekret http://csclub.uwaterloo.ca:4567/oauth/request_token`"
@@ -49,7 +54,11 @@ echo "$TOKEN $SECRET"
 
 if [ -n "$OPEN" ]; then
 	# If we can open urls for the user, do so
-	$OPEN "$URL" &
+	if [ $USE_ZSH -eq 1 ]; then
+		zsh -c "$OPEN '$URL'"
+	else
+		$OPEN "$URL" &
+	fi
 else
 	# If we can't, output the url they should go to on their own
 	echo "Go to \"$URL\" in a browser to continue authentication." 1>&2
