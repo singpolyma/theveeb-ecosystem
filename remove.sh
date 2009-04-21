@@ -1,15 +1,6 @@
 #!/bin/sh
 
-# Tell zsh we expect to be treated like an sh script
-# zsh really should take the hint from the shebang line
-if command -v emulate 1>&2; then
-	emulate sh
-fi
-
-# Make sure HOME is set up
-if [ -z "$HOME" ]; then
-	HOME="`ls -d ~`"
-fi
+. ./setup.sh
 
 INTERACTIVE=0
 while [ $# -gt 1 ]; do
@@ -61,14 +52,14 @@ if ! mkdir -p "$LOGDIR"; then
 fi
 
 # Determine which command to use for installing internal packages
-INTERNAL="`command -v dpkg`"
+INTERNAL="`cmdexists dpkg`"
 if [ $? != 0 -o "`whoami`" != "root" ]; then
 	INTERNAL="undeb"
 else
 	INTERNAL="dpkg --root="$TVEROOT/" -r"
 fi
 
-if [ -r "$LOGDIR/$1.prerm" ]; then
+if [ "$INTERNAL" = "undeb" -a -r "$LOGDIR/$1.prerm" ]; then
 	sh "$LOGDIR/$1.prerm"
 fi
 
@@ -93,7 +84,7 @@ elif [ "$INTERNAL" = "undeb" ]; then
 	exit 1
 fi
 
-if [ -r "$LOGDIR/$1.postrm" ]; then
+if [ "$INTENAL" = "undeb" -a -r "$LOGDIR/$1.postrm" ]; then
 	sh "$LOGDIR/$1.postrm"
 fi
 

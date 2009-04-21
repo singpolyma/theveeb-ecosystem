@@ -6,7 +6,7 @@ elif [ -n "$HOMEPATH" ]; then
 fi
 
 # How are we to tell if a command exists?
-if ! N="`type this-does-not-exist 2>&1`" -a N="`type type 2>&1`"; then
+if ! N="`type this-does-not-exist 2>&1`" && N="`type type 2>&1`"; then
 	cmdexists() {
 		N="`type "$1" 2>&1`"
 	}
