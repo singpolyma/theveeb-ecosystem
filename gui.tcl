@@ -271,7 +271,7 @@ proc loginStart {} {
 	global SECRET
 	global URL
 	# Call login-start.sh
-	if [catch {exec "./login-start.sh" 2>@1} loginOutput] {
+	if [catch {exec sh ./login-start.sh 2>@1} loginOutput] {
 		# Error occured
 		tk_messageBox -message "An Error Occurred: $loginOutput"
 		return 
@@ -301,7 +301,7 @@ proc loginFinish {} {
 	global SECRET
 	
 	#Call login-finish.sh
-	if [catch {exec "./login-finish.sh" $TOKEN $SECRET 2>@1} loginOutput] {
+	if [catch {exec sh "./login-finish.sh" $TOKEN $SECRET 2>@1} loginOutput] {
 		# Error Occured
 		tk_messageBox -message "An Error Occurred: $loginOutput"
 		clearUi
