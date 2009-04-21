@@ -1,17 +1,8 @@
 #!/bin/sh
 
-# Tell zsh we expect to be treated like an sh script
-# zsh really should take the hint from the shebang line
-if command -v emulate 1>&2; then
-	emulate sh
-fi
+. ./setup.sh
 
 oldwd="`pwd`"
-
-# Make sure HOME is set up
-if [ -z "$HOME" ]; then
-	HOME="`ls -d ~`"
-fi
 
 if [ ! -z "$1" -a "`echo "$1" | cut -c-2`" = "-c" ]; then
 	LISTFILE="`echo "$1" | cut -c3-`"
@@ -49,7 +40,7 @@ else
 	temp="."
 fi
 # Try to use mktemp
-if command -v mktemp 1>&2; then
+if cmdexists mktemp; then
 	temp="`mktemp -d "$temp/tve-getrepo-$$-XXXXXX"`"
 else
 	temp="$temp/tve-getrepo-$$-$RANDOM-$RANDOM" #$RANDOM is non-standard and likely blank on your shell
@@ -66,16 +57,6 @@ if [ -z "$ARCH" ]; then
 fi
 if [ "$ARCH" = "x86" ]; then
 	ARCH="i386"
-fi
-
-# Find the network utility
-if command -v wget 1>&2; then
-	GET="wget -q"
-elif command -v curl 1>&2; then
-	GET="curl -sfLO"
-else
-	echo "You must have wget or curl installed." 1>&2
-	exit 1
 fi
 
 #Loop line-by-line through a setings file
@@ -96,8 +77,8 @@ while read LINE ; do
 				#Output '#' + baseurl to STDOUT
 				echo "#$baseurl"
 				#Get (baseurl + 'dists/' + distro + '/Release') and (baseurl + 'dists/' + distro + '/Release.gpg')
-				if $GET "${baseurl}dists/${distro}/Release"; then
-					if $GET "${baseurl}dists/${distro}/Release.gpg"; then
+				if net2file "${baseurl}dists/${distro}/Release"; then
+					if net2file "${baseurl}dists/${distro}/Release.gpg"; then
 						#Verify that the signature is valid
 						if ! gpg --verify Release.gpg Release; then
 							echo "ERROR: Could not verify Release signature" 1>&2
@@ -117,7 +98,7 @@ while read LINE ; do
 					if [ -z "$section" -o "deb" = "$section" -o "$baseurl" = "$section" -o "$distro" = "$section" ]; then
 						continue
 					fi
-					if $GET "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
+					if net2file "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
 						#Verify size and MD5 from Release file
 						size="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f3`"
 						realsize="`wc -c Packages.gz | awk '{ print $1 }'`"

@@ -38,14 +38,23 @@ if cmdexists wget 1>&2; then
 	net2stdout() {
 		wget -q -O - "$1"
 	}
+	net2file() {
+		wget -q "$1"
+	}
 elif cmdexists curl 1>&2; then
 	net2stdout() {
 		curl -sfL "$1"
+	}
+	net2file() {
+		curl -sfLO "$1"
 	}
 else
 	net2stdout() {
 		echo "You must have wget or curl installed." 1>&2
 		exit 1
 	}
+	net2file() {
+		echo "You must have wget or curl installed." 1>&2
+		exit 1
+	}
 fi
-
