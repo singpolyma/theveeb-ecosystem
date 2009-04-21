@@ -25,6 +25,7 @@ void help() {
 	puts("   QUERY           Pattern to search for");
 	puts("   -h              help menu (this screen)");
 	puts("   -n              search package names only");
+	puts("   -e              search for exact matches only");
 	puts("   -v              verbose (more complete output)");
 	puts("   -1              display package names only (opposite of verbose)");
 	puts("   -i[category]    category/section to restrict search to");
@@ -149,12 +150,16 @@ int main (int argc, char ** argv) {
 	int (*output_callback)(void *,int,char **,char **) = print_results;
 	int status = STATUS_NOT_SET;
 	int search_description = 1;
+	int search_exact = 0;
 	int c;
 
-	while((c = getopt(argc, argv, "-l1vhi:x:S:s:d:")) != -1) {
+	while((c = getopt(argc, argv, "-l1nevhi:x:S:s:d:")) != -1) {
 		switch(c) {
 			case 'n': /* Search package names only */
 				search_description = 0;
+				break;
+			case 'e': /* Exact match only */
+				search_exact = 1;
 				break;
 			case '1':
 				output_callback=print_results_packages;
@@ -238,10 +243,18 @@ int main (int argc, char ** argv) {
 			exit(EXIT_FAILURE);
 		}
 
-		if(search_description) {
-			sprintf(sql, "SELECT "FIELDS" FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
+		if(search_exact) {
+			if(search_description) {
+				sprintf(sql, "SELECT "FIELDS" FROM packages WHERE (package='%s' OR description='%s')", query, query);
+			} else {
+				sprintf(sql, "SELECT "FIELDS" FROM packages WHERE package='%s'", query);
+			}
 		} else {
-			sprintf(sql, "SELECT "FIELDS" FROM packages WHERE package LIKE '%%%s%%'", query);
+			if(search_description) {
+				sprintf(sql, "SELECT "FIELDS" FROM packages WHERE (package LIKE '%%%s%%' OR description LIKE '%%%s%%')", query, query);
+			} else {
+				sprintf(sql, "SELECT "FIELDS" FROM packages WHERE package LIKE '%%%s%%'", query);
+			}
 		}
 	}
 
