@@ -12,7 +12,7 @@ fi
 OPEN=""
 if cmdexists xdg-open; then
 	OPEN="xdg-open"
-elif cmdexists -v open; then
+elif cmdexists open; then
 	OPEN="open"
 elif cmdexists cmd; then
 	OPEN="cmd /c start"
