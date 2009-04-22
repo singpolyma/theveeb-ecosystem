@@ -103,11 +103,11 @@ proc getPackList {text category} {
 		if {!(
 			[regexp {Package: ([^\n]*)\n} $pack mat temp(package)] && 
 			[regexp {Status: ([^\n]*)\n} $pack mat temp(status)] &&
-			[regexp {Description: ([^\n]*)\n(.*)} $pack mat temp(descText) temp(longDesc)]
+			[regexp {Description: ([^\n]+)(?:\n(.*))?} $pack mat temp(descText) temp(longDesc)]
 			)
 		} {
 			# ERROR
-			puts "Package parse error: \n$rawOutput"
+			tk_messageBox -message "Package parse error: \n$rawOutput"
 			return [list]
 		}
 		lineTrim temp(longDesc)
@@ -286,7 +286,7 @@ proc loginStart {} {
 		set URL ""
 	}
 
-	if {![regexp {(\w{22}) (\w*)} $loginOutput mat TOKEN SECRET]} {
+	if {![regexp {(\w{15,25}) (\w+)} "$loginOutput" mat TOKEN SECRET]} {
 		# Something bad happened, I can't find the tokens
 		tk_messageBox -message "Can't find tokens: $loginOutput"
 		return
