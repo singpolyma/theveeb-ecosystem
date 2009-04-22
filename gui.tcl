@@ -278,7 +278,7 @@ proc loginStart {} {
 	}
 	# Login-start seems to have succeeded
 	# Look for a url, if one's given
-	if [regexp "Go to \"(\[^\"\])\"" $loginOutput mat gUrl] {
+	if [regexp "Go to \"(\[^\"\]+)\"" $loginOutput mat gUrl] {
 		# We couldn't find a way to open the given url, give it to them manually.
 		set URL $gUrl
 	} else {
