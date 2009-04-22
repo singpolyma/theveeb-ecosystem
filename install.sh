@@ -152,7 +152,7 @@ do_install () {
 	# Sign the URL with oauth utils (oauthsign)
 	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
 	# Get remote URL and download deb file with GET
-	if ! net2stdout "$URL" > "$temp/$2.deb""; then
+	if ! net2stdout "$URL" > "$temp/$2.deb"; then
 		echo "Error downloading ${2}... Aborting..."
 		exit 1
 	fi
