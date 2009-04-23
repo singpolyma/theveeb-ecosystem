@@ -486,4 +486,10 @@ set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
 
-drawLoginStart
+if [catch {exec sh ./login-check.sh 2>@1} errorMsg] {
+	# Not Logged In
+	drawLoginStart
+} else {
+	# Logged In
+	drawUi
+}
