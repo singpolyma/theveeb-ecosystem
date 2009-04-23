@@ -312,6 +312,32 @@ proc handleLoginStart {channel} {
 	}
 }
 
+proc handleLoginFinish {channel} {
+	global loginContinue
+
+	if [eof $channel] {
+		set result [catch {close $channel} errorOutput exitOptions]
+
+		if {$result != 0 && [lindex [dict get $exitOptions -errorcode] 2] != 0} {
+			# Exited with actual error
+			if {[string length [string trim $errorOutput]] != 0} {
+				tk_messageBox -message "Encountered Error: $errorOutput"
+			} else {
+				tk_messageBox -message "Encountered Unknown Error"
+			}
+			clearUi
+			drawLoginStart
+		} else {
+			# Here, it worked
+			clearUi
+			drawUi
+		}
+	} else {
+		# I don't require any particular output, so just consume it
+		gets $channel
+	}
+}
+
 proc loginStart {} {
 	global TOKEN
 	global SECRET
@@ -331,19 +357,12 @@ proc loginStart {} {
 proc loginFinish {} {
 	global TOKEN
 	global SECRET
-	
-	#Call login-finish.sh
-	if [catch {exec sh "./login-finish.sh" $TOKEN $SECRET 2>@1} loginOutput] {
-		# Error Occured
-		tk_messageBox -message "An Error Occurred: $loginOutput"
-		clearUi
-		drawLoginStart
-		return
-	}
+	global loginContinue
 
-	#At this point let's just assume we've succeeded
-	clearUi
-	drawUi
+	$loginContinue configure -state disabled
+	
+	set command [open "| sh ./login-finish.sh $TOKEN $SECRET" r]
+	fileevent $command readable [list handleLoginFinish $command]
 }
 
 # This function draws the login elements
@@ -364,6 +383,8 @@ proc drawLoginFinish {} {
 	global loginUrlWait
 	global loginUrl
 	global loginContinue
+
+	$loginContinue configure -state normal
 
 	if {$URL == ""} {
 		# Browser opened on its own
