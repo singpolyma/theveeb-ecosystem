@@ -266,34 +266,60 @@ proc drawUi {} {
 	grid $bottomBar
 }
 
+proc handleLoginStart {channel} {
+	global TOKEN
+	global SECRET
+	global URL
+
+	if [eof $channel] {
+		set ERR ""
+		if [catch {close $channel} errorOutput] {
+			# There was output to stderr during the execution of the program.
+
+			if [regexp "Go to \"(\[^\"\]+)\"" $errorOutput mat gUrl] {
+				# We couldn't find a way to open the given url, give it to them manually.
+				set URL $gUrl
+			} else {
+				# If there was error output other than that, assume the reader should be notified
+				set ERR $errorOutput
+			}
+		}
+		# At this point the channel's done.
+		if {[string length [string trim $ERR]] != 0} {
+			# You Have Error
+			tk_messageBox -message "Encountered Error: $ERR"
+		}
+		# Regardless of the error output we recieved above, if we got tokens out of this, assume it succeeded.
+		if {[string length [string trim $TOKEN]] != 0} {
+			# We seem to have a token.
+			clearUi
+			drawLoginFinish
+		} else {
+			# Failed to get tokens
+			tk_messageBox -message "Login Failure. No authentication tokens could be found."
+		}
+	} else {
+		# There's still data to be read
+		set line [gets $channel]
+		if {[regexp {(\w{15,25}) (\w+)} $line mat token secret]} {
+			# Found the tokens
+			set TOKEN $token
+			set SECRET $secret
+		}
+	}
+}
+
 proc loginStart {} {
 	global TOKEN
 	global SECRET
 	global URL
-	# Call login-start.sh
-	if [catch {exec sh ./login-start.sh 2>@1} loginOutput] {
-		# Error occured
-		tk_messageBox -message "An Error Occurred: $loginOutput"
-		return 
-	}
-	# Login-start seems to have succeeded
-	# Look for a url, if one's given
-	if [regexp "Go to \"(\[^\"\]+)\"" $loginOutput mat gUrl] {
-		# We couldn't find a way to open the given url, give it to them manually.
-		set URL $gUrl
-	} else {
-		# The browser's opened on its own
-		set URL ""
-	}
 
-	if {![regexp {(\w{15,25}) (\w+)} "$loginOutput" mat TOKEN SECRET]} {
-		# Something bad happened, I can't find the tokens
-		tk_messageBox -message "Can't find tokens: $loginOutput"
-		return
-	}
+	set TOKEN ""
+	set SECRET ""
+	set URL ""
 
-	clearUi
-	drawLoginFinish
+	set command [open "| sh ./login-start.sh" r]
+	fileevent $command readable [list handleLoginStart $command]
 }
 
 proc loginFinish {} {
