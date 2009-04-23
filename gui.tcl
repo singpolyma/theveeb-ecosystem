@@ -270,6 +270,7 @@ proc handleLoginStart {channel} {
 	global TOKEN
 	global SECRET
 	global URL
+	global loginButton
 
 	if [eof $channel] {
 		set ERR ""
@@ -297,6 +298,7 @@ proc handleLoginStart {channel} {
 		} else {
 			# Failed to get tokens
 			tk_messageBox -message "Login Failure. No authentication tokens could be found."
+			$loginButton configure -state normal
 		}
 	} else {
 		# There's still data to be read
@@ -313,10 +315,13 @@ proc loginStart {} {
 	global TOKEN
 	global SECRET
 	global URL
+	global loginButton
 
 	set TOKEN ""
 	set SECRET ""
 	set URL ""
+
+	$loginButton configure -state disabled
 
 	set command [open "| sh ./login-start.sh" r]
 	fileevent $command readable [list handleLoginStart $command]
@@ -344,6 +349,8 @@ proc loginFinish {} {
 proc drawLoginStart {} {
 	global loginLabel
 	global loginButton
+
+	$loginButton configure -state normal
 
 	grid $loginLabel -sticky ew
 	grid $loginButton
