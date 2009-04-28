@@ -6,10 +6,8 @@ proc updateScrollableThing {path} {
 	set canHeight [winfo height $path]
 	set height [winfo reqheight $frame ]
 
-	if {0} {
 	if {$canHeight > $height} {
 		set height $canHeight
-	}
 	}
 
 	set canWidth [winfo width $path]
