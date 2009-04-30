@@ -69,6 +69,9 @@ proc drawPackageList {destination data} {
 
 		incr i 2
 	}
+
+	# Update the scrollable thing after giving it time to figure out it's dimensions
+	after 100 [list updateScrollableThing $destination]
 }
 
 proc lineTrim {words} {
