@@ -215,6 +215,13 @@ proc clearState {} {
 	array unset originalValues
 }
 
+# This command will run the message box only if there's data in the list.
+proc Report {message list title} {
+	if {[string length [string trim $list]] != 0} {
+		tk_messageBox -message "$message $list" -title $title
+	}
+}
+
 # This is the command of the "Do It" button
 proc DoIt {} {
 	global selectedPackages
@@ -247,18 +254,10 @@ proc DoIt {} {
 			}
 		}
 	}
-	if {[string length [string trim $installFail]] != 0} {
-		tk_messageBox -message "The following packages failed to install: $installFail" -title "Installation Failed"
-	}
-	if {[string length [string trim $installSucc]] != 0} {
-		tk_messageBox -message "Installation succeeded on the following packages: $installSucc" -title "Installation Success"
-	}
-	if {[string length [string trim $removeFail]] != 0} {
-		tk_messageBox -message "The following packages failed to remove: $removeFail" -title "Removal Failed"
-	}
-	if {[string length [string trim $removeSucc]] != 0} {
-		tk_messageBox -message "Removal succeeded on the following packages: $removeSucc" -title "Removal Success"
-	}
+	Report "The following packages failed to install:" $installFail "Installation Failed"
+	Report "Installation succeeded on the following packages:" $installSucc "Installation Success"
+	Report "The following packages failed to remove:" $removeFail "Removal Failed"
+	Report "Removal succeeded on the following packages:" $removeSucc "Removal Success"
 
 	# Clear the chosen statuses, the database should match those now.
 	# This will make all statuses be pulled from the database, so when something fails to install it will be unchecked.
