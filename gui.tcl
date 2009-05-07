@@ -344,11 +344,7 @@ proc handleLoginStart {channel} {
 			}
 		}
 		# At this point the channel's done.
-		if {[string length [string trim $ERR]] != 0} {
-			# You Have Error
-			# The reason this is here rather than where the error was first detected is because making this reentered the event loop before the file was closed, so this routine kept getting called while it blocked on the message box.
-			tk_messageBox -message "Encountered Error: $ERR"
-		}
+		Report "Encountered Error:" $ERR "Error"
 		# Regardless of the error output we recieved above, if we got tokens out of this, assume it succeeded.
 		if {[string length [string trim $TOKEN]] != 0} {
 			# We seem to have a token.
