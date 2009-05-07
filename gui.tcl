@@ -174,6 +174,16 @@ proc safeQuit {} {
 proc checkChanged {package} {
 	global originalValues
 	global selectedPackages
+	global offlineMode
+
+	if {$offlineMode && ![info exists originalValues($package)] && $selectedPackages($package)} {
+		# We're in offline mode, and they're trying to check a box that they haven't already unchecked.
+		# Stop them
+		set selectedPackages($package) 0
+		tk_messageBox -message "You can't select packages for install in offline mode\nSwitch to online mode to install packages"
+		# Then get out of here
+		return
+	}
 
 	if {[info exists originalValues($package)]} {
 		# There's already a value here
@@ -368,6 +378,7 @@ proc handleLoginStart {channel} {
 
 proc handleLoginFinish {channel} {
 	global loginContinue
+	global offlineMode
 
 	if [eof $channel] {
 		set result [catch {close $channel} errorOutput exitOptions]
@@ -383,6 +394,7 @@ proc handleLoginFinish {channel} {
 			drawLoginStart
 		} else {
 			# Here, it worked
+			set offlineMode 0
 			clearUi
 			drawUi
 		}
@@ -423,11 +435,13 @@ proc loginFinish {} {
 proc drawLoginStart {} {
 	global loginLabel
 	global loginButton
+	global offlineButton
 
 	$loginButton configure -state normal
 
 	grid $loginLabel -sticky ew
 	grid $loginButton
+	grid $offlineButton
 }
 
 # This function draws the screen where we wait for authentication.
@@ -452,9 +466,19 @@ proc drawLoginFinish {} {
 	grid $loginContinue
 }
 
+# Offline mode
+proc offlineMode {} {
+	global offlineMode
+
+	set offlineMode 1
+	clearUi
+	drawUi
+}
+
 # Login Stuff
 set loginLabel [label .loginLabel -text "Welcome to The Veeb Ecosystem"]
 set loginButton [button .loginButton -text "Click Here to Login" -command loginStart]
+set offlineButton [button .offlineButton -text "Offline Mode" -command offlineMode]
 
 set loginWait [label .loginWait -text "After Authenticating in your browser, click below to continue"]
 set loginUrlWait [label .loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
