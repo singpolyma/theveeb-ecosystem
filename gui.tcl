@@ -206,6 +206,15 @@ proc getDiff {} {
 	return $result
 }
 
+# This function clears the selection state, so that all "installed / removed" state is pulled from the database again.
+proc clearState {} {
+	global selectedPackages
+	global originalValues
+
+	array unset selectedPackages
+	array unset originalValues
+}
+
 # This is the command of the "Do It" button
 proc DoIt {} {
 	global selectedPackages
@@ -237,7 +246,7 @@ proc DoIt {} {
 
 	# Clear the chosen statuses, the database should match those now.
 	# This will make all statuses be pulled from the database, so when something fails to install it will be unchecked.
-	array unset selectedPackages
+	clearState
 	# Now update the list
 	getDataAndFilter
 }
