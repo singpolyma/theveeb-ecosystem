@@ -208,7 +208,38 @@ proc getDiff {} {
 
 # This is the command of the "Do It" button
 proc DoIt {} {
-	puts [getDiff]
+	global selectedPackages
+
+	set installFail ""
+	set removeFail ""
+	set diffList [getDiff]
+	foreach p $diffList {
+		if {[lindex $p 1] == 1} {
+			# Install this
+			if [catch {exec -ignorestderr sh install.sh [lindex $p 0]} failWords] {
+				append installFail " [lindex $p 0]"
+				tk_messageBox -message $failWords -title "Install"
+			} 
+		} else {
+			# Remove this
+			if [catch {exec -ignorestderr sh remove.sh [lindex $p 0]} failWords] {
+				append removeFail " [lindex $p 0]"
+				tk_messageBox -message $failWords -title "Remove"
+			}
+		}
+	}
+	if {[string length [string trim $installFail]] != 0} {
+		tk_messageBox -message "The following packages failed to install: $installFail" -title "Installation Failed"
+	}
+	if {[string length [string trim $removeFail]] != 0} {
+		tk_messageBox -message "The following packages failed to remove: $removeFail" -title "Removal Failed"
+	}
+
+	# Clear the chosen statuses, the database should match those now.
+	# This will make all statuses be pulled from the database, so when something fails to install it will be unchecked.
+	array unset selectedPackages
+	# Now update the list
+	getDataAndFilter
 }
 
 # This is the command to send feedback
