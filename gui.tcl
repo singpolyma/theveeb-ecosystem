@@ -221,27 +221,43 @@ proc DoIt {} {
 
 	set installFail ""
 	set removeFail ""
+	set installSucc ""
+	set removeSucc ""
+
 	set diffList [getDiff]
 	foreach p $diffList {
-		if {[lindex $p 1] == 1} {
+		set pStatus [lindex $p 1]
+		set pName [lindex $p 0]
+
+		if {$pStatus == 1} {
 			# Install this
-			if [catch {exec -ignorestderr sh install.sh [lindex $p 0]} failWords] {
-				append installFail " [lindex $p 0]"
+			if [catch {exec -ignorestderr sh install.sh $pName} failWords] {
+				append installFail " $pName"
 				tk_messageBox -message $failWords -title "Install"
-			} 
+			} else {
+				append installSucc " $pName" 
+			}
 		} else {
 			# Remove this
-			if [catch {exec -ignorestderr sh remove.sh [lindex $p 0]} failWords] {
-				append removeFail " [lindex $p 0]"
+			if [catch {exec -ignorestderr sh remove.sh $pName} failWords] {
+				append removeFail " $pName"
 				tk_messageBox -message $failWords -title "Remove"
+			} else {
+				append removeSucc " $pName"
 			}
 		}
 	}
 	if {[string length [string trim $installFail]] != 0} {
 		tk_messageBox -message "The following packages failed to install: $installFail" -title "Installation Failed"
 	}
+	if {[string length [string trim $installSucc]] != 0} {
+		tk_messageBox -message "Installation succeeded on the following packages: $installSucc" -title "Installation Success"
+	}
 	if {[string length [string trim $removeFail]] != 0} {
 		tk_messageBox -message "The following packages failed to remove: $removeFail" -title "Removal Failed"
+	}
+	if {[string length [string trim $removeSucc]] != 0} {
+		tk_messageBox -message "Removal succeeded on the following packages: $removeSucc" -title "Removal Success"
 	}
 
 	# Clear the chosen statuses, the database should match those now.
