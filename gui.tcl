@@ -379,6 +379,7 @@ proc handleLoginStart {channel} {
 proc handleLoginFinish {channel} {
 	global loginContinue
 	global offlineMode
+	global logoutButtonText
 
 	if [eof $channel] {
 		set result [catch {close $channel} errorOutput exitOptions]
@@ -395,6 +396,7 @@ proc handleLoginFinish {channel} {
 		} else {
 			# Here, it worked
 			set offlineMode 0
+			set logoutButtonText "Logout"
 			clearUi
 			drawUi
 		}
@@ -469,10 +471,45 @@ proc drawLoginFinish {} {
 # Offline mode
 proc offlineMode {} {
 	global offlineMode
+	global logoutButtonText
 
 	set offlineMode 1
+	set logoutButtonText "Go Online"
 	clearUi
 	drawUi
+}
+
+# Logout
+proc logout {} {
+	global offlineMode
+
+	if $offlineMode {
+		# If in offline mode, check to see if we're online, and if so be online, if not present login.
+		clearUi
+		drawProperScreen
+	} else {
+		if [catch {exec sh logout.sh} errorMessage] {
+			tk_messageBox -message "Encountered Error: $errorMessage" -title "Error"
+		}
+		clearUi
+		drawLoginStart
+	}
+}
+
+# This checks to see if you're logged in, and draws the appropriate window
+proc drawProperScreen {} {
+	global offlineMode
+	global logoutButtonText
+
+	if [catch {exec sh ./login-check.sh 2>@1} errorMsg] {
+		# Not Logged In
+		drawLoginStart
+	} else {
+		# Logged In
+		set offlineMode 0
+		set logoutButtonText "Logout"
+		drawUi
+	}
 }
 
 # Login Stuff
@@ -606,10 +643,11 @@ pack $tabArea -fill both -expand 1 -side top
 # Set up the bottom bar
 set bottomBar [frame .buttonBar]
 
+set logoutButton [button ${bottomBar}.logout -textvariable logoutButtonText -command logout]
 set quitButton [button ${bottomBar}.quit -text "Quit" -command safeQuit]
 set commitButton [button ${bottomBar}.commit -text "Do it" -command DoIt]
 
-grid $quitButton $commitButton
+grid $logoutButton $quitButton $commitButton
 
 # Initialize Filter
 set searchQuery ""
@@ -619,10 +657,4 @@ set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
 
-if [catch {exec sh ./login-check.sh 2>@1} errorMsg] {
-	# Not Logged In
-	drawLoginStart
-} else {
-	# Logged In
-	drawUi
-}
+drawProperScreen
