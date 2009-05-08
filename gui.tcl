@@ -378,8 +378,6 @@ proc handleLoginStart {channel} {
 
 proc handleLoginFinish {channel} {
 	global loginContinue
-	global offlineMode
-	global logoutButtonText
 
 	if [eof $channel] {
 		set result [catch {close $channel} errorOutput exitOptions]
@@ -395,10 +393,8 @@ proc handleLoginFinish {channel} {
 			drawLoginStart
 		} else {
 			# Here, it worked
-			set offlineMode 0
-			set logoutButtonText "Logout"
 			clearUi
-			drawUi
+			drawLoggedInUi
 		}
 	} else {
 		# I don't require any particular output, so just consume it
@@ -470,13 +466,8 @@ proc drawLoginFinish {} {
 
 # Offline mode
 proc offlineMode {} {
-	global offlineMode
-	global logoutButtonText
-
-	set offlineMode 1
-	set logoutButtonText "Go Online"
 	clearUi
-	drawUi
+	drawOfflineUi
 }
 
 # Logout
@@ -498,18 +489,33 @@ proc logout {} {
 
 # This checks to see if you're logged in, and draws the appropriate window
 proc drawProperScreen {} {
-	global offlineMode
-	global logoutButtonText
-
 	if [catch {exec sh ./login-check.sh 2>@1} errorMsg] {
 		# Not Logged In
 		drawLoginStart
 	} else {
 		# Logged In
-		set offlineMode 0
-		set logoutButtonText "Logout"
-		drawUi
+		drawLoggedInUi
 	}
+}
+
+# This draws the logged-in UI, taking care of all special considerations
+proc drawLoggedInUi {} {
+	global offlineMode
+	global logoutButtonText
+
+	set offlineMode 0
+	set logoutButtonText "Logout"
+	drawUi
+}
+
+# This draws the offline-mode UI
+proc drawOfflineUi {} {
+	global offlineMode
+	global logoutButtonText
+
+	set offlineMode 1
+	set logoutButtonText "Go Online"
+	drawUi
 }
 
 # Login Stuff
