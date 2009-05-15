@@ -209,6 +209,10 @@ int main (int argc, char ** argv) {
 	print_depends(db, package);
 
 	if(printed_packages) {
+		int i;
+		for(i = 0; i < printed_packages_len; i++) {
+			free(printed_packages[i]);
+		}
 		free(printed_packages);
 	}
 
