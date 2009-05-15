@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
 	}
 	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-') || fp != stdin) {
 		/* Don't treat it as a string, because it may be binary data */
-		while((nread = fread(string+len, 1, bufsize-len, fp)) == (bufsize-len)) { 
+		while((nread = fread(string+len, 1, bufsize-len, fp)) == (bufsize-len)) {
 			len = bufsize;
 			bufsize = 2*(bufsize+1)*sizeof(*string);
 			string = realloc(string, bufsize);
@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 				fputs("Failed to allocate memory\n", stderr);
 				exit(EXIT_FAILURE);
 			}
-		} 
+		}
 		len += nread;
 	} else {
 		string = argv[1];
@@ -68,10 +68,10 @@ int main(int argc, char *argv[]) {
 	}
 	md5(out, string, len);
 	printf("%s\n", out);
-	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-')) {
+	if(argc < 2 || (strlen(argv[1]) == 1 && argv[1][0] == '-') || fp != stdin) {
 		free(string);
 	}
-	if(argc > 2 && strcmp(argv[1],"-b") == 0) {
+	if(argc > 2 && strcmp(argv[1],"-q") == 0) {
 		fclose(fp);
 	}
 	exit(EXIT_SUCCESS);
