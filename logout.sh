@@ -4,5 +4,9 @@ if [ ! -r "$OAUTHTOKENS" ]; then
 	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
 fi
 
-rm "$OAUTHTOKENS"
-echo "Logout Successful."
+if rm -f "$OAUTHTOKENS"; then
+	echo "Logout successful."
+else
+	echo "Logout failed."
+	exit 1
+fi
