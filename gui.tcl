@@ -339,6 +339,7 @@ proc handleLoginStart {channel} {
 	global SECRET
 	global URL
 	global loginButton
+	global offlineButton
 
 	if [eof $channel] {
 		set ERR ""
@@ -364,6 +365,7 @@ proc handleLoginStart {channel} {
 			# Failed to get tokens
 			tk_messageBox -message "Login Failure. No authentication tokens could be found."
 			$loginButton configure -state normal
+			$offlineButton configure -state normal
 		}
 	} else {
 		# There's still data to be read
@@ -378,7 +380,6 @@ proc handleLoginStart {channel} {
 
 proc handleLoginFinish {channel} {
 	global loginContinue
-	global offlineMode
 
 	if [eof $channel] {
 		set result [catch {close $channel} errorOutput exitOptions]
@@ -394,9 +395,8 @@ proc handleLoginFinish {channel} {
 			drawLoginStart
 		} else {
 			# Here, it worked
-			set offlineMode 0
 			clearUi
-			drawUi
+			drawLoggedInUi
 		}
 	} else {
 		# I don't require any particular output, so just consume it
@@ -409,12 +409,14 @@ proc loginStart {} {
 	global SECRET
 	global URL
 	global loginButton
+	global offlineButton
 
 	set TOKEN ""
 	set SECRET ""
 	set URL ""
 
 	$loginButton configure -state disabled
+	$offlineButton configure -state disabled
 
 	set command [open "| sh ./login-start.sh" r]
 	fileevent $command readable [list handleLoginStart $command]
@@ -438,6 +440,7 @@ proc drawLoginStart {} {
 	global offlineButton
 
 	$loginButton configure -state normal
+	$offlineButton configure -state normal
 
 	grid $loginLabel -sticky ew
 	grid $loginButton
@@ -468,10 +471,55 @@ proc drawLoginFinish {} {
 
 # Offline mode
 proc offlineMode {} {
+	clearUi
+	drawOfflineUi
+}
+
+# Logout
+proc logout {} {
 	global offlineMode
 
+	if $offlineMode {
+		# If in offline mode, check to see if we're online, and if so be online, if not present login.
+		clearUi
+		drawProperScreen
+	} else {
+		if [catch {exec sh logout.sh} errorMessage] {
+			tk_messageBox -message "Encountered Error: $errorMessage" -title "Error"
+		}
+		clearUi
+		drawLoginStart
+	}
+}
+
+# This checks to see if you're logged in, and draws the appropriate window
+proc drawProperScreen {} {
+	if [catch {exec sh ./login-check.sh 2>@1} errorMsg] {
+		# Not Logged In
+		drawLoginStart
+	} else {
+		# Logged In
+		drawLoggedInUi
+	}
+}
+
+# This draws the logged-in UI, taking care of all special considerations
+proc drawLoggedInUi {} {
+	global offlineMode
+	global logoutButtonText
+
+	set offlineMode 0
+	set logoutButtonText "Logout"
+	drawUi
+}
+
+# This draws the offline-mode UI
+proc drawOfflineUi {} {
+	global offlineMode
+	global logoutButtonText
+
 	set offlineMode 1
-	clearUi
+	set logoutButtonText "Go Online"
 	drawUi
 }
 
@@ -606,10 +654,11 @@ pack $tabArea -fill both -expand 1 -side top
 # Set up the bottom bar
 set bottomBar [frame .buttonBar]
 
+set logoutButton [button ${bottomBar}.logout -textvariable logoutButtonText -command logout]
 set quitButton [button ${bottomBar}.quit -text "Quit" -command safeQuit]
 set commitButton [button ${bottomBar}.commit -text "Do it" -command DoIt]
 
-grid $quitButton $commitButton
+grid $logoutButton $quitButton $commitButton
 
 # Initialize Filter
 set searchQuery ""
@@ -619,10 +668,4 @@ set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
 
-if [catch {exec sh ./login-check.sh 2>@1} errorMsg] {
-	# Not Logged In
-	drawLoginStart
-} else {
-	# Logged In
-	drawUi
-}
+drawProperScreen
