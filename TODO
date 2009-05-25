@@ -14,7 +14,10 @@ Items ending in ? need more thought / discussion.
 == For web/apis ==
 
 * Feedback API
-* Review data model/post/get APIs
+* Review post/get APIs
+* Purchase API
+* Activity stream output (above APIs provide input)
+* PayPal plumbing
 
 == For market ==
 
