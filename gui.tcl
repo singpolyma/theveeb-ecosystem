@@ -1,3 +1,5 @@
+#!/usr/bin/wish
+
 package require Tk
 catch {package require tile}
 if [catch {ttk::setTheme aqua}] {
@@ -436,6 +438,7 @@ proc loginFinish {} {
 # This function draws the login elements
 proc drawLoginStart {} {
 	global loginLabel
+	global loginLabel2
 	global loginButton
 	global offlineButton
 
@@ -444,6 +447,7 @@ proc drawLoginStart {} {
 
 	grid $loginLabel -sticky ew
 	grid $loginButton
+	grid $loginLabel2 -sticky ew
 	grid $offlineButton
 }
 
@@ -524,9 +528,11 @@ proc drawOfflineUi {} {
 }
 
 # Login Stuff
-set loginLabel [label .loginLabel -text "Welcome to The Veeb Ecosystem"]
-set loginButton [button .loginButton -text "Click Here to Login" -command loginStart]
-set offlineButton [button .offlineButton -text "Offline Mode" -command offlineMode]
+# TODO: put logo here... put logo always in app?
+set loginLabel    [label  .loginLabel    -text "Welcome to The Veeb Ecosystem"]
+set loginButton   [button .loginButton   -text "Click Here to Login" -command loginStart]
+set loginLabel2   [label  .loginLabel2   -text "(this will open your web browser, close it when you're done)"]
+set offlineButton [button .offlineButton -text "Browse Offline" -command offlineMode]
 
 set loginWait [label .loginWait -text "After Authenticating in your browser, click below to continue"]
 set loginUrlWait [label .loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
