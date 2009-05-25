@@ -11,6 +11,11 @@ Items ending in ? need more thought / discussion.
 * Get people to test stuff as more of it becomes available
 * Run contests to get people interested in developing for the platform?
 
+== For web/apis ==
+
+* Feedback API
+* Review data model/post/get APIs
+
 == For market ==
 
 * Transfer psycotia0's TODO list into this file for GUI stuff, etc. 
