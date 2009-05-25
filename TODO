@@ -13,7 +13,6 @@ Items ending in ? need more thought / discussion.
 
 == For web/apis ==
 
-* Feedback API
 * Review post/get APIs
 * Purchase API
 * Activity stream output (above APIs provide input)
