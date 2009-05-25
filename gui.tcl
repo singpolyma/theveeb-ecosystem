@@ -417,7 +417,7 @@ proc loginStart {} {
 	set SECRET ""
 	set URL ""
 
-	$loginButton configure -state disabled
+	$loginButton configure -state disabled -text "Please wait..."
 	$offlineButton configure -state disabled
 
 	set command [open "| sh ./login-start.sh" r]
@@ -429,8 +429,8 @@ proc loginFinish {} {
 	global SECRET
 	global loginContinue
 
-	$loginContinue configure -state disabled
-	
+	$loginContinue configure -state disabled -text "Please wait..."
+
 	set command [open "| sh ./login-finish.sh $TOKEN $SECRET" r]
 	fileevent $command readable [list handleLoginFinish $command]
 }
@@ -442,7 +442,7 @@ proc drawLoginStart {} {
 	global loginButton
 	global offlineButton
 
-	$loginButton configure -state normal
+	$loginButton configure -state normal -text "Click Here to Login"
 	$offlineButton configure -state normal
 
 	grid $loginLabel -sticky ew
@@ -459,7 +459,7 @@ proc drawLoginFinish {} {
 	global loginUrl
 	global loginContinue
 
-	$loginContinue configure -state normal
+	$loginContinue configure -state normal -text "Continue"
 
 	if {$URL == ""} {
 		# Browser opened on its own
