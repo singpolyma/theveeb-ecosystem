@@ -26,7 +26,7 @@ if ! cmdexists oauthsign; then
 	exit 1
 fi
 
-REQUEST="`oauthsign -c key123 -C sekret -t "$REQ_TOKEN" -T "$REQ_SECRET" http://csclub.uwaterloo.ca:4567/oauth/access_token`"
+REQUEST="`oauthsign -c anonymous -C anonymous -t "$REQ_TOKEN" -T "$REQ_SECRET" http://csclub.uwaterloo.ca:4567/oauth/access_token`"
 TOKENS="`net2stdout "$REQUEST"`"
 
 # Verify the expected output was returned

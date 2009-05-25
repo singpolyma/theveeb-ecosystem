@@ -22,7 +22,7 @@ fi
 TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENS"`"
 SECRET="`cut -d' ' -f2 < "$OAUTHTOKENS"`"
 
-REQUEST="`oauthsign -c key123 -C sekret -t "$TOKEN" -T "$SECRET" http://singpolyma.net/theveeb/api/nickname.cgi`"
+REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" http://singpolyma.net/theveeb/api/nickname.cgi`"
 NICK="`net2stdout "$REQUEST"`"
 if [ $? -ne 0 ]; then
 	echo "Not properly logged in." 1>&2

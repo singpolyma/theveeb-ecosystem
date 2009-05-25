@@ -91,8 +91,8 @@ TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENFILE"`"
 SECRET="`cut -d' ' -f2 < "$OAUTHTOKENFILE"`"
 
 # OAuth Consumer token and secret
-CONSUMER_TOKEN="key123"
-CONSUMER_SECRET="sekret"
+CONSUMER_TOKEN="anonymous"
+CONSUMER_SECRET="anonymous"
 
 # Select a temporary directory
 if [ ! -z "$TMPDIR" ]; then

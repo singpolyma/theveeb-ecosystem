@@ -18,7 +18,7 @@ elif cmdexists cmd; then
 	OPEN="cmd /c start"
 fi
 
-REQUEST="`oauthsign -c key123 -C sekret http://csclub.uwaterloo.ca:4567/oauth/request_token`"
+REQUEST="`oauthsign -c anonymous -C anonymous http://csclub.uwaterloo.ca:4567/oauth/request_token`"
 TOKENS="`net2stdout "$REQUEST"`"
 
 # Verify the expected output was returned
@@ -33,7 +33,7 @@ TOKEN="`echo $TOKENS | sed 's/^oauth_token=\([^&]*\).*/\1/'`"
 SECRET="`echo $TOKENS | sed 's/^[^&]*&oauth_token_secret=\(.*\)/\1/'`"
 
 # This is the url to send the user to
-URL="http://singpolyma.net/theveeb/authorize.php?oauth_token=$TOKEN"
+URL="http://singpolyma.net/theveeb/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client"
 
 # Output the tokens
 echo "$TOKEN $SECRET"
