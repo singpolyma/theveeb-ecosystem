@@ -20,7 +20,15 @@ Items ending in ? need more thought / discussion.
 
 == For market ==
 
-* Transfer psycotia0's TODO list into this file for GUI stuff, etc. 
+* Lock the UI a little more when doing Install and/or Remove.
+* Ratings
+** UI for displaying and setting ratings
+** HTTP access for posting ratings (Fetching is done by update)
+* Reviews
+** UI for displaying and adding reviews
+** HTTP access for posting and fetching reviews
+* Images / Icons
+* Sending of result of Feedback tab to somewhere more useful than stdout
 * Investigate SHA hashes for APT repo
 * Package Rubygame, Chipmunk, XGame, and demos as *.deb i386, x86_64, PPC
 ** singpolyma : repos set up, working for i386 Ubuntu and Windows
