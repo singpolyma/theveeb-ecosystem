@@ -6,15 +6,15 @@ if [ -w "$TVEROOT/" ]; then
 	eval $*
 else
 	if cmdexists gksudo; then
-		gksudo $*
+		gksudo -k $*
 	elif cmdexists gksu; then
-		gksu $*
+		gksu -k $*
 	elif cmdexists kdesudo; then
 		kdesudo $*
 	elif cmdexists kdesu; then
 		kdesu $*
 	elif cmdexists MacSudo; then
-		MacSudo $*
+		MacSudo -p"The Veeb Ecosystem" $*
 	elif cmdexists xterm; then
 		if cmdexists sudo; then
 			xterm -e sudo $*
