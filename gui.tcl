@@ -237,6 +237,7 @@ proc Report {message list title} {
 # This is the command of the "Do It" button
 proc DoIt {} {
 	global selectedPackages
+	global env
 
 	set installFail ""
 	set removeFail ""
@@ -250,15 +251,15 @@ proc DoIt {} {
 
 		if {$pStatus == 1} {
 			# Install this
-			if [catch {exec -ignorestderr sh install.sh $pName} failWords] {
+			if [catch {exec -ignorestderr sh maybesudo.sh install.sh $pName} failWords] {
 				append installFail " $pName"
 				tk_messageBox -message $failWords -title "Install"
 			} else {
-				append installSucc " $pName" 
+				append installSucc " $pName"
 			}
 		} else {
 			# Remove this
-			if [catch {exec -ignorestderr sh remove.sh $pName} failWords] {
+			if [catch {exec -ignorestderr sh maybesudo.sh remove.sh $pName} failWords] {
 				append removeFail " $pName"
 				tk_messageBox -message $failWords -title "Remove"
 			} else {
