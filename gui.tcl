@@ -237,7 +237,6 @@ proc Report {message list title} {
 # This is the command of the "Do It" button
 proc DoIt {} {
 	global selectedPackages
-	global env
 
 	set installFail ""
 	set removeFail ""
