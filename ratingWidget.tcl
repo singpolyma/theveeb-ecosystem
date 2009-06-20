@@ -126,6 +126,7 @@ proc ratingWidgetCommand {self cmd args} {
 			# This command both set the value
 			set ratingWidgetOptions($self,value) $args
 			ratingWidgetDrawBaseState $self
+			event generate $self <<Rate>> -root $self -data $args
 		}
 		avgSet {
 			# This command will set the average value
