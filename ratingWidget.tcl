@@ -18,8 +18,6 @@ proc ratingWidget {path args} {
 	set ratingWidgetOptions($path,pointRadius) 10
 	# This option is the square size 
 	set ratingWidgetOptions($path,troughRadius) 5
-	# This is the square size of each star (Mostly a convenience)
-	set ratingWidgetOptions($path,starSize) [expr $ratingWidgetOptions($path,pointRadius) * 2]
 	# This is the width of the border
 	set ratingWidgetOptions($path,borderWidth) 1
 	# This is the padding between stars
@@ -30,8 +28,15 @@ proc ratingWidget {path args} {
 	set ratingWidgetOptions($path,averageValue) 0
 	# This sets whether or not the widget is readonly
 	set ratingWidgetOptions($path,readonly) 0
+
+	# Now, pull out our options, and pass the rest on to the canvas
+	set screenedArgs [ratingWidgetConfiguration $path $args]
+
+	# This is the square size of each star (Mostly a convenience)
+	set ratingWidgetOptions($path,starSize) [expr $ratingWidgetOptions($path,pointRadius) * 2]
+
 	# This builds the Canvas
-	eval canvas $path $args
+	eval canvas $path $screenedArgs
 	# Make the canvas the right size
 	set canWidth [expr {$ratingWidgetOptions($path,starPadding) * ($ratingWidgetOptions($path,numStars)-1) + $ratingWidgetOptions($path,numStars) * $ratingWidgetOptions($path,starSize)}]
 	$path configure -height $ratingWidgetOptions($path,starSize) -width $canWidth
@@ -120,6 +125,37 @@ proc ratingWidgetDrawBaseState {widget} {
 	} else {
 		ratingWidgetDraw $widget $ratingWidgetOptions($widget,userColour) $ratingWidgetOptions($widget,value)
 	}
+}
+
+# This command parses and sets configuration options from a list
+# It returns all pairs that it doesn't understand
+proc ratingWidgetConfiguration {widget argList} {
+	global ratingWidgetOptions 
+
+	set passThrough [list]
+	foreach {opt val} [split $argList " "] {
+		puts $opt
+		switch -- $opt {
+			-numStars - 
+			-numPoints - 
+			-emptyColour - 
+			-userColour - 
+			-averageColour - 
+			-pointRadius - 
+			-troughRadius - 
+			-borderWidth - 
+			-starPadding - 
+			-readonly {
+				# Recognize these ones
+				set ratingWidgetOptions($widget,[string range $opt 1 end]) $val
+			}
+			default {
+				# Don't know this one, pass it through
+				lappend passThrough $opt $val
+			}
+		}
+	}
+	return [join $passThrough]
 }
 
 # This is the command that is run when using the widget's name
