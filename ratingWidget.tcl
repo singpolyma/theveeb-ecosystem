@@ -28,6 +28,8 @@ proc ratingWidget {path args} {
 	set ratingWidgetOptions($path,value) 0
 	# This is the average value of the widget
 	set ratingWidgetOptions($path,averageValue) 0
+	# This sets whether or not the widget is readonly
+	set ratingWidgetOptions($path,readonly) 0
 	# This builds the Canvas
 	eval canvas $path $args
 	# Make the canvas the right size
@@ -65,9 +67,11 @@ proc ratingWidget {path args} {
 		}
 		set tag "star$i"
 		$path create polygon $adjustedCoords -tag $tag -fill $ratingWidgetOptions($path,emptyColour) -outline black -width $ratingWidgetOptions($path,borderWidth) 
-		$path bind $tag <Enter> [list ratingWidgetEnter $path $tag]
-		$path bind $tag <Leave> [list ratingWidgetLeave $path $tag]
-		$path bind $tag <Button-1> [list ratingWidgetButton1 $path $tag]
+		if {!$ratingWidgetOptions($path,readonly)} {
+			$path bind $tag <Enter> [list ratingWidgetEnter $path $tag]
+			$path bind $tag <Leave> [list ratingWidgetLeave $path $tag]
+			$path bind $tag <Button-1> [list ratingWidgetButton1 $path $tag]
+		}
 	}
 
 	# This hides the Canvas's default command.
