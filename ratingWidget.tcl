@@ -134,7 +134,6 @@ proc ratingWidgetConfiguration {widget argList} {
 
 	set passThrough [list]
 	foreach {opt val} [split $argList " "] {
-		puts $opt
 		switch -- $opt {
 			-numStars - 
 			-numPoints - 
