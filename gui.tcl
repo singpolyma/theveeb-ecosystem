@@ -70,9 +70,7 @@ proc drawPackageList {destination data} {
 		bind $name <ButtonPress-1> $handler
 		bind $icon <ButtonPress-1> $handler
 		bind $desc <ButtonPress-1> $handler
-		bind $rating <<Rate>> "
-			tk_messageBox -title Rated -message \"You just rated package $temp(package) a %d\"
-		"
+		bind $rating <ButtonPress-1> $handler
 
 		grid $cb -column 0 -rowspan 2 -padx 5 -row $i
 		grid $icon -column 1 -rowspan 2 -padx 5 -row $i
