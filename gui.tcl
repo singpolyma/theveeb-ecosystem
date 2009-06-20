@@ -564,9 +564,12 @@ proc handleLoginCheck {channel} {
 proc drawLoggedInUi {} {
 	global offlineMode
 	global logoutButtonText
+	global {description.rating}
 
 	set offlineMode 0
 	set logoutButtonText "Logout"
+	# Make sure you can do ratings
+	${description.rating} configure -readonly 0
 	drawUi
 }
 
@@ -574,9 +577,12 @@ proc drawLoggedInUi {} {
 proc drawOfflineUi {} {
 	global offlineMode
 	global logoutButtonText
+	global {description.rating}
 
 	set offlineMode 1
 	set logoutButtonText "Go Online"
+	# Can't do ratings in offline mode
+	${description.rating} configure -readonly 1
 	drawUi
 }
 
