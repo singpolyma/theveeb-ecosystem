@@ -511,7 +511,43 @@ proc logout {} {
 
 # This checks to see if you're logged in, and draws the appropriate window
 proc drawProperScreen {} {
-	if [catch {exec sh ./login-check.sh 2>@1} errorMsg] {
+	global loginCheckCommand
+	global loginCheckSkipped
+	global preLoginLabel
+	global preLoginSkip
+
+	# Set the loginCheck to be not skipped
+	set loginCheckSkipped 0
+
+	# Draw the login-check UI
+	# In a fast login-check they might not even see this
+	grid $preLoginLabel -sticky ew
+	grid $preLoginSkip
+
+	set loginCheckCommand [open "| sh ./login-check.sh" r]
+	fileevent $loginCheckCommand readable [list handleLoginCheck $loginCheckCommand]
+}
+
+# This function handles the result of login-check
+proc handleLoginCheck {channel} {
+	global loginCheckSkipped
+	# If this isn't the end of the output, just consume it
+	if {![eof $channel]} {
+		gets $channel
+		return
+	}
+
+	# This is the end, close it and look for the result
+	set result [catch {close $channel} errorMsg exitOptions]
+
+	# Check if the user's still waiting for us
+	if {$loginCheckSkipped == 1} {
+		set loginCheckSkipped 0
+		return
+	}
+	# Clear the UI, something's going to get drawn here
+	clearUi
+	if {$result != 0 && [lindex [dict get $exitOptions -errorcode] 2] != 0} {
 		# Not Logged In
 		drawLoginStart
 	} else {
@@ -540,6 +576,21 @@ proc drawOfflineUi {} {
 	drawUi
 }
 
+# This command intercepts the login check and just assumes offline mode
+# This function is only really used when the connection is really slow or broken, and the user knows that
+# This is here because sometimes login-check will take a while Trying to connect.
+proc skipLoginCheck {} {
+	global loginCheckCommand
+	global loginCheckSkipped
+
+	# Closing the command waits for it to finish. That's not what we want.
+	# So, we just ignore it. 
+	set loginCheckSkipped 1
+
+	clearUi
+	drawOfflineUi
+}
+
 # Login Stuff
 # TODO: put logo here... put logo always in app?
 set loginLabel    [label  .loginLabel    -text "Welcome to The Veeb Ecosystem"]
@@ -551,6 +602,11 @@ set loginWait [label .loginWait -text "After Authenticating in your browser, cli
 set loginUrlWait [label .loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
 set loginUrl [entry .loginUrl -textvariable URL -state readonly]
 set loginContinue [button .loginContinue -text "Continue" -command loginFinish]
+
+# Pre-Login stuff
+# This is to show that login is being checked, and gives the option to opt-out.
+set preLoginLabel [label .preLoginLabel -text "Checking Login Status..."]
+set preLoginSkip [button .preLoginSkip -text "Click this to just work offline." -command skipLoginCheck]
 
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
