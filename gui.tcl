@@ -10,6 +10,7 @@ if [catch {ttk::setTheme aqua}] {
 catch {namespace import -force ttk::*}
 source scrollable.tcl
 source textvariable.tcl
+source ratingWidget.tcl
 
 proc clearScrollableThing {widget} {
 	foreach item [grid slaves ${widget}.frame] {
@@ -44,6 +45,8 @@ proc drawPackageList {destination data} {
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
 		set price [label ${destination}.frame.row$i.price -text $temp(price) -anchor e]
+		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 4]
+		$rating avgSet $temp(rating)
 
 		# Should get longer info from search eventually
 		set handler "set currentPackage(title) {$temp(title)}
@@ -51,6 +54,7 @@ proc drawPackageList {destination data} {
 								 set currentPackage(longText) {$temp(longDesc)}
 								 set currentPackage(price) {$temp(price)}
 								 set currentPackage(package) {$temp(package)}
+								 set currentPackage(rating) {$temp(package)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
 								 \$tabArea tab \$feedback -state normal
 								 set highlightedrow $i
@@ -60,12 +64,16 @@ proc drawPackageList {destination data} {
 		bind $name <ButtonPress-1> $handler
 		bind $icon <ButtonPress-1> $handler
 		bind $desc <ButtonPress-1> $handler
+		bind $rating <<Rate>> "
+			tk_messageBox -title Rated -message \"You just rated package $temp(package) a %d\"
+		"
 
 		grid $cb -column 0 -rowspan 2 -padx 5 -row $i
 		grid $icon -column 1 -rowspan 2 -padx 5 -row $i
 		grid $name -column 2 -padx 5 -pady 2 -sticky nwe -row $i
 		grid $desc -column 2 -padx 5 -pady 2 -sticky nwe -row [expr {1+$i}]
 		grid $price -column 3 -sticky e -row $i
+		grid $rating -column 3 -sticky e -row [expr {$i+1}]
 
 		grid columnconfigure ${destination}.frame.row$i 2 -weight 1
 
@@ -130,6 +138,11 @@ proc getPackList {text category} {
 			#If no price
 			#Free
 			set temp(price) "Free"
+		}
+
+		if {![regexp {Rating: ([^\n]*)\n} $pack mat temp(rating)]} {
+			#If not rating
+			set temp(rating) 0
 		}
 
 		lappend packList [array get temp]
