@@ -72,11 +72,9 @@ proc ratingWidget {path args} {
 		}
 		set tag "star$i"
 		$path create polygon $adjustedCoords -tag $tag -fill $ratingWidgetOptions($path,emptyColour) -outline black -width $ratingWidgetOptions($path,borderWidth) 
-		if {!$ratingWidgetOptions($path,readonly)} {
-			$path bind $tag <Enter> [list ratingWidgetEnter $path $tag]
-			$path bind $tag <Leave> [list ratingWidgetLeave $path $tag]
-			$path bind $tag <Button-1> [list ratingWidgetButton1 $path $tag]
-		}
+		$path bind $tag <Enter> [list ratingWidgetEnter $path $tag]
+		$path bind $tag <Leave> [list ratingWidgetLeave $path $tag]
+		$path bind $tag <Button-1> [list ratingWidgetButton1 $path $tag]
 	}
 
 	# This hides the Canvas's default command.
@@ -90,17 +88,25 @@ proc ratingWidget {path args} {
 # This command handles the Enter binding.
 proc ratingWidgetEnter {widget tag} {
 	global ratingWidgetOptions
+	if {$ratingWidgetOptions($widget,readonly)} return
+
 	set value [expr [string range $tag 4 end] + 1]
 	ratingWidgetDraw $widget $ratingWidgetOptions($widget,userColour) $value
 }
 
 # This handles the Leave binding
 proc ratingWidgetLeave {widget tag} {
+	global ratingWidgetOptions
+	if {$ratingWidgetOptions($widget,readonly)} return
+
 	ratingWidgetDrawBaseState $widget
 }
 
 # This handles the Button-1 binding. (Click)
 proc ratingWidgetButton1 {widget tag} {
+	global ratingWidgetOptions
+	if {$ratingWidgetOptions($widget,readonly)} return 
+
 	set value [expr [string range $tag 4 end] + 1]
 	$widget set $value
 }
@@ -179,6 +185,18 @@ proc ratingWidgetCommand {self cmd args} {
 		avgGet {
 			# This commnd returns the current average value
 			return $ratingWidgetOptions($self,averageValue)
+		}
+		configure {
+			# Check if it's an option we support being configured
+			foreach {opt val} [split $args " "] {}
+			if {$opt == "-readonly"} {
+				# If it's readonly, change that value
+				set ratingWidgetOptions($self,readonly) $val
+				return $val
+			} else {
+				# We don't recognize this one, pass it along
+				return [uplevel 1 [list interp invokehidden {} $self $cmd] $args]
+			}
 		}
 		default { return [uplevel 1 [list interp invokehidden {} $self $cmd] $args] }
 	}
