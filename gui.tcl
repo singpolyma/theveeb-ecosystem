@@ -54,9 +54,15 @@ proc drawPackageList {destination data} {
 								 set currentPackage(longText) {$temp(longDesc)}
 								 set currentPackage(price) {$temp(price)}
 								 set currentPackage(package) {$temp(package)}
-								 set currentPackage(rating) {$temp(package)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
 								 \$tabArea tab \$feedback -state normal
+								 grid \${description.rating}
+								 \${description.rating} avgSet $temp(rating)
+								 if {\[info exists packageRating($temp(package))\]} {
+									\${description.rating} set \$packageRating($temp(package))
+								 } else {
+								 	\${description.rating} set 0
+								 }
 								 set highlightedrow $i
 								 ${destination}.frame.row$i configure -highlightthickness 2
 								 "
@@ -668,10 +674,24 @@ set tabArea [ttk::notebook ${viewarea}.tabArea]
 
 set description [frame ${tabArea}.description]
 set description.topLine [frame ${description}.topLine]
+set description.secondLine [frame ${description}.secondLine]
 set description.title [label ${description.topLine}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
-set description.caption [label ${description}.caption -textvariable currentPackage(caption) -justify left]
+set description.caption [label ${description.secondLine}.caption -textvariable currentPackage(caption) -justify left]
 set description.longText [text ${description}.longText -wrap word]
 set description.price [label ${description.topLine}.price -textvariable currentPackage(price) -justify right]
+set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 6]
+bind ${description.rating} <<Rate>> {
+	if [info exists packageRating($currentPackage(package))] {
+		set currentValue $packageRating($currentPackage(package))
+	} else {
+		set currentValue 0
+	}
+	if {%d != $currentValue} {
+		# Only report on changes
+		puts "Rated package $currentPackage(package) a %d"
+		set packageRating($currentPackage(package)) {%d}
+	}
+}
 
 # Set up the scrolling
 set description.scrollbar [scrollbar ${description}.scrollbar -command "${description.longText} yview"]
@@ -688,7 +708,17 @@ grid ${description.price} -sticky ne
 grid columnconfigure ${description.topLine} 1 -weight 1
 
 grid ${description.topLine} -sticky ew
+grid ${description.secondLine} -sticky ew
+
+# Layout the second line
+grid ${description.caption} ${description.rating}
 grid ${description.caption} -sticky nw
+grid ${description.rating} -sticky ne
+# Make the rating widget take up as much space as it can (This keeps it right aligned)
+grid columnconfigure ${description.secondLine} 1 -weight 1
+# Now, hide the rating widget until something's clicked on
+grid remove ${description.rating}
+
 grid ${description.longText} ${description.scrollbar}
 
 grid ${description.longText} -sticky news
