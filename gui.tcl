@@ -45,7 +45,7 @@ proc drawPackageList {destination data} {
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
 		set price [label ${destination}.frame.row$i.price -text $temp(price) -anchor e]
-		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 4]
+		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
 		# Should get longer info from search eventually
@@ -683,7 +683,7 @@ set description.title [label ${description.topLine}.title -textvariable currentP
 set description.caption [label ${description.secondLine}.caption -textvariable currentPackage(caption) -justify left]
 set description.longText [text ${description}.longText -wrap word]
 set description.price [label ${description.topLine}.price -textvariable currentPackage(price) -justify right]
-set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 6]
+set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 5]
 bind ${description.rating} <<Rate>> {
 	if [info exists packageRating($currentPackage(package))] {
 		set currentValue $packageRating($currentPackage(package))
