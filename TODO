@@ -7,18 +7,18 @@ Items ending in ? need more thought / discussion.
 
 === General ===
 
-* Get domain and website
 * Get people to test stuff as more of it becomes available
 * Run contests to get people interested in developing for the platform?
 
-== For web/apis ==
+== Web/API ==
 
+* App "profile" pages
 * Review post/get APIs
-* Purchase API
-* Activity stream output (above APIs provide input)
+* Better API endpoints
+* Feeds
 * PayPal plumbing
 
-== For market ==
+== Client  ==
 
 * Lock the UI a little more when doing Install and/or Remove.
 * Ratings
@@ -32,10 +32,6 @@ Items ending in ? need more thought / discussion.
 ** UI for showing packages with available updates
 ** Backend functionality to do the Updates
 * Images / Icons
-* Investigate SHA hashes for APT repo
-* Package Rubygame, Chipmunk, XGame, and demos as *.deb i386, x86_64, PPC
-** singpolyma : repos set up, working for i386 Ubuntu and Windows
-** assigned : psycotica0 to try on OSX and PPC
 
 == For editor ==
 
