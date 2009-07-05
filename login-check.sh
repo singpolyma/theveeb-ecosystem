@@ -22,8 +22,8 @@ fi
 TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENS"`"
 SECRET="`cut -d' ' -f2 < "$OAUTHTOKENS"`"
 
-REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" http://singpolyma.net/theveeb/api/nickname.cgi`"
-NICK="`net2stdout "$REQUEST"`"
+REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" http://theveeb.com/users/me`"
+T="`net2stdout "$REQUEST"`"
 if [ $? -ne 0 ]; then
 	echo "Not properly logged in." 1>&2
 	exit 2
