@@ -44,7 +44,7 @@ proc drawPackageList {destination data} {
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
-		set price [label ${destination}.frame.row$i.price -text $temp(price) -anchor e]
+		set price [label ${destination}.frame.row$i.price -text "\u00A4 $temp(price)" -anchor e]
 		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
@@ -52,7 +52,7 @@ proc drawPackageList {destination data} {
 		set handler "set currentPackage(title) {$temp(title)}
 								 set currentPackage(caption) {$temp(descText)}
 								 set currentPackage(longText) {$temp(longDesc)}
-								 set currentPackage(price) {$temp(price)}
+								 set currentPackage(price) {\u00A4 $temp(price)}
 								 set currentPackage(package) {$temp(package)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
 								 \$tabArea tab \$feedback -state normal
