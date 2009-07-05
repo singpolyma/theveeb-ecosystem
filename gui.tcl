@@ -790,7 +790,7 @@ set bottomBar [ttk::frame .buttonBar]
 
 set logoutButton [ttk::button ${bottomBar}.logout -textvariable logoutButtonText -command logout]
 set quitButton [ttk::button ${bottomBar}.quit -text "Quit" -command safeQuit]
-set commitButton [ttk::button ${bottomBar}.commit -text "Do it" -command DoIt]
+set commitButton [ttk::button ${bottomBar}.commit -text "Apply" -command DoIt]
 
 grid $logoutButton $quitButton $commitButton
 
