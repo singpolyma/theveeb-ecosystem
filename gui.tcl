@@ -271,6 +271,25 @@ proc Report {message list title} {
 	}
 }
 
+# This calculates the cost of commpleting a given diff (As output by getDiff)
+proc getCost {diff} {
+	set apps [list]
+
+	foreach p $diff {
+		set pStatus [lindex $p 1]
+		set pName [lindex $p 0]
+		if {$pStatus == 1} {
+			# This is to be installed
+			lappend apps $pName
+		}
+	}
+	if {[llength $apps] == 0} {
+		return 0
+	}
+
+	return [eval [join [concat sh calculateTotal.sh $apps] { }]]
+}
+
 # This is the command of the "Do It" button
 proc DoIt {} {
 	global selectedPackages
@@ -282,6 +301,15 @@ proc DoIt {} {
 	set removeSucc ""
 
 	set diffList [getDiff]
+
+	set cost [getCost $diffList]
+	if {$cost != 0} {
+		set continueAnswer [tk_messageBox -title "Continue?" -message "The cost of installing the selected packages is $cost \u00A4.\nContinue?" -type yesno]
+		if {$continueAnswer == no} {
+			return
+		}
+	}
+
 	if [info exists env(TVEOFFLINE)] {
 		return
 	}
