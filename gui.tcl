@@ -254,6 +254,7 @@ proc Report {message list title} {
 # This is the command of the "Do It" button
 proc DoIt {} {
 	global selectedPackages
+	global env
 
 	set installFail ""
 	set removeFail ""
@@ -261,6 +262,10 @@ proc DoIt {} {
 	set removeSucc ""
 
 	set diffList [getDiff]
+	if [info exists env(TVEOFFLINE)] {
+		return
+	}
+
 	foreach p $diffList {
 		set pStatus [lindex $p 1]
 		set pName [lindex $p 0]
@@ -777,4 +782,10 @@ set pkgs [getPackList "" ""]
 
 drawPackageList $canvas $pkgs
 
-drawProperScreen
+if [info exists env(TVEOFFLINE)] {
+	# This is offline mode, don't check for login
+	drawLoggedInUi
+} else {
+	# This is normal mode
+	drawProperScreen
+}
