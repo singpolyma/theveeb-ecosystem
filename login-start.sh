@@ -33,7 +33,7 @@ TOKEN="`echo $TOKENS | sed 's/^oauth_token=\([^&]*\).*/\1/'`"
 SECRET="`echo $TOKENS | sed 's/^[^&]*&oauth_token_secret=\(.*\)/\1/'`"
 
 # This is the url to send the user to
-URL="http://singpolyma.net/theveeb/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client"
+URL="http://theveeb.com/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client"
 
 # Output the tokens
 echo "$TOKEN $SECRET"
