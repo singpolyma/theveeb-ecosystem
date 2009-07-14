@@ -87,8 +87,9 @@ if [ ! -r "$OAUTHTOKENFILE" ]; then
 	exit 1
 fi
 
-TOKEN="`cut -d' ' -f1 < "$OAUTHTOKENFILE"`"
-SECRET="`cut -d' ' -f2 < "$OAUTHTOKENFILE"`"
+BASEURL="http://csclub.uwaterloo.ca/~s3weber/apt/" # XXX: Should this be an argument?
+TOKEN="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f2`"
+SECRET="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f3`"
 
 # OAuth Consumer token and secret
 CONSUMER_TOKEN="anonymous"

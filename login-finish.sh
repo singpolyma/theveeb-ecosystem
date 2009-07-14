@@ -20,6 +20,8 @@ else
 	exit 1
 fi
 
+BASEURL="http://csclub.uwaterloo.ca/~s3weber/apt/" # XXX: Should this be an argument?
+
 # Verify the presence of oauthsign
 if ! cmdexists oauthsign; then
 	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
@@ -51,7 +53,7 @@ if [ -e "$TOKENPATH" -a ! -w "$TOKENPATH" ]; then
 	exit 1
 fi
 
-echo "$TOKEN $SECRET" > "$TOKENPATH"
+echo "$BASEURL $TOKEN $SECRET" > "$TOKENPATH"
 
 # Make sure the tokens have sane permissions
 if cmdexists chmod; then
