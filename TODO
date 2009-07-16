@@ -12,9 +12,8 @@ Items ending in ? need more thought / discussion.
 
 == Web/API ==
 
-* App "profile" pages
 * Review post/get APIs
-* Better API endpoints
+* Rating API
 * Feeds
 * PayPal plumbing
 
