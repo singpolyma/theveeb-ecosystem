@@ -17,7 +17,7 @@ $(TGTS_$(d)):   LL_TGT+=-lcurl
 $(TGTS_$(d)):   $(OBJS_$(d))
 targets_$(d):   $(TGTS_$(d))
 install_$(d):   $(TGTS_$(d))
-	for BIN in $^; do install -DTvpsm755 "$$BIN" "$(prefix)/bin/tve-`basename $$BIN`"; done
+	@for BIN in $^; do install -DTvpsm755 "$$BIN" "$(prefix)/bin/tve-`basename $$BIN`"; done
 
 # Arrange for this target to be part of a global build
 CLEAN           := $(CLEAN) $(CLEAN_$(d))
