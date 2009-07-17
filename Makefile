@@ -9,12 +9,12 @@ all:    targets
 dir             := .
 include         Rules.mk
 
-.PHONY: targets clean distclean
+.PHONY: all targets clean distclean install
 
-%: %.o
+%$(BINSUFFIX): %.o
 	$(CC) $(LDFLAGS) $^ $(LL_ALL) $(LL_TGT) -o $@
 	$(STRIP) $@
- 
+
 clean:
 	$(RM) $(CLEAN)
 
