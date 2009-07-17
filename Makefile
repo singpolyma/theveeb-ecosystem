@@ -23,6 +23,13 @@ install_sh: *.sh
 	$(RM) "$(prefix)/bin/tve-xdebuild"*
 
 install: install_sh
+	install -Dvpm755 gui.tcl "$(prefix)/bin/tve-gui"
+# TODO: TCL includes to packages and such
+# Also, tve-setup.sh needs better handling
+# Also, gui.tcl needs to be able to find the utils locally
+#       and after they have been installed.  Doable?
+	install -Dvpm644 README  "$(prefix)/share/doc/theveeb"
+	install -Dvpm644 COPYING "$(prefix)/share/doc/theveeb"
 
 clean:
 	$(RM) $(CLEAN)
