@@ -13,7 +13,6 @@ include         Rules.mk
 
 %$(BINSUFFIX): %.o
 	$(CC) $(LDFLAGS) $^ $(LL_ALL) $(LL_TGT) -o $@
-	$(STRIP) $@
 
 clean:
 	$(RM) $(CLEAN)
