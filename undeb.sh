@@ -190,7 +190,7 @@ mkdir -p "$temp/out"
 cp "$temp/data.tar" "$temp/out"
 
 if [ -f "$temp/preinst" ]; then
-	sh "$temp/preinst"
+	sh "$temp/preinst" install
 fi
 
 # Unpack using tar
@@ -268,7 +268,7 @@ done
 IFS=" "
 
 if [ -f "$temp/postinst" ]; then
-	sh "$temp/postinst"
+	sh "$temp/postinst" configure
 fi
 
 # Keep rm scripts around if we've been told what to do with them
