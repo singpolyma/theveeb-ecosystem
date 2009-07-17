@@ -13,8 +13,6 @@ dir             := $(d)/depends
 include         $(dir)/Rules.mk
 dir             := $(d)/md5
 include         $(dir)/Rules.mk
-dir             := $(d)/get
-include         $(dir)/Rules.mk
 dir             := $(d)/status
 include         $(dir)/Rules.mk
 
