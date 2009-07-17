@@ -60,7 +60,7 @@ else
 fi
 
 if [ "$INTERNAL" = "undeb" -a -r "$LOGDIR/$1.prerm" ]; then
-	sh "$LOGDIR/$1.prerm"
+	sh "$LOGDIR/$1.prerm" remove
 fi
 
 if [ "$INTERNAL" != "undeb" ]; then
@@ -85,7 +85,7 @@ elif [ "$INTERNAL" = "undeb" ]; then
 fi
 
 if [ "$INTENAL" = "undeb" -a -r "$LOGDIR/$1.postrm" ]; then
-	sh "$LOGDIR/$1.postrm"
+	sh "$LOGDIR/$1.postrm" remove
 fi
 
 # Update the database to say it's been removed
