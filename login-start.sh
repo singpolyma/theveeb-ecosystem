@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. ./setup.sh
+. "`dirname $0`"/tve-setup.sh
 
 # Verify the presence of oauthsign
 if ! cmdexists oauthsign; then

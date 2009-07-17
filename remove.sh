@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. ./setup.sh
+. "`dirname $0`"/tve-setup.sh
 
 INTERACTIVE=0
 while [ $# -gt 1 ]; do

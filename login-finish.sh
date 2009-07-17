@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. ./setup.sh
+. "`dirname $0`"/tve-setup.sh
 
 # Verify tokens were passed in
 if [ "$#" -eq 2 ]; then

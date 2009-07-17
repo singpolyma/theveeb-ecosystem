@@ -16,6 +16,8 @@ include         Rules.mk
 
 install_sh: *.sh
 	@for SCRIPT in $^; do install -DTvpm755 "$$SCRIPT" "$(prefix)/bin/tve-`basename $$SCRIPT .sh`"; done
+	mv "$(prefix)/bin/tve-tve-setup" "$(prefix)/bin/tve-setup.sh"
+	chmod 644 "$(prefix)/bin/tve-setup.sh"
 	mv "$(prefix)/bin/tve-undeb" "$(prefix)/bin/undeb"
 	mv "$(prefix)/bin/tve-maybesudo" "$(prefix)/bin/maybesudo"
 	$(RM) "$(prefix)/bin/tve-xdebuild"*
