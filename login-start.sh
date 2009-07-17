@@ -32,8 +32,13 @@ fi
 TOKEN="`echo $TOKENS | sed 's/^oauth_token=\([^&]*\).*/\1/'`"
 SECRET="`echo $TOKENS | sed 's/^[^&]*&oauth_token_secret=\(.*\)/\1/'`"
 
+HOSTNAME=""
+if cmdexists hostname; then
+	HOSTNAME="+(`hostname | sed -e's/ /%20/g'`)"
+fi
+
 # This is the url to send the user to
-URL="http://theveeb.com/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client"
+URL="http://theveeb.com/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client$HOSTNAME"
 
 # Output the tokens
 echo "$TOKEN $SECRET"
