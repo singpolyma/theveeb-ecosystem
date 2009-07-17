@@ -43,6 +43,39 @@ else
 	}
 fi
 
+decompress() {
+	if [ -f "$1.tar" ]; then
+		echo "Not compressed, no decompression necessary."
+	elif [ -f "$1.tar.gz" ]; then
+		if ! cmdexists gzip; then
+			echo "You must have a version of gzip to unpack $1" 1>&2
+			exit 1
+		fi
+		gzip -d "$1.tar.gz"
+	elif [ -f "$1.tar.bz2" ]; then
+		if ! cmdexists bzip2; then
+			echo "You must have a version of bzip2 to unpack $1" 1>&2
+			exit 1
+		fi
+		bzip2 -d "$1.tar.bz2"
+	elif [ -f "$1.tar.bzip2" ]; then
+		if ! cmdexists bzip2; then
+			echo "You must have a version of bzip2 to unpack $1" 1>&2
+			exit 1
+		fi
+		bzip2 -d "$1.tar.bzip2"
+	elif [ -f "$1.tar.lzma" ]; then
+		if ! cmdexists lzma; then
+			echo "You must have a version of bzip2 to unpack $1" 1>&2
+			exit 1
+		fi
+		lzma -d "$1.tar.lzma"
+	else
+		echo "ERROR: No control.tar.* found." 1>&2
+		exit 1
+	fi
+}
+
 # Tell zsh we expect to be treated like an sh script
 # zsh really should take the hint from the shebang line
 if cmdexists emulate; then
@@ -137,30 +170,7 @@ else
 	echo "WARN: no PGP signature found for '$1'." 1>&2
 fi
 
-if [ -f "$temp/control.tar" ]; then
-	echo "Not compressed, no decompression necessary."
-elif [ -f "$temp/control.tar.gz" ]; then
-	if ! cmdexists gzip; then
-		echo "You must have a version of gzip to unpack $1" 1>&2
-		exit 1
-	fi
-	gzip -d "$temp/control.tar.gz"
-elif [ -f "$temp/control.tar.bz2" ]; then
-	if ! cmdexists bzip2; then
-		echo "You must have a version of bzip2 to unpack $1" 1>&2
-		exit 1
-	fi
-	bzip2 -d "$temp/control.tar.bz2"
-elif [ -f "$temp/control.tar.bzip2" ]; then
-	if ! cmdexists bzip2; then
-		echo "You must have a version of bzip2 to unpack $1" 1>&2
-		exit 1
-	fi
-	bzip2 -d "$temp/control.tar.bzip2"
-else
-	echo "ERROR: No control.tar.* found." 1>&2
-	exit 1
-fi
+decompress "$temp/control"
 
 cd "$temp"
 tar xvf "$temp/control.tar"
@@ -171,31 +181,7 @@ if [ ! -r "$temp/md5sums" ]; then
 	exit 1
 fi
 
-# Determine what kind of data ball is being used and decompress it
-if [ -f "$temp/data.tar" ]; then
-	echo "Not compressed, no decompression necessary."
-elif [ -f "$temp/data.tar.gz" ]; then
-	if ! cmdexists gzip; then
-		echo "You must have a version of gzip to unpack $1" 1>&2
-		exit 1
-	fi
-	gzip -d "$temp/data.tar.gz"
-elif [ -f "$temp/data.tar.bz2" ]; then
-	if ! cmdexists; then
-		echo "You must have a version of bzip2 to unpack $1" 1>&2
-		exit 1
-	fi
-	bzip2 -d "$temp/data.tar.bz2"
-elif [ -f "$temp/data.tar.bzip2" ]; then
-	if ! cmdexists; then
-		echo "You must have a version of bzip2 to unpack $1" 1>&2
-		exit 1
-	fi
-	bzip2 -d "$temp/data.tar.bzip2"
-else
-	echo "ERROR: No data.tar.* found." 1>&2
-	exit 1
-fi
+decompress "$temp/data"
 
 # Create a dir out
 mkdir -p "$temp/out"
