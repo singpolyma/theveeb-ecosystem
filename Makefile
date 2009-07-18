@@ -28,8 +28,8 @@ install: install_sh
 # Also, tve-setup.sh needs better handling
 # Also, gui.tcl needs to be able to find the utils locally
 #       and after they have been installed.  Doable?
-	install -Dvpm644 README  "$(prefix)/share/doc/theveeb"
-	install -Dvpm644 COPYING "$(prefix)/share/doc/theveeb"
+	install -DTvpm644 README  "$(prefix)/share/doc/theveeb/README"
+	install -DTvpm644 COPYING "$(prefix)/share/doc/theveeb/COPYING"
 
 tve.deb:
 	debuild --no-tgz-check

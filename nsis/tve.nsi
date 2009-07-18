@@ -1,6 +1,6 @@
 #!/usr/bin/makensis
 
-!include "EnvVarUpdate.nsh"
+!include "EnvVarUpdate.nsi"
 
 Name "The Veeb Ecosystem"
 OutFile ..\tve.exe
@@ -50,8 +50,9 @@ SectionEnd
 
 Section "Uninstall"
 	Delete $INSTDIR\uninstall.exe
-	Delete $INSTDIR\*.*
-	RMDir $INSTDIR
+	RMDir /r /REBOOTOK $INSTDIR\bin
+	RMDir /r /REBOOTOK $INSTDIR\usr
+	RMDir /REBOOTOK $INSTDIR
 	DeleteRegValue HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" TVEROOT
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\bin"
@@ -59,4 +60,3 @@ Section "Uninstall"
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\usr\local\bin"
 	DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\TVE"
 SectionEnd
-
