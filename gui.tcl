@@ -292,7 +292,7 @@ proc DoIt {} {
 
 		if {$pStatus == 1} {
 			# Install this
-			if [catch {exec -ignorestderr sh -c [findTVEscript maybesudo ""] [findTVEscript install] $pName} failWords] {
+			if [catch {exec -ignorestderr sh -c "[findTVEscript maybesudo ""] [findTVEscript install] $pName"} failWords] {
 				append installFail " $pName"
 				tk_messageBox -message $failWords -title "Install"
 			} else {
@@ -300,7 +300,7 @@ proc DoIt {} {
 			}
 		} else {
 			# Remove this
-			if [catch {exec -ignorestderr sh -c [findTVEscript maybesudo ""] [findTVEscript remove] $pName} failWords] {
+			if [catch {exec -ignorestderr sh -c "[findTVEscript maybesudo ""] [findTVEscript remove] $pName"} failWords] {
 				append removeFail " $pName"
 				tk_messageBox -message $failWords -title "Remove"
 			} else {
@@ -473,7 +473,7 @@ proc loginFinish {} {
 
 	$loginContinue configure -state disabled -text "Please wait..."
 
-	set command [open "| sh -c [findTVEscript login-finish] $TOKEN $SECRET" r]
+	set command [open "| sh -c \"[findTVEscript login-finish] $TOKEN $SECRET\"" r]
 	fileevent $command readable [list handleLoginFinish $command]
 }
 
