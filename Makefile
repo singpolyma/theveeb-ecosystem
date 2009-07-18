@@ -9,7 +9,7 @@ all:    targets
 dir             := .
 include         Rules.mk
 
-.PHONY: all targets clean distclean install install_sh deb
+.PHONY: all targets clean distclean install install_sh
 
 %$(BINSUFFIX): %.o
 	$(CC) $(LDFLAGS) $^ $(LL_ALL) $(LL_TGT) -o $@
@@ -31,7 +31,7 @@ install: install_sh
 	install -Dvpm644 README  "$(prefix)/share/doc/theveeb"
 	install -Dvpm644 COPYING "$(prefix)/share/doc/theveeb"
 
-deb:
+tve.deb:
 	debuild --no-tgz-check
 	mv ../tve-core_*.deb tve-core.deb
 	$(RM) ../tve-core_*
