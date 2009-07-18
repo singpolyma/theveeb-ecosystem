@@ -188,6 +188,13 @@ do_install () {
 		fi
 	else
 		status/status "$2" .
+		# Add Uninstall entry on Windows
+		if cmdexists reg; then
+			reg ADD "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\$2" /v "DisplayName" /d "$2" /f
+			reg ADD "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\$2" /v "UninstallString" /d "\$\\\"$TVEROOT\\bin\\sh.exe\$\\\" -c tve-remove $2" /f
+			reg ADD "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\$2" /v "NoModify" /t REG_DWORD /d 1 /f
+			reg ADD "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\$2" /v "NoRepair" /t REG_DWORD /d 1 /f
+		fi
 	fi
 }
 

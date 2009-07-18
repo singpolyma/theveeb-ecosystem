@@ -84,6 +84,11 @@ elif [ "$INTERNAL" = "undeb" ]; then
 	exit 1
 fi
 
+# Remove Uninstall entry on Windows
+if cmdexists reg; then
+	reg DELETE "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\$1" /f
+fi
+
 if [ "$INTENAL" = "undeb" -a -r "$LOGDIR/$1.postrm" ]; then
 	sh "$LOGDIR/$1.postrm" remove
 fi
