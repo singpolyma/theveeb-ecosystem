@@ -40,3 +40,4 @@ clean:
 	$(RM) $(CLEAN)
 
 distclean: clean
+	$(RM) -r tve-core.deb build-stamp debian/tve-core.debhelper.log debian/tve-core.substvars debian/tve-core
