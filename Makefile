@@ -16,11 +16,11 @@ include         Rules.mk
 
 install_sh: *.sh
 	@for SCRIPT in $^; do install -DTvpm755 "$$SCRIPT" "$(prefix)/bin/tve-`basename $$SCRIPT .sh`"; done
-	mv "$(prefix)/bin/tve-tve-setup" "$(prefix)/bin/tve-setup.sh"
-	chmod 644 "$(prefix)/bin/tve-setup.sh"
 	mv "$(prefix)/bin/tve-undeb" "$(prefix)/bin/undeb"
 	mv "$(prefix)/bin/tve-maybesudo" "$(prefix)/bin/maybesudo"
+	$(RM) "$(prefix)/bin/tve-tve-setup" "$(prefix)/bin/tve-setup.sh"
 	$(RM) "$(prefix)/bin/tve-xdebuild"*
+	install -DTvpm644 tve-setup.sh "$(prefix)/lib/tve-setup.sh"
 
 install: install_sh
 	install -Dvpm755 gui.tcl "$(prefix)/bin/tve-gui"

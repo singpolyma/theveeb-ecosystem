@@ -1,6 +1,10 @@
 #!/bin/sh
 
-. "`dirname $0`"/tve-setup.sh
+if [ -r "`dirname $0`"/tve-setup.sh ]; then
+	. "`dirname $0`"/tve-setup.sh
+else
+	. "$TVEROOT"/usr/lib/tve-setup.sh
+fi
 
 # Handle switches
 INTERACTIVE=0
