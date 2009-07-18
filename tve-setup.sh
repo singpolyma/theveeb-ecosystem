@@ -36,17 +36,33 @@ fi
 # Find the network utility
 if cmdexists wget 1>&2; then
 	net2stdout() {
-		wget -q -O - "$1"
+		if [ -n "$2" ]; then
+			wget --header="$1" -q -O - "$2"
+		else
+			wget -q -O - "$1"
+		fi
 	}
 	net2file() {
-		wget -q "$1"
+		if [ -n "$2" ]; then
+			wget --header="$1" -q "$2"
+		else
+			wget -q "$1"
+		fi
 	}
 elif cmdexists curl 1>&2; then
 	net2stdout() {
-		curl -sfL "$1"
+		if [ -n "$2" ]; then
+			curl -H"$1" -sfL "$2"
+		else
+			curl -sfL "$1"
+		fi
 	}
 	net2file() {
-		curl -sfLO "$1"
+		if [ -n "$2" ]; then
+			curl -H"$1" -sfLO "$2"
+		else
+			curl -sfLO "$1"
+		fi
 	}
 else
 	net2stdout() {
