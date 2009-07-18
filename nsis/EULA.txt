@@ -1,0 +1,157 @@
+Copyright © 2008-2009 Stephen Paul Weber, Christopher Vollick.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+----
+
+Terms of Service and Privacy Policy
+
+By accessing and using our services you agree to these terms and
+conditions. Please read them carefully and if you do not agree, then please
+do not access, utilize or view our services. The Veeb and its affiliates
+("The Veeb" or "we") provides its content on our services (the "site")
+subject to the following terms and conditions (the "terms"). We may
+occasionally change the terms, so please check for the latest updates.
+
+The Veeb is committed to protecting the privacy of the
+personally-identifiable information that we collect from you. As part of
+this commitment , we have created policies and procedures to comply with
+Bill C-6, the federal government's Privacy Legislation and the scope is
+detailed in these policies.
+
+Disclaimers
+
+The content and functionality on the site is provided with the
+understanding that The Veeb is not herein engaged in rendering professional
+advice and services to you. All content and functionality on the site is
+provided "as is," without warranty of any kind, either express or implied,
+including, without limitation, implied warranties of merchantability and
+fitness for a particular purpose. The Veeb and its third-party content
+providers make no warranties, express or implied, as to the ownership,
+accuracy, or adequacy of the site content. The Veeb shall have no liability
+or responsibility for any information published on linked web sites,
+contained in any content published on the site, or provided by third
+parties. Neither The Veeb nor its third-party content providers shall be
+liable for any indirect, incidental, consequential, or punitive damages or
+for lost revenues or profits, whether or not advised of the possibility of
+such damages or losses and regardless of liability.
+
+Links and Third-party content
+
+We may provide links to third-party services, and some of the content
+appearing to be on this site is in fact supplied by third parties, for
+example, in instances of framing of third-party services or incorporation
+through framesets of content supplied by third-party servers. We have not
+reviewed all of the sites linked to our services and The Veeb has no
+responsibility for these third-party services, which are governed by the
+terms of use and privacy policies, if any, of the applicable third-party
+content providers. Use at your own risk.
+
+Governing Law and Jurisdiction
+
+We control and operate our services from our head office in Ontario,
+Canada. These terms are governed by the law of the Province of Ontario
+without reference to the principles of conflicts of laws thereof. Any
+dispute arising from these terms shall be resolved exclusively in the
+Provincial and Federal courts of the Province of Ontario, Canada.  However,
+you may not use any services provided by The Veeb in any way that
+circumvents the laws of not only Ontario, but also of the United States of
+America, and of your own local jurisdiction.
+
+Copyright Policy
+
+All content, images, algorithms, and functionality on the site not
+submitted by users, including text, graphics, logos, icons, and images and
+the selection and arrangement thereof, is the exclusive property of The
+Veeb or its licensors and is protected by Canadian and international
+copyright laws. It is hereby licensed under the terms of the Creative
+Commons Attribution License.
+
+All user generated content including, but not limited to, ratings,
+comments, and "apps" are the exclusive property of the users and as such do
+not represent the views or opinions of The Veeb. All user generated
+content, with the exception of "apps" are under the above mentioned
+Creative Commons license. As a user of The Veeb Ecosystem, you agree to
+have your content licensed is this way.
+
+Notices of Infringement
+
+The Veeb prohibits the posting of any content that infringes or violates
+the copyright rights and/or other intellectual property rights (including
+rights of privacy and publicity) of any person or entity. If you believe
+that your intellectual property right (or such a right that you are
+responsible for enforcing) is infringed by any content on the Site, please
+write to The Veeb at the address shown below, providing a statement that
+contains:
+
+* identification of the copyrighted work and/or intellectual property
+right claimed to have been infringed
+* identification of the allegedly infringing material on the site that is
+requested to be removed
+* your name, address, and daytime telephone number, and an e-mail address
+if available
+* a statement that you have a good faith belief that the use of the
+copyrighted work and/or exercise of the intellectual property right is not
+authorized by the owner, its agent, or the law
+* a statement that the information in the notification is accurate
+* the signature of the intellectual property right owner or someone
+authorized on the owner's behalf to assert infringement of the right.
+
+The Veeb will remove any posted content that infringes the copyright or
+other intellectual property right of any person under Canadian law. The
+Veeb's contact for submission of notices is: contact@theveeb.com.
+
+Trademarks
+
+The Veeb, The Veeb Ecosystem, The Veeb Ecosystem logo, and the "favicon"
+of this website, are all trademarks of The Veeb.  Use in reference to The
+Veeb is permitted without permission.  All other uses are prohibited.
+
+Personally-identifiable Information
+
+The Veeb may collect personally-identifiable information ("Personal Info")
+on certain areas of the site when users register, request information or a
+response, sign up for events, apply for jobs, and participate in user
+posting areas, such as bulletin boards, discussion forums, and surveys. The
+information collected may include, without limitation, your access
+ID/password, company, association, or school affiliations, and contact
+information (names, mailing and e-mail addresses, phone/ fax numbers). This
+information may be displayed on our site along with user-generated content,
+or used for contact purposes on request of the user.
+
+Security Disclaimer
+
+The Veeb has implemented generally accepted standards of technology and
+operational security in order to protect Personal Info from loss, misuse,
+alteration, or destruction. Only authorized The Veeb personnel are provided
+access to Personal Info, and these employees are required to treat this
+information as confidential. Despite these precautions, The Veeb cannot
+guarantee that unauthorized persons will not obtain access to your Personal
+Info.
+
+Transborder Hosting and Information Transfer
+
+Personal Info collected on the Site may be transferred from time to time
+to The Veeb locations and hosting facilities located throughout the world.
+The Site may be viewed and hosted anywhere in the world, including
+countries (such as the United States) that may not have laws regulating the
+use and transfer of personally-identifiable data. By using the Site and
+submitting such information on it, you voluntarily consent to such
+transborder transfer and hosting of such information.
+
+Fraud
+
+You may not use services provided by The Veeb to defraud any person or
+persons for any purpose.  This includes submitting multiple ratings to The
+Veeb Ecosystem for any "app", through the registration of multiple accounts
+or any other means.
