@@ -35,10 +35,11 @@ if cmdexists cygpath; then
 else
 	abspth() {
 		# Get the absolute path for $1
+		oldwd="`pwd`"
 		cd "$1"
 		PTH="`pwd`"
 		PTH="${PTH%/}"
-		cd -
+		cd "$oldwd"
 		echo "$PTH"
 	}
 fi
