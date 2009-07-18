@@ -8,8 +8,7 @@ Homepage: http://theveeb.com
 
 Package: tve-core
 Architecture: any
-Depends: tcl (>= 8.4), tk (>= 8.4), ${shlibs:Depends}, ${misc:Depends}
-Suggests: tk-tile
+Depends: tcl (>= 8.4), tk (>= 8.4), tk-tile, curl, oauth-utils, ${shlibs:Depends}, ${misc:Depends}
 Description: Application store and package manager.
  This is the core utilities and GUI that one needs to purchase and manage
  software from The Veeb Ecosystem.
