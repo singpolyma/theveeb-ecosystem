@@ -47,4 +47,4 @@ TOKEN="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f2`"
 SECRET="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f3`"
 
 REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" http://theveeb.com/users/me?packages`"
-net2stdout 'Accept: text/plain' "$REQUEST" | "$UPDATE"
+net2stdout 'Accept: text/plain' "$REQUEST" | "$UPDATE" -c
