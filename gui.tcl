@@ -12,6 +12,26 @@ source scrollable.tcl
 source textvariable.tcl
 source ratingWidget.tcl
 
+proc findTVEbinary {script {prefix tve-}} {
+	global argv0
+	set localpath [file join [file dirname $argv0] $script $script]
+	if [file readable $localpath] {
+		return $localpath
+	} else {
+		return $prefix$script
+	}
+}
+
+proc findTVEscript {script {prefix tve-}} {
+	global argv0
+	set localpath [file join [file dirname $argv0] ${script}.sh]
+	if [file readable $localpath] {
+		return $localpath
+	} else {
+		return $prefix$script
+	}
+}
+
 proc clearScrollableThing {widget} {
 	foreach item [grid slaves ${widget}.frame] {
 		grid forget $item
@@ -95,7 +115,7 @@ proc lineTrim {words} {
 }
 
 proc getPackList {text category} {
-	set command [list search/search -v]
+	set command [list [findTVEbinary search] -v]
 	if {$category !=""} {
 		lappend command "-i$category"
 	}
@@ -272,7 +292,7 @@ proc DoIt {} {
 
 		if {$pStatus == 1} {
 			# Install this
-			if [catch {exec -ignorestderr sh maybesudo.sh install.sh $pName} failWords] {
+			if [catch {exec -ignorestderr sh -c [findTVEscript maybesudo ""] [findTVEscript install] $pName} failWords] {
 				append installFail " $pName"
 				tk_messageBox -message $failWords -title "Install"
 			} else {
@@ -280,7 +300,7 @@ proc DoIt {} {
 			}
 		} else {
 			# Remove this
-			if [catch {exec -ignorestderr sh maybesudo.sh remove.sh $pName} failWords] {
+			if [catch {exec -ignorestderr sh -c [findTVEscript maybesudo ""] [findTVEscript remove] $pName} failWords] {
 				append removeFail " $pName"
 				tk_messageBox -message $failWords -title "Remove"
 			} else {
@@ -442,7 +462,7 @@ proc loginStart {} {
 	$loginButton configure -state disabled -text "Please wait..."
 	$offlineButton configure -state disabled
 
-	set command [open "| sh ./login-start.sh" r]
+	set command [open "| sh -c [findTVEscript login-start]" r]
 	fileevent $command readable [list handleLoginStart $command]
 }
 
@@ -453,7 +473,7 @@ proc loginFinish {} {
 
 	$loginContinue configure -state disabled -text "Please wait..."
 
-	set command [open "| sh ./login-finish.sh $TOKEN $SECRET" r]
+	set command [open "| sh -c [findTVEscript login-finish] $TOKEN $SECRET" r]
 	fileevent $command readable [list handleLoginFinish $command]
 }
 
@@ -510,7 +530,7 @@ proc logout {} {
 		clearUi
 		drawProperScreen
 	} else {
-		if [catch {exec sh logout.sh} errorMessage] {
+		if [catch {exec sh -c [findTVEscript logout]} errorMessage] {
 			tk_messageBox -message "Encountered Error: $errorMessage" -title "Error"
 		}
 		clearUi
@@ -533,7 +553,7 @@ proc drawProperScreen {} {
 	grid $preLoginLabel -sticky ew
 	grid $preLoginSkip
 
-	set loginCheckCommand [open "| sh ./login-check.sh" r]
+	set loginCheckCommand [open "| sh -c [findTVEscript login-check]" r]
 	fileevent $loginCheckCommand readable [list handleLoginCheck $loginCheckCommand]
 }
 
