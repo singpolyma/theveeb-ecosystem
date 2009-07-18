@@ -1,12 +1,18 @@
+#!/bin/sh
+
 # Find the file where OAuth tokens are and get them
 OAUTHTOKENS="$HOME/.tve-oauth-tokens"
 if [ ! -r "$OAUTHTOKENS" ]; then
 	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
 fi
 
-if rm -f "$OAUTHTOKENS"; then
-	echo "Logout successful."
+BASEURL="http://csclub.uwaterloo.ca/~s3weber/apt/" # XXX: Should this be an argument?
+
+DATA="`grep -v "$BASEURL" "$OAUTHTOKENS"`"
+if [ -z "$DATA" ]; then
+	rm -f "$OAUTHTOKENS"
 else
-	echo "Logout failed."
-	exit 1
+	echo "$DATA" > "$OAUTHTOKENS"
 fi
+
+echo "Logout successful."
