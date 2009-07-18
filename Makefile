@@ -36,8 +36,12 @@ tve.deb:
 	mv ../tve-core_*.deb tve-core.deb
 	$(RM) ../tve-core_*
 
+tve.exe:
+	$(MAKE) prefix=./nsis/dist/usr install
+	makensis nsis/tve.nsi
+
 clean:
 	$(RM) $(CLEAN)
 
 distclean: clean
-	$(RM) -r tve-core.deb build-stamp debian/tve-core.debhelper.log debian/tve-core.substvars debian/tve-core
+	$(RM) -r tve-core.deb build-stamp debian/tve-core.debhelper.log debian/tve-core.substvars debian/tve-core tve.exe nsis/dist
