@@ -285,18 +285,20 @@ int main(int argc, char ** argv) {
 		/* Blank line means end of this package definition */
 		} else if(line[0] == '\n') {
 			current.baseurl = baseurl;
-			package_insert_sql(&current, sql, sizeof(sql));
+			if(current.package[0] != '\0') {
+				package_insert_sql(&current, sql, sizeof(sql));
 
-			if(print_sql) {
-				puts(sql);
-			} else {
-				if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
-					if(code == SQLITE_CONSTRAINT) {
-						package_update_sql(&current, sql, sizeof(sql));
-						safe_execute(db, sql);
-					} else {
-						fprintf(stderr, "%s\n", sqlite3_errmsg(db));
-						exit(EXIT_FAILURE);
+				if(print_sql) {
+					puts(sql);
+				} else {
+					if((code = sqlite3_exec(db, sql, NULL, NULL, NULL)) != 0) {
+						if(code == SQLITE_CONSTRAINT) {
+							package_update_sql(&current, sql, sizeof(sql));
+							safe_execute(db, sql);
+						} else {
+							fprintf(stderr, "%s\n", sqlite3_errmsg(db));
+							exit(EXIT_FAILURE);
+						}
 					}
 				}
 			}
