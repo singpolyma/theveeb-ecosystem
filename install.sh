@@ -91,10 +91,6 @@ if [ ! -r "$OAUTHTOKENFILE" ]; then
 	exit 1
 fi
 
-BASEURL="http://csclub.uwaterloo.ca/~s3weber/apt/" # XXX: Should this be an argument?
-TOKEN="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f2`"
-SECRET="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f3`"
-
 # OAuth Consumer token and secret
 CONSUMER_TOKEN="anonymous"
 CONSUMER_SECRET="anonymous"
@@ -154,9 +150,17 @@ do_install () {
 		echo "Package $2 not found." 1>&2
 		exit 1
 	fi
+	# Get token for this BASEURL
+	BASEURL="`echo "$DATA" | grep BaseURL | cut -d' ' -f2`"
+	if [ -n "$BASEURL" ]; then
+		TOKEN="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f2`"
+		SECRET="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f3`"
+	fi
 	# Sign the URL with oauth utils (oauthsign)
-	URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
-	# Get remote URL and download deb file with GET
+	if [ -n "$TOKEN" ]; then
+		URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
+	fi
+	# Get remote URL and download deb file with net2stdout
 	if ! net2stdout "$URL" > "$temp/$2.deb"; then
 		echo "Error downloading ${2}... Aborting..."
 		exit 1

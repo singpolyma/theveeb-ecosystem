@@ -23,7 +23,8 @@ struct Package {
 	char section       [  50]; /* Plenty large */
 	char md5           [  33]; /* MD5s are 32 characters */
 	char maintainer    [ 100]; /* In Ubuntu, largest is 78 */
-	char remote_path   [ 256]; /* In Ubuntu, largest subpath is 106 */
+	char *baseurl;
+	char path          [ 256]; /* In Ubuntu, largest subpath is 106 */
 	char homepage      [ 256]; /* URLs are specced to a max length of 255 */
 	char description   [3000]; /* In Ubuntu, lagest is > 20000, way too rediculous. Most are < 3000 */
 	int rating               ;
@@ -31,7 +32,7 @@ struct Package {
 	int installed_size       ;
 	int size                 ;
 };
-struct Package const blank_package = {"","","","","","","","","","",0,0,0,0};
+struct Package const blank_package = {"","","","","","","","","","","",0,0,0,0};
 
 static int print_sql = 0;
 
@@ -80,13 +81,13 @@ void parse_depends(sqlite3 * db, char * package, char * sep) {
 
 	if((endcomma = strchr(sep, ','))) {
 		*endcomma = '\0';
-		strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+		strncpy(sql,"INSERT INTO depends (package,depend,version) VALUES (",sizeof(sql)-1);
 		quotecat(sql, package, sizeof(sql), 1);
 		quotecat(sql, sep, sizeof(sql), 1);
 		strncat(sql, "'');", sizeof(sql)-1);
 		safe_execute(db, sql);
 	} else {
-		strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+		strncpy(sql,"INSERT INTO depends (package,depend,version) VALUES (",sizeof(sql)-1);
 		quotecat(sql, package, sizeof(sql), 1);
 		quotecat(sql, sep, sizeof(sql), 1);
 		strtok(NULL, " ");
@@ -105,13 +106,13 @@ void parse_depends(sqlite3 * db, char * package, char * sep) {
 		if(sep == NULL) break;
 		if((endcomma = strchr(sep, ','))) {
 			*endcomma = '\0';
-			strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+			strncpy(sql,"INSERT INTO depends (package,depend,version) VALUES (",sizeof(sql)-1);
 			quotecat(sql, package, sizeof(sql), 1);
 			quotecat(sql, sep, sizeof(sql), 1);
 			strncat(sql, "'');", sizeof(sql)-1);
 			safe_execute(db, sql);
 		} else {
-			strncpy(sql, "INSERT INTO depends (package, depend, version) VALUES (", sizeof(sql)-1);
+			strncpy(sql,"INSERT INTO depends (package,depend,version) VALUES (",sizeof(sql)-1);
 			quotecat(sql, package, sizeof(sql), 1);
 			quotecat(sql, sep, sizeof(sql), 1);
 			strtok(NULL, " ");
@@ -130,7 +131,7 @@ void parse_depends(sqlite3 * db, char * package, char * sep) {
 
 /* Generate SQL statement to insert a package */
 void package_insert_sql(struct Package * current, char * sql, size_t size) {
-	strncpy(sql, "INSERT INTO packages (package, name, category, version, section, md5, maintainer, remote_path, homepage, description, rating, price, installed_size, size) VALUES (", size);
+	strncpy(sql,"INSERT INTO packages (package,name,category,version,section,md5,maintainer,baseurl,path,homepage,description,rating,price,installed_size,size) VALUES (",size);
 	quotecat(sql, current->package,     size, 1);
 	quotecat(sql, current->name,        size, 1);
 	quotecat(sql, current->category,    size, 1);
@@ -138,7 +139,8 @@ void package_insert_sql(struct Package * current, char * sql, size_t size) {
 	quotecat(sql, current->section,     size, 1);
 	quotecat(sql, current->md5,         size, 1);
 	quotecat(sql, current->maintainer,  size, 1);
-	quotecat(sql, current->remote_path, size, 1);
+	quotecat(sql, current->baseurl, size, 1);
+	quotecat(sql, current->path, size, 1);
 	quotecat(sql, current->homepage,    size, 1);
 	quotecat(sql, current->description, size, 1);
 	sprintf(sql, "%s%d,%d,%d,%d);", sql, current->rating, current->price, current->installed_size, current->size);
@@ -161,7 +163,8 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	UPDATE_SQL_FOR(section);
 	UPDATE_SQL_FOR(md5);
 	UPDATE_SQL_FOR(maintainer);
-	UPDATE_SQL_FOR(remote_path);
+	UPDATE_SQL_FOR(baseurl);
+	UPDATE_SQL_FOR(path);
 	UPDATE_SQL_FOR(homepage);
 	UPDATE_SQL_FOR(description);
 	if(current->rating > 0) {
@@ -195,9 +198,9 @@ void help() {
 
 int main(int argc, char ** argv) {
 	char * sep;
-	char baseurl[256] = "\0";
 	sqlite3 * db = NULL;
 	struct Package current = blank_package;
+	char baseurl[256] = "";
 	char line[sizeof(current.homepage)]; /* No line will be larger than the largest field */
 	int code;
 	int chained_call = 0;
@@ -249,10 +252,11 @@ int main(int argc, char ** argv) {
 
 	/* Create tables if they do not exist */
 	safe_execute(db, "CREATE TABLE IF NOT EXISTS packages " \
-	                 "(package TEXT PRIMARY KEY, name TEXT, version TEXT, maintainer TEXT," \
-	                 " installed_size INTEGER, size INTEGER, homepage TEXT," \
-	                 " section TEXT, category TEXT, remote_path TEXT, md5 TEXT, description TEXT," \
-	                 " status INTEGER, rating INTEGER, price INTEGER);" \
+	                 "(package TEXT PRIMARY KEY, name TEXT, version TEXT," \
+	                 "maintainer TEXT, installed_size INTEGER, size INTEGER," \
+	                 "homepage TEXT, section TEXT, category TEXT, baseurl TEXT,"\
+	                 "path TEXT, md5 TEXT, description TEXT," \
+	                 "status INTEGER, rating INTEGER, price INTEGER);" \
 	                 "CREATE TABLE IF NOT EXISTS virtual_packages (package TEXT PRIMARY KEY, is_really TEXT);" \
 	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
 	            );
@@ -273,6 +277,7 @@ int main(int argc, char ** argv) {
 			strncpy(baseurl, line + 1, sizeof(baseurl)-1);
 		/* Blank line means end of this package definition */
 		} else if(line[0] == '\n') {
+			current.baseurl = baseurl;
 			package_insert_sql(&current, sql, sizeof(sql));
 
 			if(print_sql) {
@@ -323,13 +328,8 @@ int main(int argc, char ** argv) {
 						strncpy(current.md5,         sep, sizeof(current.md5)-1);
 					} else if(current.maintainer[0]   == '\0' && strcmp(line, "Maintainer")     == 0) {
 						strncpy(current.maintainer,  sep, sizeof(current.maintainer)-1);
-					} else if(current.remote_path[0]  == '\0' && strcmp(line, "Filename")       == 0) {
-						if(baseurl[0] == '\0') {
-							fputs("Invalid input data.\n", stderr);
-							exit(EXIT_FAILURE);
-						}
-						strncpy(current.remote_path, baseurl, sizeof(current.remote_path)-1);
-						strncat(current.remote_path, sep,     sizeof(current.remote_path)-1);
+					} else if(current.path[0]         == '\0' && strcmp(line, "Filename")       == 0) {
+						strncat(current.path, sep,     sizeof(current.path)-1);
 					} else if(current.homepage        == '\0' && strcmp(line, "Homepage")       == 0) {
 						strncpy(current.homepage,    sep, sizeof(current.homepage)-1);
 					} else if(current.rating          ==   0  && strcmp(line, "Rating")         == 0) {
