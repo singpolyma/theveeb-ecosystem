@@ -179,7 +179,7 @@ do_install () {
 			exit 1
 		fi
 	fi
-	# UPDATE status in DB for this 2 (write set-status C utility)
+	# UPDATE status in DB
 	if [ "$1" = "dependency" ]; then
 		if [ "`status/status "$2"`" -ne 0 ]; then
 			status/status "$2" .
