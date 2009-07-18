@@ -27,12 +27,14 @@ struct Package {
 	char path          [ 256]; /* In Ubuntu, largest subpath is 106 */
 	char homepage      [ 256]; /* URLs are specced to a max length of 255 */
 	char description   [3000]; /* In Ubuntu, lagest is > 20000, way too rediculous. Most are < 3000 */
+	char user_owns     [  50];
 	int rating               ;
+	int user_rating          ;
 	int price                ;
 	int installed_size       ;
 	int size                 ;
 };
-struct Package const blank_package = {"","","","","","","","","","","",0,0,0,0};
+struct Package const blank_package = {"","","","","","","","","","","","",0,0,0,0,0};
 
 static int print_sql = 0;
 
@@ -131,11 +133,12 @@ void parse_depends(sqlite3 * db, char * package, char * sep) {
 
 /* Generate SQL statement to insert a package */
 void package_insert_sql(struct Package * current, char * sql, size_t size) {
-	strncpy(sql,"INSERT INTO packages (package,name,category,version,section,md5,maintainer,baseurl,path,homepage,description,rating,price,installed_size,size) VALUES (",size);
+	strncpy(sql,"INSERT INTO packages (package,name,category,version,user_owns,section,md5,maintainer,baseurl,path,homepage,description,rating,user_rating,price,installed_size,size) VALUES (",size);
 	quotecat(sql, current->package,     size, 1);
 	quotecat(sql, current->name,        size, 1);
 	quotecat(sql, current->category,    size, 1);
 	quotecat(sql, current->version,     size, 1);
+	quotecat(sql, current->user_owns,   size, 1);
 	quotecat(sql, current->section,     size, 1);
 	quotecat(sql, current->md5,         size, 1);
 	quotecat(sql, current->maintainer,  size, 1);
@@ -143,7 +146,7 @@ void package_insert_sql(struct Package * current, char * sql, size_t size) {
 	quotecat(sql, current->path, size, 1);
 	quotecat(sql, current->homepage,    size, 1);
 	quotecat(sql, current->description, size, 1);
-	sprintf(sql, "%s%d,%d,%d,%d);", sql, current->rating, current->price, current->installed_size, current->size);
+	sprintf(sql, "%s%d,%d,%d,%d,%d);", sql, current->rating, current->user_rating, current->price, current->installed_size, current->size);
 }
 
 /* Generate SQL statement to update a package */
@@ -160,6 +163,7 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	UPDATE_SQL_FOR(name);
 	UPDATE_SQL_FOR(category);
 	UPDATE_SQL_FOR(version);
+	UPDATE_SQL_FOR(user_owns);
 	UPDATE_SQL_FOR(section);
 	UPDATE_SQL_FOR(md5);
 	UPDATE_SQL_FOR(maintainer);
@@ -169,6 +173,9 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	UPDATE_SQL_FOR(description);
 	if(current->rating > 0) {
 		sprintf(sql, "%srating=%d,", sql, current->rating);
+	}
+	if(current->user_rating > 0) {
+		sprintf(sql, "%suser_rating=%d,", sql, current->user_rating);
 	}
 	if(current->price > 0) {
 		sprintf(sql, "%sprice=%d,", sql, current->price);
@@ -206,7 +213,7 @@ int main(int argc, char ** argv) {
 	int chained_call = 0;
 	char * db_path = NULL;
 	/* NOTE: If Package ever contains varible fields, this must be changed */
-	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char)];
+	char sql[sizeof(current) + 8*3*sizeof(char) + 137*sizeof(char) + 256*sizeof(char)];
 
 	while((code = getopt(argc, argv, "schd:")) != -1) {
 		switch(code) {
@@ -255,8 +262,8 @@ int main(int argc, char ** argv) {
 	                 "(package TEXT PRIMARY KEY, name TEXT, version TEXT," \
 	                 "maintainer TEXT, installed_size INTEGER, size INTEGER," \
 	                 "homepage TEXT, section TEXT, category TEXT, baseurl TEXT,"\
-	                 "path TEXT, md5 TEXT, description TEXT," \
-	                 "status INTEGER, rating INTEGER, price INTEGER);" \
+	                 "path TEXT, md5 TEXT, description TEXT, user_rating INTEGER,"\
+	                 "user_owns TEXT, status INTEGER, rating INTEGER, price INTEGER);" \
 	                 "CREATE TABLE IF NOT EXISTS virtual_packages (package TEXT PRIMARY KEY, is_really TEXT);" \
 	                 "CREATE TABLE IF NOT EXISTS depends (package TEXT, depend TEXT, version TEXT);"
 	            );
@@ -322,6 +329,8 @@ int main(int argc, char ** argv) {
 						strncpy(current.category,    sep, sizeof(current.category)-1);
 					} else if(current.version[0]      == '\0' && strcmp(line, "Version")        == 0) {
 						strncpy(current.version,     sep, sizeof(current.version)-1);
+					} else if(current.user_owns[0]    == '\0' && strcmp(line, "UserOwns")       == 0) {
+						strncpy(current.user_owns,   sep, sizeof(current.user_owns)-1);
 					} else if(current.section[0]      == '\0' && strcmp(line, "Section")        == 0) {
 						strncpy(current.section,     sep, sizeof(current.section)-1);
 					} else if(current.md5[0]          == '\0' && strcmp(line, "MD5sum")         == 0) {
@@ -334,6 +343,8 @@ int main(int argc, char ** argv) {
 						strncpy(current.homepage,    sep, sizeof(current.homepage)-1);
 					} else if(current.rating          ==   0  && strcmp(line, "Rating")         == 0) {
 						current.rating = atoi(sep);
+					} else if(current.user_rating     ==   0  && strcmp(line, "UserRating")     == 0) {
+						current.user_rating = atoi(sep);
 					} else if(current.price          ==   0  && strcmp(line, "Price")           == 0) {
 						current.price = atoi(sep);
 					} else if(current.installed_size  ==   0  && strcmp(line, "Installed-Size") == 0) {

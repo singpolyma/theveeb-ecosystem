@@ -16,7 +16,7 @@
 
 #define STATUS_NOT_SET 100
 
-#define FIELDS "status,package,version,description,baseurl,path,name,md5,size,rating,price"
+#define FIELDS "status,package,version,description,baseurl,path,name,md5,size,rating,price,user_rating,user_owns"
 
 /* Print usage message */
 void help() {
@@ -90,7 +90,7 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 	(void)fields;
 
 	printf("Package: %s\n", row[1]);
-	if(strcmp(row[5],"") != 0) {
+	if(row[6] && row[6][0] != '\0') {
 		printf("Name: %s\n", row[6]);
 	}
 
@@ -113,9 +113,15 @@ int print_results_verbose(void * dummy, int field_count, char ** row, char ** fi
 	}
 
 	printf("Version: %s\n", row[2]);
+	if(row[12] && row[12][0] != '\0') {
+		printf("UserOwns: %s\n", row[12]);
+	}
 	printf("BaseURL: %s\n", row[4]);
 	printf("Download: %s%s\n", row[4], row[5]);
 	printf("Rating: %s\n", row[9]);
+	if(row[11] && row[11][0] != '\0' && row[11][0] != '0') {
+		printf("UserRating: %s\n", row[11]);
+	}
 	printf("Price: %s\n", row[10]);
 	printf("Size: %s\n", row[8]);
 	printf("MD5sum: %s\n", row[7]);
