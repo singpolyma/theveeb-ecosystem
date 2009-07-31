@@ -74,3 +74,13 @@ else
 		exit 1
 	}
 fi
+
+# Find other TVE utils
+findTVEbinary() {
+	localpath="`dirname "$0"`/$1/$1"
+   if [ -x "$localpath" ]; then
+     echo $2$localpath
+   else
+      echo $1
+   fi
+}
