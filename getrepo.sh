@@ -66,7 +66,7 @@ MD5="`findTVEbinary md5 "$PWD/"`"
 
 #Loop line-by-line through a setings file
 while read LINE ; do
-	cd "$temp" # In the loop so that resative paths will work for LISTFILE
+	cd "$temp" # In the loop so that relative paths will work for LISTFILE
 	#Strip whitespace from line
 	LINE="`echo "$LINE" | sed -e 's/^ *//g;s/ *$//g'`"
 	#Ignore blank lines
