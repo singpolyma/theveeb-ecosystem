@@ -9,7 +9,7 @@ all:    targets
 dir             := .
 include         Rules.mk
 
-.PHONY: all targets clean distclean install install_sh
+.PHONY: all targets test clean distclean install install_sh
 
 %$(BINSUFFIX): %.o
 	$(CC) $(LDFLAGS) $^ $(LL_ALL) $(LL_TGT) -o $@
@@ -37,6 +37,10 @@ tve.deb:
 tve.exe:
 	$(MAKE) prefix=./nsis/dist/usr install
 	makensis nsis/tve.nsi
+
+test: all
+	test/test-login.sh
+	test/test-update.sh
 
 clean:
 	$(RM) $(CLEAN)
