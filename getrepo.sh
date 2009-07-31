@@ -21,7 +21,7 @@ if [ -z "$LISTFILE" ]; then
 	if [ -f "$HOME/.tve.list" ]; then
 		LISTFILE="$HOME/.tve.list"
 	elif [ -f "$TVEROOT/etc/tve.list" ]; then
-		LISTFILE="/etc/tve.list"
+		LISTFILE="$TVEROOT/etc/tve.list"
 	elif [ -f "/Program\ Files/TheVeeb/etc/tve.list" ]; then
 		LISTFILE="/Program\ Files/TheVeeb/etc/tve.list"
 	else
