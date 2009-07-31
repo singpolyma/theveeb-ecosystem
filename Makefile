@@ -41,6 +41,7 @@ tve.exe:
 test: all
 	test/test-login.sh
 	test/test-update.sh
+	test/test-logout.sh
 
 clean:
 	$(RM) $(CLEAN)
