@@ -6,8 +6,6 @@ else
 	. "$TVEROOT"/usr/lib/tve-setup.sh
 fi
 
-oldwd="`pwd`"
-
 if [ ! -z "$1" -a "`echo "$1" | cut -c-2`" = "-c" ]; then
 	LISTFILE="`echo "$1" | cut -c3-`"
 fi
@@ -63,6 +61,9 @@ if [ "$ARCH" = "x86" ]; then
 	ARCH="i386"
 fi
 
+PWD="`pwd`"
+MD5="`findTVEbinary md5 "$PWD/"`"
+
 #Loop line-by-line through a setings file
 while read LINE ; do
 	cd "$temp" # In the loop so that resative paths will work for LISTFILE
@@ -111,7 +112,7 @@ while read LINE ; do
 							exit 1
 						fi
 						md5="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f2`"
-						realmd5="`"$oldwd/md5/md5" -q Packages.gz | tr -d "\n"`"
+						realmd5="`"$MD5" -q Packages.gz | tr -d "\n"`"
 						if [ "$md5" != "$realmd5" ]; then
 							echo "ERROR: md5 of Packages.gz does not match" 1>&2
 							exit 1
@@ -128,4 +129,3 @@ done < "$LISTFILE"
 
 # Cleanup
 rm -rf "$temp" 1>&2
-cd "$oldwd"
