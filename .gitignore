@@ -8,3 +8,4 @@ update/update
 get/get
 status/status
 *.db
+test/data
