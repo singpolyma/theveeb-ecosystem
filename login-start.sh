@@ -13,13 +13,19 @@ if ! cmdexists oauthsign; then
 fi
 
 # Find the command to open a URL, if there is one
-OPEN=""
-if cmdexists xdg-open; then
-	OPEN="xdg-open"
-elif cmdexists open; then
-	OPEN="open"
-elif cmdexists cmd; then
-	OPEN="cmd /c start"
+if [ -n "$OPEN" ]; then
+	if ! cmdexists "$OPEN"; then
+		OPEN=""
+	fi
+fi
+if [ -z "$OPEN" ]; then
+	if cmdexists xdg-open; then
+		OPEN="xdg-open"
+	elif cmdexists open; then
+		OPEN="open"
+	elif cmdexists cmd; then
+		OPEN="cmd /c start"
+	fi
 fi
 
 REQUEST="`oauthsign -c anonymous -C anonymous http://csclub.uwaterloo.ca:4567/oauth/request_token`"
