@@ -68,6 +68,12 @@ proc drawPackageList {destination data} {
 		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
+		# If this package has been purchased, make the price's background greenish
+		if {[info exists temp(owns)] && [string length [string trim $temp(owns)]] != 0} {
+			puts $temp(owns)
+			$price configure -background "#AAFFAA"
+		}
+
 		# Should get longer info from search eventually
 		set handler "set currentPackage(title) {$temp(title)}
 								 set currentPackage(caption) {$temp(descText)}
@@ -167,6 +173,10 @@ proc getPackList {text category} {
 		if {![regexp {Rating: ([^\n]*)\n} $pack mat temp(rating)]} {
 			#If not rating
 			set temp(rating) 0
+		}
+
+		if {![regexp {UserOwns: ([^\n]*)\n} $pack mat temp(owns)]} {
+			set temp(owns) ""
 		}
 
 		lappend packList [array get temp]
