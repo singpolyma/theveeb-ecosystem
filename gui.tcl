@@ -287,7 +287,7 @@ proc getCost {diff} {
 		return 0
 	}
 
-	return [eval [join [concat exec sh calculateTotal.sh $apps] { }]]
+	return [eval [join [concat exec sh [findTVEscript calculateTotal] $apps] { }]]
 }
 
 # This is the command of the "Do It" button
