@@ -43,8 +43,9 @@ for package in `echo "$packages" | grep '^.' | sort | uniq`; do
 		echo "Unknown Package: $package" 1>&2
 		continue;
 	fi
-	# If it's already installed, assume it's free
-	if [ "`echo "$packageData" | grep '^Status:' | cut -f 2 -d ' '`" != 'installed' ]; then
+	# For now assume that if the user owns any version of it it's free
+	# We'll worry about paying for updates later
+	if [ -z "`echo "$packageData" | grep '^UserOwns:' | cut -f 2 -d ' '`" ]; then
 		thisPrice=`echo "$packageData" | grep '^Price:' | cut -f 2 -d ' '`
 		if [ -n "$thisPrice" ]; then
 			price=`expr "$thisPrice" + "$price"`
