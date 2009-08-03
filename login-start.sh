@@ -28,7 +28,7 @@ if [ -z "$OPEN" ]; then
 	fi
 fi
 
-REQUEST="`oauthsign -c anonymous -C anonymous http://csclub.uwaterloo.ca:4567/oauth/request_token`"
+REQUEST="`oauthsign -c anonymous -C anonymous http://theveeb.com:40703/oauth/request_token`"
 TOKENS="`net2stdout "$REQUEST"`"
 
 # Verify the expected output was returned
