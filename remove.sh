@@ -98,6 +98,7 @@ if [ "$INTENAL" = "undeb" -a -r "$LOGDIR/$1.postrm" ]; then
 fi
 
 # Update the database to say it's been removed
-status/status "$1" 0
+STATUS="`findTVEbinary status`"
+"$STATUS" "$1" 0
 
 echo "$1 sucessfully removed."
