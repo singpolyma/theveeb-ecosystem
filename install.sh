@@ -126,10 +126,15 @@ fi
 # Determine which command to use for installing internal packages
 INTERNAL="`cmdexists dpkg`"
 if [ $? != 0 -o "`whoami`" != "root" ]; then
-	INTERNAL="./undeb.sh"
+	INTERNAL="`findTVEscript undeb " "`"
 else
 	INTERNAL="dpkg --root="$TVEROOT/" -i"
 fi
+
+DEPENDS="`findTVEbinary depends`"
+SEARCH="`findTVEbinary search`"
+MD5UTIL="`findTVEbinary md5`"
+STATUS="`findTVEbinary status`"
 
 MUST_REBOOT=0
 
@@ -144,7 +149,7 @@ do_install () {
 		fi
 	fi
 	# Extract the download URL from the database
-	DATA="`TVEDB="$TVEDB" search/search -nve "$2"`"
+	DATA="`TVEDB="$TVEDB" "$SEARCH" -nve "$2"`"
 	URL="`echo "$DATA" | grep Download | cut -d' ' -f2`"
 	if [ -z "$URL" ]; then
 		echo "Package $2 not found." 1>&2
@@ -173,7 +178,7 @@ do_install () {
 		exit 1
 	fi
 	MD5="`echo "$DATA" | grep MD5sum | cut -d' ' -f2`"
-	REALMD5="`md5/md5 -q "$temp/$2.deb"`"
+	REALMD5="`"$MD5UTIL" -q "$temp/$2.deb"`"
 	if [ "$MD5" != "$REALMD5" ]; then
 		echo "Integrity check for $2 failed. MD5 sum does not match." 1>&2
 		exit 1
@@ -189,13 +194,13 @@ do_install () {
 	fi
 	# UPDATE status in DB
 	if [ "$1" = "dependency" ]; then
-		if [ "`status/status "$2"`" -ne 0 ]; then
-			status/status "$2" .
+		if [ "`"$STATUS" "$2"`" -ne 0 ]; then
+			"$STATUS" "$2" .
 		else
-			status/status "$2" 2 # Set to 2 if installing for the first time as a dependency
+			"$STATUS" "$2" 2 # Set to 2 if installing for the first time as a dependency
 		fi
 	else
-		status/status "$2" .
+		"$STATUS" "$2" .
 		# Add Uninstall entry on Windows
 		if cmdexists reg; then
 			reg ADD "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\$2" /v "DisplayName" /d "$2" /f
@@ -210,7 +215,7 @@ do_install () {
 do_manual() {
 
 	# Get dependencies
-	DEP="`TVEDB="$TVEDB" depends/depends "$1"`"
+	DEP="`TVEDB="$TVEDB" "$DEPENDS" "$1"`"
 	if [ $? != 0 ]; then
 		# Error message was already output by the depends command
 		exit 1
@@ -247,7 +252,7 @@ do_manual() {
 				exit 2
 			fi
 		fi
-		$EXTERNAL $EXT2INSTALL
+#		$EXTERNAL $EXT2INSTALL
 		if [ $? != 0 ]; then
 			echo "External dependency install failure." 1>&2
 			exit 1

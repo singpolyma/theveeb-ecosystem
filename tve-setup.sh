@@ -76,6 +76,19 @@ else
 fi
 
 # Find other TVE utils
+findTVEscript() {
+	localpath="`dirname "$0"`/$1.sh"
+   if [ -x "$localpath" ]; then
+     echo $localpath
+   else
+		if [ -z "$2" ]; then
+			echo tve-$1
+		else
+      	echo $2$1
+		fi
+   fi
+}
+
 findTVEbinary() {
 	localpath="`dirname "$0"`/$1/$1"
    if [ -x "$localpath" ]; then
