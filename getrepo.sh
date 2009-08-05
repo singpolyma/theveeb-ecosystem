@@ -49,7 +49,7 @@ else
 	mkdir -p "$temp"
 fi
 
-#Get system architechture
+# Get system architechture, normalise, and possibly prepend kernel
 if [ -z "$ARCH" ]; then
 	ARCH="`uname -m | sed -e 's/i.86/i386/'`"
 fi
@@ -57,8 +57,17 @@ if [ -z "$ARCH" ]; then
 	echo "Could not detect the system architecture. Please set ARCH manually." 1>&2
 	exit 1
 fi
-if [ "$ARCH" = "x86" ]; then
-	ARCH="i386"
+case $ARCH in
+	x86)
+		ARCH="i386"
+	;;
+	x86_64)
+		ARCH="amd64"
+	;;
+esac
+KERNEL="`uname -s | tr '[:upper:]' '[:lower:]'`"
+if [ -n "$KERNEL" -a "$KERNEL" != "linux" ]; then
+	ARCH="$KERNEL-$ARCH"
 fi
 
 PWD="`pwd`"
