@@ -29,7 +29,7 @@ install: install_sh
 	install -DTvpm644 README  "$(prefix)/share/doc/tve-core/README"
 	install -DTvpm644 COPYING "$(prefix)/share/doc/tve-core/COPYING"
 
-tve.deb:
+tve-core.deb:
 	debuild --no-tgz-check
 	mv ../tve-core_*.deb tve-core.deb
 	$(RM) ../tve-core_*
