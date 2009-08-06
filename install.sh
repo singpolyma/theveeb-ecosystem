@@ -133,7 +133,7 @@ fi
 
 DEPENDS="`findTVEbinary depends`"
 SEARCH="`findTVEbinary search`"
-MD5UTIL="`findTVEbinary md5`"
+MD5UTIL="`findTVEbinary md5 " "`"
 STATUS="`findTVEbinary status`"
 
 MUST_REBOOT=0

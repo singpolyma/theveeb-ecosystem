@@ -25,6 +25,23 @@ if cmdexists cygpath; then
 		PWD="`sh -c pwd`"
 		cygpath -mas "$PWD"
 	}
+	abspth() {
+		cygpath -mas "$1"
+	}
+else
+	abspth() {
+		# Get the absolute path for $1
+		oldwd="`pwd`"
+		cd "`dirname "$1"`"
+		PTH="`pwd`"
+		PTH="${PTH%/}"
+		cd "$oldwd"
+		if [ ! -d "$1" ]; then
+			echo "$PTH/`basename "$1"`"
+		else
+			echo "$PTH"
+		fi
+	}
 fi
 
 # Tell zsh we expect to be treated like an sh script
@@ -78,22 +95,26 @@ fi
 # Find other TVE utils
 findTVEscript() {
 	localpath="`dirname "$0"`/$1.sh"
-   if [ -x "$localpath" ]; then
-     echo $localpath
-   else
+	if [ -x "$localpath" ]; then
+		abspth "$localpath"
+	else
 		if [ -z "$2" ]; then
-			echo tve-$1
+			echo "tve-$1"
 		else
-      	echo $2$1
+			echo "$2$1"
 		fi
-   fi
+	fi
 }
 
 findTVEbinary() {
 	localpath="`dirname "$0"`/$1/$1"
-   if [ -x "$localpath" ]; then
-     echo $2$localpath
-   else
-      echo $1
-   fi
+	if [ -x "$localpath" ]; then
+		abspth "$localpath"
+	else
+		if [ -z "$2" ]; then
+			echo "tve-$1"
+		else
+			echo "$2$1"
+		fi
+	fi
 }

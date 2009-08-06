@@ -6,6 +6,8 @@ else
 	. "$TVEROOT"/usr/lib/tve-setup.sh
 fi
 
+MD5="`findTVEbinary md5 " "`"
+
 if [ ! -z "$1" -a "`echo "$1" | cut -c-2`" = "-c" ]; then
 	LISTFILE="`echo "$1" | cut -c3-`"
 fi
@@ -69,9 +71,6 @@ KERNEL="`uname -s | tr '[:upper:]' '[:lower:]'`"
 if [ -n "$KERNEL" -a "$KERNEL" != "linux" ]; then
 	ARCH="$KERNEL-$ARCH"
 fi
-
-PWD="`pwd`"
-MD5="`findTVEbinary md5 "$PWD/"`"
 
 #Loop line-by-line through a setings file
 while read LINE ; do
