@@ -22,7 +22,7 @@ if cmdexists cygpath; then
 	HOME="`cygpath -mas "$HOME"`"
 	TEMP="`cygpath -mas "$TEMP"`"
 	pwd() {
-		PWD="`sh -c pwd`"
+		PWD="`command pwd`"
 		cygpath -mas "$PWD"
 	}
 	abspth() {
