@@ -4,6 +4,10 @@ sp              := $(sp).x
 dirstack_$(sp)  := $(d)
 d               := $(dir)
 
+# Check shell syntax
+all:
+	sh -n *.sh
+
 # Pull in rules for subdirectories
 dir             := $(d)/search
 include         $(dir)/Rules.mk
