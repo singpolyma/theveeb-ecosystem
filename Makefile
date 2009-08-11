@@ -25,7 +25,6 @@ install_sh: *.sh
 install: install_sh
 	install -Dvpm755 gui.tcl "$(prefix)/bin/tve-gui"
 # TODO: TCL includes to packages and such
-#       Shell scripts need to find utils/each other better
 	install -DTvpm644 README  "$(prefix)/share/doc/tve-core/README"
 	install -DTvpm644 COPYING "$(prefix)/share/doc/tve-core/COPYING"
 
