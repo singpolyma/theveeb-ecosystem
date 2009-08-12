@@ -35,6 +35,19 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
+DEPENDS="`findTVEbinary depends`"
+STATUS="`findTVEbinary status`"
+# If anything depending on this package is installed
+IFS="
+"
+for PKG in `"$DEPENDS" -r "$1"`; do
+	if [ "$STATUS" "$PKG" -ne 0 ]; then
+		echo "ERROR: Cannot remove $1, because $PKG depends on it." 1>&2
+		exit 1
+	fi
+done
+IFS=" "
+
 # Auto-select install prefix
 if [ -z "$PREFIX" ]; then
 	PREFIX="$TVEROOT/"
