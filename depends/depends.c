@@ -147,6 +147,20 @@ int print_results(void *db, int field_count, char **row, char **fields) {
 	return 0;
 }
 
+/* Print out the dependencies that haven't yet been printed.
+ * Add them to the list of ones that have been printed.
+ */
+int print_results_simple(void *db, int field_count, char **row, char **fields) {
+	(void)db;
+	(void)field_count;
+	(void)fields;
+	if(!did_print_package(row[0])) {
+		printf("%s\n", row[0]);
+		printed_package(row[0]);
+	}
+	return 0;
+}
+
 /* Function that gets the list of dependencies for a package 
  * and has the data passed to print_results
  */
@@ -164,19 +178,40 @@ void print_depends(sqlite3 *db, char *package) {
 	}
 }
 
+/* Function that gets the list of packages that depend on a package
+ * and has the data passed to print_results_simple
+ */
+void print_depends_on(sqlite3 *db, char *package) {
+	char sql[103] = "SELECT package FROM depends WHERE depend='";
+	if(strlen(package) > 50) {
+		fprintf(stderr, "Package name too long.");
+		exit(EXIT_FAILURE);
+	}
+	strcat(sql,package);
+	strcat(sql,"';");
+	if(sqlite3_exec(db, sql, &print_results_simple, db, NULL) != 0) {
+		fprintf(stderr, "Malformed query (or the specified database may not exist).\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char * package = NULL;
 	char * db_path = NULL;
+	int reverse_search = 0;
 	int c;
 
-	while((c = getopt(argc, argv, "-hd:")) != -1) {
+	while((c = getopt(argc, argv, "-hrd:")) != -1) {
 		switch(c) {
 			case 'd': /* Specify database */
 				if(sqlite3_open(optarg, &db) != 0) {
 					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 					exit(EXIT_FAILURE);
 				}
+				break;
+			case 'r':
+				reverse_search = 1;
 				break;
 			case '\1': /* Search query */
 				package = optarg;
@@ -206,7 +241,11 @@ int main (int argc, char ** argv) {
 		free(db_path);
 	}
 
-	print_depends(db, package);
+	if(reverse_search) {
+		print_depends_on(db, package);
+	} else {
+		print_depends(db, package);
+	}
 
 	if(printed_packages) {
 		int i;
