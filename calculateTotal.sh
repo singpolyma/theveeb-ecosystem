@@ -6,6 +6,15 @@
 # >calculateTotal.sh somePackage someOtherPackage
 # 15
 
+if [ -r "`dirname "$0"`"/tve-setup.sh ]; then
+	. "`dirname "$0"`"/tve-setup.sh
+else
+	. "$TVEROOT"/usr/lib/tve-setup.sh
+fi
+
+depends=`findTVEbinary depends`
+search=`findTVEbinary search`
+
 if [ "$#" -lt 1 ]; then
 	echo "Expected a package"
 	exit 1
@@ -18,7 +27,7 @@ packages=''
 # Get the dependency list for each given package
 while [ "$#" -gt 0 ]; do
 	# Get the dependencies that will also be installed
-	depList=`depends/depends "$1"`
+	depList=`"$depends" "$1"`
 
 	# Remove the ones that aren't under our control, and pull out only the package names
 	depList=`echo "$depList" | grep '^I ' | cut -f 2 -d ' '`
@@ -37,7 +46,7 @@ IFS='
 # Take out any blank lines, and all duplicates
 for package in `echo "$packages" | grep '^.' | sort | uniq`; do
 	# Get the price data
-	packageData=`search/search -v "$package"` 
+	packageData=`"$search" -v "$package"` 
 	# Check to make sure this is a package
 	if [ -z "$packageData" ]; then
 		echo "Unknown Package: $package" 1>&2
