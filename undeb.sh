@@ -36,11 +36,11 @@ else
 	abspth() {
 		# Get the absolute path for $1
 		oldwd="`pwd`"
-		cd "$1"
+		cd "`dirname "$1"`"
 		PTH="`pwd`"
 		PTH="${PTH%/}"
 		cd "$oldwd"
-		echo "$PTH"
+		echo "$PTH/`basename "$1"`"
 	}
 fi
 

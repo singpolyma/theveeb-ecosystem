@@ -36,11 +36,7 @@ else
 		PTH="`pwd`"
 		PTH="${PTH%/}"
 		cd "$oldwd"
-		if [ ! -d "$1" ]; then
-			echo "$PTH/`basename "$1"`"
-		else
-			echo "$PTH"
-		fi
+		echo "$PTH/`basename "$1"`"
 	}
 fi
 
