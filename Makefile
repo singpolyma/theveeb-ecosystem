@@ -9,10 +9,13 @@ all:    targets
 dir             := .
 include         Rules.mk
 
-.PHONY: all targets test clean distclean install install_sh
+.PHONY: all static targets test clean distclean install install_sh
 
 %$(BINSUFFIX): %.o
-	$(CC) $(LDFLAGS) $^ $(LL_ALL) $(LL_TGT) -o $@
+	$(CC) $^ $(LL_ALL) $(LL_TGT) $(LDFLAGS) -o $@
+
+static:
+	$(MAKE) LDFLAGS="-lpthread -ldl -static"
 
 install_sh: *.sh
 	@for SCRIPT in $^; do install -DTvpm755 "$$SCRIPT" "$(prefix)/bin/tve-`basename $$SCRIPT .sh`"; done
