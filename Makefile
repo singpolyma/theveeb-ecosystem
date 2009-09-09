@@ -44,6 +44,8 @@ tve.exe:
 test: all
 	test/test-login.sh
 	test/test-update.sh
+	test/test-install.sh
+	test/test-remove.sh
 	test/test-logout.sh
 
 clean:
