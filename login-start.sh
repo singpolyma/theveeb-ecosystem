@@ -48,7 +48,7 @@ if cmdexists uname; then
 fi
 
 # This is the url to send the user to
-URL="http://theveeb.com/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client$HOSTNAME"
+URL="https://theveeb.com/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client$HOSTNAME"
 
 # Output the tokens
 echo "$TOKEN $SECRET"

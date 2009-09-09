@@ -6,7 +6,7 @@ if [ ! -r "$OAUTHTOKENS" ]; then
 	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
 fi
 
-BASEURL="http://csclub.uwaterloo.ca/~s3weber/apt/" # XXX: Should this be an argument?
+BASEURL="http://pkgs.theveeb.com" # XXX: Should this be an argument?
 
 DATA="`grep -v "$BASEURL" "$OAUTHTOKENS"`"
 if [ -z "$DATA" ]; then

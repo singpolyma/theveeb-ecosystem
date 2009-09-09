@@ -6,7 +6,7 @@ else
 	. "$TVEROOT"/usr/lib/tve-setup.sh
 fi
 
-BASEURL="http://csclub.uwaterloo.ca/~s3weber/apt/" # XXX: Should this be an argument?
+BASEURL="http://pkgs.theveeb.com/" # XXX: Should this be an argument?
 
 # Verify the presence of oauthsign
 if ! cmdexists oauthsign; then
@@ -28,7 +28,7 @@ fi
 TOKEN="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f2`"
 SECRET="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f3`"
 
-REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" http://theveeb.com/users/me`"
+REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" https://theveeb.com/users/me`"
 T="`net2stdout "$REQUEST"`"
 if [ $? -ne 0 ]; then
 	echo "Not properly logged in." 1>&2
