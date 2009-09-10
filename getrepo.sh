@@ -113,13 +113,13 @@ while read LINE ; do
 					fi
 					if net2file "${baseurl}dists/${distro}/${section}/binary-${ARCH}/Packages.gz"; then
 						#Verify size and MD5 from Release file
-						size="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f3`"
+						size="`grep "${section}/binary-${ARCH}/Packages.gz" Release | head -n1 | cut -d' ' -f3`"
 						realsize="`wc -c Packages.gz | awk '{ print $1 }'`"
 						if [ "$size" != "$realsize" ]; then
 							echo "ERROR: size of Packages.gz does not match" 1>&2
 							exit 1
 						fi
-						md5="`grep "${section}/binary-${ARCH}/Packages.gz" Release | cut -d' ' -f2`"
+						md5="`grep "${section}/binary-${ARCH}/Packages.gz" Release | head -n1 | cut -d' ' -f2`"
 						realmd5="`"$MD5" -q Packages.gz | tr -d "\n"`"
 						if [ "$md5" != "$realmd5" ]; then
 							echo "ERROR: md5 of Packages.gz does not match" 1>&2
