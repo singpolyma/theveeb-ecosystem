@@ -114,3 +114,42 @@ findTVEbinary() {
 		fi
 	fi
 }
+
+# This takes in the base url and returns the line with BaseUrl Token Secret
+getTVETokens() {
+	baseUrl="$1"
+
+	if [ -z "$2" ]; then
+		# Find the file where OAuth tokens are and get them
+		OAUTHTOKENS="$HOME/.tve-oauth-tokens"
+		if [ ! -r "$OAUTHTOKENS" ]; then
+			OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
+		fi
+	else 
+		OAUTHTOKENS="$2"
+	fi
+
+	if [ ! -r "$OAUTHTOKENS" ]; then
+		exit 2
+	fi
+
+	grep "$BASEURL" < "$OAUTHTOKENS"
+}
+
+# This takes in the output of getTVETokens and the URL to make a request of.
+# It returns the output of oauthsign, to be used with curl or net2stdout
+getTVEAuthRequest() {
+	# Verify the presence of oauthsign
+	if ! cmdexists oauthsign; then
+		echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
+		exit 1
+	fi
+
+	line="$1"
+	requestUrl="$2"
+
+	token="`echo "$line" | cut -d ' ' -f2`"
+	secret="`echo "$line" | cut -d ' ' -f3`"
+
+	echo "`oauthsign -c anonymous -C anonymous -t "$token" -T "$secret" "$requestUrl"`"
+}

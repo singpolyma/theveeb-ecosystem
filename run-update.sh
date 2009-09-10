@@ -32,19 +32,9 @@ if ! cmdexists oauthsign; then
 	exit 1
 fi
 
-# Find the file where OAuth tokens are and get them
-OAUTHTOKENS="$HOME/.tve-oauth-tokens"
-if [ ! -r "$OAUTHTOKENS" ]; then
-	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
-fi
+# URL to fetch
+URL="http://theveeb.com/users/me?packages"
 
-if [ ! -r "$OAUTHTOKENS" ]; then
-	echo "Not logged in." 1>&2
-	exit 2
-fi
-
-TOKEN="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f2`"
-SECRET="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f3`"
-
-REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" http://theveeb.com/users/me?packages`"
+TOKENS="`getTVETokens "$BASEURL"`"
+REQUEST="`getTVEAuthRequest "$TOKENS" "$URL"`"
 net2stdout 'Accept: text/plain' "$REQUEST" | "$UPDATE" -c

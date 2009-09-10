@@ -78,23 +78,6 @@ if ! mkdir -p "$LOGDIR"; then
 	fi
 fi
 
-# Find the file where OAuth tokens are and get them
-if [ -z "$OAUTHTOKENFILE" ]; then
-	OAUTHTOKENFILE="$HOME/.tve-oauth-tokens"
-fi
-if [ ! -r "$OAUTHTOKENFILE" ]; then
-	OAUTHTOKENFILE="$TVEROOT/etc/tve-oauth-tokens"
-fi
-
-if [ ! -r "$OAUTHTOKENFILE" ]; then
-	echo "You don't seem to have valid OAuth tokens in $OAUTHTOKENFILE or $HOME/.tve-oauth-tokens" 1>&2
-	exit 1
-fi
-
-# OAuth Consumer token and secret
-CONSUMER_TOKEN="anonymous"
-CONSUMER_SECRET="anonymous"
-
 # Select a temporary directory
 if [ ! -z "$TMPDIR" ]; then
 	temp="$TMPDIR"
@@ -157,13 +140,10 @@ do_install () {
 	fi
 	# Get token for this BASEURL
 	BASEURL="`echo "$DATA" | grep BaseURL | cut -d' ' -f2`"
-	if [ -n "$BASEURL" ]; then
-		TOKEN="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f2`"
-		SECRET="`grep "$BASEURL" < "$OAUTHTOKENFILE" | cut -d' ' -f3`"
-	fi
+	TOKENS="`getTVETokens "$BASEURL" "$OAUTHTOKENFILE"`"
 	# Sign the URL with oauth utils (oauthsign)
-	if [ -n "$TOKEN" ]; then
-		URL="`oauthsign -c $CONSUMER_TOKEN -C $CONSUMER_SECRET -t $TOKEN -T $SECRET "$URL"`"
+	if [ -n "$TOKENS" ]; then
+		URL="`getTVEAuthRequest "$TOKENS" "$URL"`"
 	fi
 	# Get remote URL and download deb file with net2stdout
 	if ! net2stdout "$URL" > "$temp/$2.deb"; then

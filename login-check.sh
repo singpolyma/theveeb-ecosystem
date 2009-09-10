@@ -14,21 +14,13 @@ if ! cmdexists oauthsign; then
 	exit 1
 fi
 
+# URL to request
+URL="https://theveeb.com/users/me"
+
 # Find the file where OAuth tokens are and get them
-OAUTHTOKENS="$HOME/.tve-oauth-tokens"
-if [ ! -r "$OAUTHTOKENS" ]; then
-	OAUTHTOKENS="$TVEROOT/etc/tve-oauth-tokens"
-fi
+TOKENS="`getTVETokens "$BASEURL"`"
+REQUEST="`getTVEAuthRequest "$TOKENS" "$URL"`"
 
-if [ ! -r "$OAUTHTOKENS" ]; then
-	echo "Not logged in." 1>&2
-	exit 2
-fi
-
-TOKEN="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f2`"
-SECRET="`grep "$BASEURL" < "$OAUTHTOKENS" | cut -d' ' -f3`"
-
-REQUEST="`oauthsign -c anonymous -C anonymous -t "$TOKEN" -T "$SECRET" https://theveeb.com/users/me`"
 T="`net2stdout "$REQUEST"`"
 if [ $? -ne 0 ]; then
 	echo "Not properly logged in." 1>&2
