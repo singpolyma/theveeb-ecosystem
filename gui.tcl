@@ -64,7 +64,7 @@ proc drawPackageList {destination data} {
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
-		set price [label ${destination}.frame.row$i.price -text "$temp(price) \u00A4" -anchor e]
+		set price [label ${destination}.frame.row$i.price -text "$temp(price) ¤" -anchor e]
 		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
@@ -77,7 +77,7 @@ proc drawPackageList {destination data} {
 		set handler "set currentPackage(title) {$temp(title)}
 								 set currentPackage(caption) {$temp(descText)}
 								 set currentPackage(longText) {$temp(longDesc)}
-								 set currentPackage(price) {$temp(price) \u00A4}
+								 set currentPackage(price) {$temp(price) ¤}
 								 set currentPackage(package) {$temp(package)}
 								 ${destination}.frame.row\$highlightedrow configure -highlightthickness 0
 								 \$tabArea tab \$feedback -state normal
@@ -313,7 +313,7 @@ proc DoIt {} {
 
 	set cost [getCost $diffList]
 	if {$cost != 0} {
-		set continueAnswer [tk_messageBox -title "Continue?" -message "The cost of installing the selected packages is $cost \u00A4.\nContinue?" -type yesno]
+		set continueAnswer [tk_messageBox -title "Continue?" -message "The cost of installing the selected packages is $cost ¤.\nContinue?" -type yesno]
 		if {$continueAnswer == no} {
 			return
 		}
