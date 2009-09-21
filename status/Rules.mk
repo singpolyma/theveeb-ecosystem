@@ -6,6 +6,7 @@ d               := $(dir)
 
 # Set up what goes into this target
 SRCS_$(d)       := $(d)/status.c
+SRCS_$(d)       := $(SRCS_$(d)) common/version_compare.c
 SRCS_$(d)       := $(SRCS_$(d)) common/get_paths.c
 ifeq ($(TARGET),win32)
 SRCS_$(d)       := $(SRCS_$(d)) common/getopt.c

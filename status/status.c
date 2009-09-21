@@ -4,6 +4,7 @@
 #include <errno.h>
 #include <sqlite3.h>
 #include "common/get_paths.h"
+#include "common/version_compare.h"
 
 #if defined(_WIN32) || defined(__WIN32__)
 	#include "common/getopt.h"
@@ -29,6 +30,7 @@ void help() {
 	puts("Usage: search [OPTION] [QUERY]");
 	puts("   QUERY           Pattern to search for");
 	puts("   -h              help menu (this screen)");
+	puts("   -o              query ownership status");
 	puts("   -d[path]        path to database file");
 }
 
@@ -58,6 +60,20 @@ int print_results(void * status, int field_count, char ** row, char ** fields) {
 	return 0;
 }
 
+int print_o_results(void *dummy, int field_count, char **row, char **fields) {
+	(void)dummy;
+	(void)field_count;
+	(void)fields;
+	if(row[1] == NULL || row[1][0] == '\0') {
+		puts("0");
+	} else if(version_compare(row[0], row[1]) <= 0) {
+		puts("1");
+	} else {
+		puts("0");
+	}
+	return 0;
+}
+
 int main (int argc, char ** argv) {
 	sqlite3 * db = NULL;
 	char * db_path = NULL;
@@ -65,8 +81,9 @@ int main (int argc, char ** argv) {
 	char sql[150];
 	int status = STATUS_NOT_SET;
 	int c;
+	int ownMode = 0;
 
-	while((c = getopt(argc, argv, "-12hd:")) != -1) {
+	while((c = getopt(argc, argv, "-12hod:")) != -1) {
 		switch(c) {
 			case 'd': /* Specify database */
 				/*XXX We might want to sanity-check that the database does
@@ -76,6 +93,9 @@ int main (int argc, char ** argv) {
 					fprintf(stderr, "%s\n", sqlite3_errmsg(db));
 					exit(EXIT_FAILURE);
 				}
+				break;
+			case 'o': /* Check Own Status Instead */
+				ownMode = 1;
 				break;
 			/* Hacks to pass in negative numbers */
 			case '1':
@@ -151,20 +171,29 @@ int main (int argc, char ** argv) {
 		free(db_path);
 	}
 
-	if(status == STATUS_NOT_SET || status == UP_TO_DATE) {
-		sprintf(sql,"SELECT status FROM packages WHERE package='%s';", package);
-		if(sqlite3_exec(db, sql, print_results, &status, NULL) != 0) {
+	if(ownMode) {
+		sprintf(sql, "SELECT version,user_owns FROM packages WHERE package='%s';", package);
+		if(sqlite3_exec(db, sql, print_o_results, NULL, NULL) != 0) {
 			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+			puts(sql);
 			exit(EXIT_FAILURE);
 		}
-	}
-	if(status != STATUS_NOT_SET) {
-		sprintf(sql,"UPDATE packages SET status=%d WHERE package='%s';", status, package);
-		if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
-			fprintf(stderr, "Malformed query (The specified database may not exist).\n");
-			exit(EXIT_FAILURE);
+	} else {
+		if(status == STATUS_NOT_SET || status == UP_TO_DATE) {
+			sprintf(sql,"SELECT status FROM packages WHERE package='%s';", package);
+			if(sqlite3_exec(db, sql, print_results, &status, NULL) != 0) {
+				fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+				exit(EXIT_FAILURE);
+			}
 		}
-		printf("%d\n", status);
+		if(status != STATUS_NOT_SET) {
+			sprintf(sql,"UPDATE packages SET status=%d WHERE package='%s';", status, package);
+			if(sqlite3_exec(db, sql, NULL, NULL, NULL) != 0) {
+				fprintf(stderr, "Malformed query (The specified database may not exist).\n");
+				exit(EXIT_FAILURE);
+			}
+			printf("%d\n", status);
+		}
 	}
 
 	if(sqlite3_close(db) != 0) {
