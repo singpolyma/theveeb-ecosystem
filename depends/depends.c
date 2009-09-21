@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sqlite3.h>
-#include "version_compare.h"
+#include "common/version_compare.h"
 #include "common/get_paths.h"
 
 #if defined(_WIN32) || defined(__WIN32__)
