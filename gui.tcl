@@ -70,7 +70,6 @@ proc drawPackageList {destination data} {
 
 		# If this package has been purchased, make the price's background greenish
 		if {[info exists temp(owns)] && [string length [string trim $temp(owns)]] != 0} {
-			puts $temp(owns)
 			$price configure -background "#AAFFAA"
 		}
 
