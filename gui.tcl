@@ -299,6 +299,23 @@ proc getCost {diff} {
 	return [exec sh -c "[findTVEscript calculateTotal] $apps"]
 }
 
+# This returns a list of all depended on packages
+proc Depends {package} {
+	set depends [findTVEbinary {depends}]
+	if [catch {exec -ignorestderr sh -c "$depends $package"} dependencies] {
+		tk_messageBox -title "Depends Failed!" -message "Dependencies Failed: $dependencies"
+		exit -1
+	}
+	set retList [list]
+	foreach {intExt name version} [split $dependencies] {
+		if [string equal $intExt "I"] {
+			lappend retList $name
+		}
+	}
+
+	return $retList
+}
+
 # This is the command of the "Do It" button
 proc DoIt {} {
 	global selectedPackages
@@ -328,6 +345,33 @@ proc DoIt {} {
 		set pName [lindex $p 0]
 
 		if {$pStatus == 1} {
+			# Check if all dependencies are purchased
+			foreach {dName} [Depends $pName] {
+				if [catch {exec sh -c "[findTVEbinary status] -o $dName"} val] {
+					tk_messageBox -title "Status Broke" -message "Couldn't Call Status -o. Error: $val"
+					append installFail " $pName"
+					break
+				}
+				if {$val == 0} {
+					# This needs purchasing
+					if [catch {exec sh -c "[findTVEscript purchase] $dName"} val] {
+						tk_messageBox -title "Purchase Broke" -message "Error With Purchase: $val"
+						append installFail " $pName"
+						break
+					}
+				}
+			}
+			# If this failed anywhere above, skip this
+			if [string equal [lindex $installFail end] $pName] {
+				tk_messageBox -title "?" -message "Failed Above"
+				continue
+			}
+			# Purchase the actual package
+			if [catch {exec sh -c "[findTVEscript purchase] $pName"} val] {
+				tk_messageBox -title "Purchase Broke" -message "Error With Purchase: $val"
+				append installFail " $pName"
+				break
+			}
 			# Install this
 			if [catch {exec -ignorestderr sh -c "[findTVEscript maybesudo ""] [findTVEscript install] $pName"} failWords] {
 				append installFail " $pName"
