@@ -22,8 +22,14 @@ TOKENS="`getTVETokens "$BASEURL"`"
 REQUEST="`getTVEAuthRequest "$TOKENS" "$URL" "PURCHASE"`"
 
 # Make the request
-RESPONSE="`curl -sfL -X PURCHASE "$REQUEST"`"
-if [ $? -ne 0 ]; then
+# (The -w means that after the body it will output the HTTP Response Code)
+RESPONSE="`curl -sL -X PURCHASE -w '%{http_code}' "$REQUEST"`"
+# Pull out the Response Code
+R_CODE="`echo "$RESPONSE" | tail -n 1`"
+# And take the Reponse Code off the Reponse
+RESPONSE="`echo "$RESPONSE" | sed '$d'`"
+
+if [ "$R_CODE" != 200 ]; then
 	echo "$RESPONSE"
 	exit 2
 fi
