@@ -1,1 +1,1 @@
-deb http://pkgs.theveeb.com/ tve utils game libs
+deb http://pkgs.theveeb.com/ tve utils games libs
