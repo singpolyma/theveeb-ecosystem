@@ -60,11 +60,11 @@ proc drawPackageList {destination data} {
 			}
 		}
 
-		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
+		set cb [ttk::checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
-		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
-		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
-		set price [label ${destination}.frame.row$i.price -text "\u00A4 $temp(price)" -anchor e]
+		set name [ttk::label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
+		set desc [ttk::label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
+		set price [ttk::label ${destination}.frame.row$i.price -text "\u00A4 $temp(price)" -anchor e]
 		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
@@ -375,7 +375,7 @@ proc drawUi {} {
 	grid $viewarea -sticky news
 
 	# Grid the bottom bar
-	grid $bottomBar
+	grid $bottomBar -sticky ew
 }
 
 proc handleLoginStart {channel} {
@@ -628,20 +628,20 @@ proc skipLoginCheck {} {
 
 # Login Stuff
 # TODO: put logo here... put logo always in app?
-set loginLabel    [label  .loginLabel    -text "Welcome to The Veeb Ecosystem"]
-set loginButton   [button .loginButton   -text "Click Here to Login" -command loginStart]
-set loginLabel2   [label  .loginLabel2   -text "(this will open your web browser, close it when you're done)"]
-set offlineButton [button .offlineButton -text "Browse Offline" -command offlineMode]
+set loginLabel    [ttk::label  .loginLabel    -text "Welcome to The Veeb Ecosystem"]
+set loginButton   [ttk::button .loginButton   -text "Click Here to Login" -command loginStart]
+set loginLabel2   [ttk::label  .loginLabel2   -text "(this will open your web browser, close it when you're done)"]
+set offlineButton [ttk::button .offlineButton -text "Browse Offline" -command offlineMode]
 
-set loginWait [label .loginWait -text "After Authenticating in your browser, click below to continue"]
-set loginUrlWait [label .loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
-set loginUrl [entry .loginUrl -textvariable URL -state readonly]
-set loginContinue [button .loginContinue -text "Continue" -command loginFinish]
+set loginWait [ttk::label .loginWait -text "After Authenticating in your browser, click below to continue"]
+set loginUrlWait [ttk::label .loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
+set loginUrl [ttk::entry .loginUrl -textvariable URL -state readonly]
+set loginContinue [ttk::button .loginContinue -text "Continue" -command loginFinish]
 
 # Pre-Login stuff
 # This is to show that login is being checked, and gives the option to opt-out.
-set preLoginLabel [label .preLoginLabel -text "Checking Login Status..."]
-set preLoginSkip [button .preLoginSkip -text "Click this to just work offline." -command skipLoginCheck]
+set preLoginLabel [ttk::label .preLoginLabel -text "Checking Login Status..."]
+set preLoginSkip [ttk::button .preLoginSkip -text "Click this to just work offline." -command skipLoginCheck]
 
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
@@ -649,13 +649,13 @@ set canvasScroll [scrollbar .yscroll -orient vertical -command {$canvas yview}]
 $canvas configure -yscrollcommand [list $canvasScroll set]
 
 # Get scrollable view area
-set viewarea [frame .viewarea]
+set viewarea [ttk::frame .viewarea]
 
 # Make the top area.
-set topBar [frame .topBar]
+set topBar [ttk::frame .topBar]
 
 # Make the category box
-set categoryArea [frame .categoryArea]
+set categoryArea [ttk::frame .categoryArea]
 
 # Set the map that maps from display name to data name
 array set filterCategoryDisplayNameMap [list Action actiongame Adventure adventuregame Arcade arcadegame "Board Game" boardgame "Blocks Game" blocksgame "Card Game" cardgame "Kids" kidsgame "Logic" logicgame "Role Playing" roleplaying Simulation simulation Sports sportsgame Strategy strategy]
@@ -681,8 +681,8 @@ $categoryCombo set "Category"
 bind $categoryCombo <<ComboboxSelected>> {categoryUpdate %W}
 
 # Make seach Bar
-set searchBar [entry ${topBar}.bar -width 20 -textvariable searchQuery]
-set searchButton [button ${topBar}.button -text "Search" -command getDataAndFilter]
+set searchBar [ttk::entry ${topBar}.bar -width 20 -textvariable searchQuery]
+set searchButton [ttk::button ${topBar}.button -text "Search" -command getDataAndFilter]
 bind $searchBar <Return> "$searchButton invoke"
 grid $categoryCombo $searchBar $searchButton
 grid $searchBar -sticky ew
@@ -701,13 +701,13 @@ grid columnconfigure ${canvas}.frame 0 -weight 1
 # Add label to viewarea
 set tabArea [ttk::notebook ${viewarea}.tabArea]
 
-set description [frame ${tabArea}.description]
-set description.topLine [frame ${description}.topLine]
-set description.secondLine [frame ${description}.secondLine]
-set description.title [label ${description.topLine}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
-set description.caption [label ${description.secondLine}.caption -textvariable currentPackage(caption) -justify left]
+set description [ttk::frame ${tabArea}.description]
+set description.topLine [ttk::frame ${description}.topLine]
+set description.secondLine [ttk::frame ${description}.secondLine]
+set description.title [ttk::label ${description.topLine}.title -textvariable currentPackage(title) -font TkHeadingFont -justify left]
+set description.caption [ttk::label ${description.secondLine}.caption -textvariable currentPackage(caption) -justify left]
 set description.longText [text ${description}.longText -wrap word]
-set description.price [label ${description.topLine}.price -textvariable currentPackage(price) -justify right]
+set description.price [ttk::label ${description.topLine}.price -textvariable currentPackage(price) -justify right]
 set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 5]
 bind ${description.rating} <<Rate>> {
 	if [info exists packageRating($currentPackage(package))] {
@@ -756,13 +756,13 @@ grid ${description.scrollbar} -sticky ns
 grid columnconfigure $description 0 -weight 1
 grid rowconfigure $description 2 -weight 1
 
-set reviews [frame ${tabArea}.review]
+set reviews [ttk::frame ${tabArea}.review]
 
 # Setup Feedback page
-set feedback [frame ${tabArea}.feedback]
+set feedback [ttk::frame ${tabArea}.feedback]
 # Type box
-set feedback.typeBox [frame ${feedback}.typeBox]
-set feedback.typeLabel [label ${feedback.typeBox}.typeLabel -text "Type: "]
+set feedback.typeBox [ttk::frame ${feedback}.typeBox]
+set feedback.typeLabel [ttk::label ${feedback.typeBox}.typeLabel -text "Type: "]
 set feedback.type [ttk::combobox ${feedback.typeBox}.type -value [list "Report Bug" "Request Feature" "Other"]]
 ${feedback.type} set "Other"
 grid ${feedback.typeLabel} ${feedback.type}
@@ -772,7 +772,7 @@ set feedback.box [text ${feedback}.box]
 set feedback.scroll [scrollbar ${feedback}.scroll -command [list ${feedback.box} yview]]
 ${feedback.box} configure -yscrollcommand [list ${feedback.scroll} set]
 # And send button
-set feedback.send [button ${feedback}.send -text "Send" -command [list sendFeedback ${feedback.box} ${feedback.type}]]
+set feedback.send [ttk::button ${feedback}.send -text "Send" -command [list sendFeedback ${feedback.box} ${feedback.type}]]
 grid ${feedback.typeBox} -sticky w
 grid ${feedback.box} ${feedback.scroll} -sticky news
 grid ${feedback.send} -sticky n
@@ -786,11 +786,11 @@ $tabArea add $feedback -text "Feedback" -state disabled -sticky news
 pack $tabArea -fill both -expand 1 -side top
 
 # Set up the bottom bar
-set bottomBar [frame .buttonBar]
+set bottomBar [ttk::frame .buttonBar]
 
-set logoutButton [button ${bottomBar}.logout -textvariable logoutButtonText -command logout]
-set quitButton [button ${bottomBar}.quit -text "Quit" -command safeQuit]
-set commitButton [button ${bottomBar}.commit -text "Do it" -command DoIt]
+set logoutButton [ttk::button ${bottomBar}.logout -textvariable logoutButtonText -command logout]
+set quitButton [ttk::button ${bottomBar}.quit -text "Quit" -command safeQuit]
+set commitButton [ttk::button ${bottomBar}.commit -text "Do it" -command DoIt]
 
 grid $logoutButton $quitButton $commitButton
 

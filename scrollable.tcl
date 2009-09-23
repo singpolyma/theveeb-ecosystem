@@ -26,7 +26,7 @@ proc updateScrollableThing {path} {
 # The frame is at $path.frame
 proc scrollableThing {path} {
 	canvas $path 
-	set frame [frame ${path}.frame ]
+	set frame [ttk::frame ${path}.frame ]
 	$path create window 0 0 -tags CONTENTS -window $frame -anchor nw
 	# This assumes that everything is in the frame and it's rendered
 	# by 100ms from now
