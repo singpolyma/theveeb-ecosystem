@@ -33,7 +33,7 @@ if ! cmdexists oauthsign; then
 fi
 
 # URL to fetch
-URL="http://theveeb.com/users/me?packages"
+URL="https://theveeb.com/users/me?packages"
 
 TOKENS="`getTVETokens "$BASEURL"`"
 REQUEST="`getTVEAuthRequest "$TOKENS" "$URL"`"
