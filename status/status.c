@@ -66,7 +66,7 @@ int print_o_results(void *dummy, int field_count, char **row, char **fields) {
 	(void)fields;
 	if(row[1] == NULL || row[1][0] == '\0') {
 		puts("0");
-	} else if(version_compare(row[0], row[1]) <= 0) {
+	} else if(version_compare(row[0], row[1]) >= 0) {
 		puts("1");
 	} else {
 		puts("0");
