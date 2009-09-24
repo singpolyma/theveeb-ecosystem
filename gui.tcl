@@ -60,11 +60,11 @@ proc drawPackageList {destination data} {
 			}
 		}
 
-		set cb [ttk::checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
-		set name [ttk::label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
-		set desc [ttk::label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
-		set price [ttk::label ${destination}.frame.row$i.price -text "\u00A4 $temp(price)" -anchor e]
+		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
+		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
+		set price [label ${destination}.frame.row$i.price -text "\u00A4 $temp(price)" -anchor e]
 		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
@@ -363,7 +363,7 @@ proc drawUi {} {
 	# And put them on the screen
 
 	# Grid the top bar
-	grid $topBar -sticky ew
+	grid $topBar - -sticky ew
 
 	# Grid the canvas and scrollbar
 	grid $canvas $canvasScroll
