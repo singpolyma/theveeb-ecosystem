@@ -14,6 +14,7 @@ fi
 
 depends=`findTVEbinary depends`
 search=`findTVEbinary search`
+status=`findTVEbinary status`
 
 if [ "$#" -lt 1 ]; then
 	echo "Expected a package"
@@ -52,9 +53,8 @@ for package in `echo "$packages" | grep '^.' | sort | uniq`; do
 		echo "Unknown Package: $package" 1>&2
 		continue;
 	fi
-	# For now assume that if the user owns any version of it it's free
-	# We'll worry about paying for updates later
-	if [ -z "`echo "$packageData" | grep '^UserOwns:' | cut -f 2 -d ' '`" ]; then
+	# Check if user owns this package
+	if [ "`$status -o "$package"`" == 0 ]; then
 		thisPrice=`echo "$packageData" | grep '^Price:' | cut -f 2 -d ' '`
 		if [ -n "$thisPrice" ]; then
 			price=`expr "$thisPrice" + "$price"`
