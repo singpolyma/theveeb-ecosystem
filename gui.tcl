@@ -399,6 +399,9 @@ proc DoIt {} {
 	clearState
 	# Now update the list
 	getDataAndFilter
+	# Then run update to pick up changes that happened on the server side
+	# This will probably redraw the list again once done, but that's ok
+	runUpdate
 }
 
 # This is the command to send feedback
@@ -677,6 +680,9 @@ proc drawLoggedInUi {} {
 	# Make sure you can do ratings
 	${description.rating} configure -readonly 0
 	drawUi
+
+	# Run the update
+	runUpdate
 }
 
 # This draws the offline-mode UI
@@ -705,6 +711,41 @@ proc skipLoginCheck {} {
 
 	clearUi
 	drawOfflineUi
+}
+
+# This runs the update and refreshes the data
+proc runUpdate {} {
+	global env
+
+	# In "Offline But Pretend To Be Online" mode, don't update
+	if [info exists env(TVEOFFLINE)] {
+		return
+	}
+	set update [findTVEscript "run-update"]
+	set command [open "| sh -c \"$update\"" r]
+	fileevent $command readable [list handleRunUpdate $command]
+}
+
+proc handleRunUpdate {pipe} {
+	# If this isn't the end of the output, just consume it
+	if {![eof $pipe]} {
+		gets $pipe
+		return
+	}
+
+	# This is the end, close it and look for the result
+	set result [catch {close $pipe} errorMsg exitOptions]
+
+	if {$result != 0 && [dict get $exitOptions -errorcode] != "NONE"} {
+		# Error
+		tk_messageBox -title "Update Failed" -message "Error With Update: $errorMsg"
+		return 0
+	}
+
+	# If it worked, update the list with the new data
+	# In this case, don't clear state.
+	#You wouldn't want people's checkboxes to go away just because update finished.
+	getDataAndFilter
 }
 
 # Login Stuff
