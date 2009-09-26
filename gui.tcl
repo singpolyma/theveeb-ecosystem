@@ -563,40 +563,34 @@ proc loginFinish {} {
 
 # This function draws the login elements
 proc drawLoginStart {} {
-	global loginLabel
-	global loginLabel2
 	global loginButton
 	global offlineButton
+	global loginFrame
 
 	$loginButton configure -state normal -text "Click Here to Login"
 	$offlineButton configure -state normal
 
-	grid $loginLabel -sticky ew
-	grid $loginButton
-	grid $loginLabel2 -sticky ew
-	grid $offlineButton
+	grid $loginFrame -sticky news
 }
 
 # This function draws the screen where we wait for authentication.
 proc drawLoginFinish {} {
 	global URL
-	global loginWait
-	global loginUrlWait
-	global loginUrl
+	global loginWaitFrame
+	global loginUrlWaitFrame
 	global loginContinue
+	global loginUrlContinue
 
 	$loginContinue configure -state normal -text "Continue"
+	$loginUrlContinue configure -state normal -text "Continue"
 
 	if {$URL == ""} {
 		# Browser opened on its own
-		grid $loginWait
+		grid $loginWaitFrame -sticky news
 	} else {
 		# Need to give them the url
-		grid $loginWait
-		grid $loginUrl
+		grid $loginUrlWaitFrame -sticky news
 	}
-
-	grid $loginContinue
 }
 
 # Offline mode
@@ -626,16 +620,14 @@ proc logout {} {
 proc drawProperScreen {} {
 	global loginCheckCommand
 	global loginCheckSkipped
-	global preLoginLabel
-	global preLoginSkip
+	global preLoginFrame
 
 	# Set the loginCheck to be not skipped
 	set loginCheckSkipped 0
 
 	# Draw the login-check UI
 	# In a fast login-check they might not even see this
-	grid $preLoginLabel -sticky ew
-	grid $preLoginSkip
+	grid $preLoginFrame -sticky news
 
 	set loginCheckCommand [open "| sh -c [findTVEscript login-check]" r]
 	fileevent $loginCheckCommand readable [list handleLoginCheck $loginCheckCommand]
@@ -750,20 +742,40 @@ proc handleRunUpdate {pipe} {
 
 # Login Stuff
 # TODO: put logo here... put logo always in app?
-set loginLabel    [ttk::label  .loginLabel    -text "Welcome to The Veeb Ecosystem"]
-set loginButton   [ttk::button .loginButton   -text "Click Here to Login" -command loginStart]
-set loginLabel2   [ttk::label  .loginLabel2   -text "(this will open your web browser, close it when you're done)"]
-set offlineButton [ttk::button .offlineButton -text "Browse Offline" -command offlineMode]
+set loginFrame    [ttk::frame  .loginFrame]
+set loginLabel    [ttk::label  ${loginFrame}.loginLabel    -text "Welcome to The Veeb Ecosystem"]
+set loginButton   [ttk::button ${loginFrame}.loginButton   -text "Click Here to Login" -command loginStart]
+set loginLabel2   [ttk::label  ${loginFrame}.loginLabel2   -text "(this will open your web browser, close it when you're done)"]
+set offlineButton [ttk::button ${loginFrame}.offlineButton -text "Browse Offline" -command offlineMode]
 
-set loginWait [ttk::label .loginWait -text "After Authenticating in your browser, click below to continue"]
-set loginUrlWait [ttk::label .loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
-set loginUrl [ttk::entry .loginUrl -textvariable URL -state readonly]
-set loginContinue [ttk::button .loginContinue -text "Continue" -command loginFinish]
+# And arrange it on the "Login Frame"
+grid $loginLabel -sticky ew
+grid $loginButton
+grid $loginLabel2 -sticky ew
+grid $offlineButton
+
+set loginWaitFrame [ttk::frame .loginWaitFrame]
+set loginWait [ttk::label ${loginWaitFrame}.loginWait -text "After Authenticating in your browser, click below to continue"]
+set loginContinue [ttk::button ${loginWaitFrame}.loginContinue -text "Continue" -command loginFinish]
+grid $loginWait
+grid $loginContinue
+
+set loginUrlWaitFrame [ttk::frame .loginUrlWaitFrame]
+set loginUrlWait [ttk::label ${loginUrlWaitFrame}.loginUrlWait -text "Go to the following URL on the internet to login. Then click below to continue"]
+set loginUrl [ttk::entry ${loginUrlWaitFrame}.loginUrl -textvariable URL -state readonly]
+set loginUrlContinue [ttk::button ${loginUrlWaitFrame}.loginContinue -text "Continue" -command loginFinish]
+grid $loginUrlWait
+grid $loginUrl
+grid $loginUrlContinue
 
 # Pre-Login stuff
 # This is to show that login is being checked, and gives the option to opt-out.
-set preLoginLabel [ttk::label .preLoginLabel -text "Checking Login Status..."]
-set preLoginSkip [ttk::button .preLoginSkip -text "Click this to just work offline." -command skipLoginCheck]
+set preLoginFrame [ttk::frame .preLogin]
+set preLoginLabel [ttk::label ${preLoginFrame}.preLoginLabel -text "Checking Login Status..."]
+set preLoginSkip [ttk::button ${preLoginFrame}.preLoginSkip -text "Click this to just work offline." -command skipLoginCheck]
+
+grid $preLoginLabel -sticky ew
+grid $preLoginSkip
 
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
