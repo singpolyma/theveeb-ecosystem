@@ -959,3 +959,4 @@ if [info exists env(TVEOFFLINE)] {
 	# This is normal mode
 	drawProperScreen
 }
+wm title . "The Veeb Ecosystem"
