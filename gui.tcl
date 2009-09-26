@@ -937,12 +937,22 @@ pack $tabArea -fill both -expand 1 -side top
 
 # Set up the bottom bar
 set bottomBar [ttk::frame .buttonBar]
+set bottomLeft [ttk::frame ${bottomBar}.left]
+set bottomRight [ttk::frame ${bottomBar}.right]
+set bottomMiddle [ttk::frame ${bottomBar}.middle]
 
-set logoutButton [ttk::button ${bottomBar}.logout -textvariable logoutButtonText -command logout]
-set quitButton [ttk::button ${bottomBar}.quit -text "Quit" -command safeQuit]
-set commitButton [ttk::button ${bottomBar}.commit -text "Apply" -command DoIt]
+set logoutButton [ttk::button ${bottomLeft}.logout -textvariable logoutButtonText -command logout]
+set quitButton [ttk::button ${bottomRight}.quit -text "Quit" -command safeQuit]
+set commitButton [ttk::button ${bottomRight}.commit -text "Apply" -command DoIt]
 
-grid $logoutButton $quitButton $commitButton
+grid $logoutButton -sticky w
+grid $quitButton $commitButton
+grid $commitButton -sticky e
+
+grid columnconfigure $bottomBar 1 -weight 1
+grid $bottomLeft $bottomMiddle $bottomRight
+grid $bottomLeft -sticky w
+grid $bottomRight -sticky e
 
 # Initialize Filter
 set searchQuery ""
