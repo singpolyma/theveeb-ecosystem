@@ -8,6 +8,9 @@ if [catch {ttk::setTheme aqua}] {
 	}
 }
 catch {namespace import -force ttk::*}
+
+catch {package require Img}
+
 source scrollable.tcl
 source textvariable.tcl
 source ratingWidget.tcl
@@ -68,9 +71,20 @@ proc drawPackageList {destination data} {
 		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
-		# If this package has been purchased, make the price's background greenish
+		# Now the Purchased and Upgrade status
+		set purchase [canvas ${destination}.frame.row${i}.purchase -height 16 -width 16]
+		set upgrade [canvas ${destination}.frame.row${i}.upgrade -height 16 -width 16]
+
+		# If this package has been purchased, show the icon
 		if {[info exists temp(owns)] && [string length [string trim $temp(owns)]] != 0} {
-			$price configure -background "#AAFFAA"
+			set purchaseImage [image create photo purchase${i} -file "purchase.png" -width 16 -height 16]
+			$purchase create image 3 3 -image $purchaseImage -anchor nw
+		}
+
+		# If this package has an update, show the icon
+		if {[info exists temp(status)] && [string equal $temp(status) "update available"]} {
+			set upgradeImage [image create photo update${i} -file "update.png" -width 16 -height 16]
+			$upgrade create image 3 3 -image $upgradeImage -anchor nw
 		}
 
 		# Should get longer info from search eventually
@@ -101,8 +115,10 @@ proc drawPackageList {destination data} {
 		grid $icon -column 1 -rowspan 2 -padx 5 -row $i
 		grid $name -column 2 -padx 5 -pady 2 -sticky nwe -row $i
 		grid $desc -column 2 -padx 5 -pady 2 -sticky nwe -row [expr {1+$i}]
-		grid $price -column 3 -sticky e -row $i
-		grid $rating -column 3 -sticky e -row [expr {$i+1}]
+		grid $purchase -column 3 -row $i
+		grid $upgrade -column 4 -row $i
+		grid $price -column 5 -sticky e -row $i
+		grid $rating -column 3 -columnspan 3 -sticky e -row [expr {$i+1}]
 
 		grid columnconfigure ${destination}.frame.row$i 2 -weight 1
 
