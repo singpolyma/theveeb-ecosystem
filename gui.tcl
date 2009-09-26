@@ -943,7 +943,7 @@ set bottomMiddle [ttk::frame ${bottomBar}.middle]
 
 set logoutButton [ttk::button ${bottomLeft}.logout -textvariable logoutButtonText -command logout]
 set quitButton [ttk::button ${bottomRight}.quit -text "Quit" -command safeQuit]
-set commitButton [ttk::button ${bottomRight}.commit -text "Apply" -command DoIt]
+set commitButton [ttk::button ${bottomRight}.commit -text "Finish" -command DoIt]
 
 grid $logoutButton -sticky w
 grid $quitButton $commitButton
