@@ -815,7 +815,7 @@ proc handleRunUpdate {pipe} {
 	getDataAndFilter
 }
 
-# This marks the current package for installation
+# This changes the status of the current package
 proc toggleCurrent {} {
 	global currentPackage
 	global checkBoxMap
