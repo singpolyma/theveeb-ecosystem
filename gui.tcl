@@ -104,6 +104,8 @@ proc drawPackageList {destination data} {
 				# Already scheduled to upgrade
 				setUpgradeIcon $temp(package) 1
 			}
+
+			bind $upgrade <ButtonPress-1> [join [list [list toggleUpgrade $temp(package)] contextButtons] "\n"]
 		}
 
 		# Should get longer info from search eventually
