@@ -45,6 +45,7 @@ proc clearScrollableThing {widget} {
 proc drawPackageList {destination data} {
 	global highlightedrow
 	global selectedPackages
+	global checkBoxMap
 	set i 0
 	set highlightedrow 0
 	foreach {item} $data {
@@ -64,6 +65,7 @@ proc drawPackageList {destination data} {
 		}
 
 		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
+		set checkBoxMap($temp(package)) $cb
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
@@ -104,6 +106,7 @@ proc drawPackageList {destination data} {
 								 }
 								 set highlightedrow $i
 								 ${destination}.frame.row$i configure -highlightthickness 2
+								 contextButtons
 								 "
 		bind ${destination}.frame.row$i <ButtonPress-1> $handler
 		bind $name <ButtonPress-1> $handler
@@ -127,6 +130,56 @@ proc drawPackageList {destination data} {
 
 	# Update the scrollable thing after giving it time to figure out it's dimensions
 	after 100 [list updateScrollableThing $destination]
+}
+
+proc contextButtons {} {
+	global currentPackage
+	global selectedPackages
+	global originalValues
+	global bottomMiddle
+	set contextArea $bottomMiddle
+
+	global installCurrent
+	global uninstallCurrent
+	global removeCurrent
+	global unremoveCurrent
+
+	# First, clear the context area
+	clearContext
+
+	if {![info exists currentPackage(package)]} {
+		# There isn't a current package
+		return
+	}
+
+	# Check if it is to be installed or removed
+	if [info exists selectedPackages($currentPackage(package))] {
+		if {$selectedPackages($currentPackage(package)) == 1} {
+			if [info exists originalValues($currentPackage(package))] {
+				# This isn't installed, it's just been selected for installation previously
+				pack $uninstallCurrent -side left
+			} else {
+				# This is currently installed
+				pack $removeCurrent -side left
+			}
+		} else {
+			if [info exists originalValues($currentPackage(package))] {
+				# This is installed, it's just been selected for removal previously
+				pack $unremoveCurrent -side left
+			} else {
+				pack $installCurrent -side left
+			}
+		}
+	}
+}
+
+proc clearContext {} {
+	global bottomMiddle
+	set contextArea $bottomMiddle
+
+	foreach widget [pack slaves $contextArea] {
+		pack forget $widget
+	}
 }
 
 proc lineTrim {words} {
@@ -263,6 +316,9 @@ proc checkChanged {package} {
 			set originalValues($package) 0
 		}
 	}
+
+	# Reset Context
+	contextButtons
 }
 
 # This function gets a list of all packages to be changed
@@ -287,6 +343,9 @@ proc clearState {} {
 
 	array unset selectedPackages
 	array unset originalValues
+
+	# Reset context buttons
+	clearContext
 }
 
 # This command will run the message box only if there's data in the list.
@@ -756,6 +815,19 @@ proc handleRunUpdate {pipe} {
 	getDataAndFilter
 }
 
+# This marks the current package for installation
+proc toggleCurrent {} {
+	global currentPackage
+	global checkBoxMap
+
+	if [info exists checkBoxMap($currentPackage(package))] {
+		$checkBoxMap($currentPackage(package)) invoke
+	}
+
+	# Redraw context buttons
+	contextButtons
+}
+
 # Login Stuff
 # TODO: put logo here... put logo always in app?
 set loginFrame    [ttk::frame  .loginFrame]
@@ -953,6 +1025,12 @@ grid columnconfigure $bottomBar 1 -weight 1
 grid $bottomLeft $bottomMiddle $bottomRight
 grid $bottomLeft -sticky w
 grid $bottomRight -sticky e
+
+# Now for the context buttons
+set installCurrent [ttk::button ${bottomMiddle}.install -text "Mark for Installation" -command toggleCurrent]
+set uninstallCurrent [ttk::button ${bottomMiddle}.uninstall -text "Unmark for Installation" -command toggleCurrent]
+set removeCurrent [ttk::button ${bottomMiddle}.remove -text "Mark for Removal" -command toggleCurrent]
+set unremoveCurrent [ttk::button ${bottomMiddle}.unremove -text "Unmark for Removal" -command toggleCurrent]
 
 # Initialize Filter
 set searchQuery ""
