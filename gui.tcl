@@ -46,8 +46,18 @@ proc drawPackageList {destination data} {
 	global highlightedrow
 	global selectedPackages
 	global checkBoxMap
+	global upgraded
+	global upgradable
+	global upgradeImage
+	global upgradingImage
+	global upgradeImageMap
+
 	set i 0
 	set highlightedrow 0
+	set upgradable [list]
+	if {![info exists upgraded]} {
+		set upgraded [list]
+	}
 	foreach {item} $data {
 		array set temp $item
 
@@ -76,6 +86,7 @@ proc drawPackageList {destination data} {
 		# Now the Purchased and Upgrade status
 		set purchase [canvas ${destination}.frame.row${i}.purchase -height 16 -width 16]
 		set upgrade [canvas ${destination}.frame.row${i}.upgrade -height 16 -width 16]
+		set upgradeImageMap($temp(package)) $upgrade
 
 		# If this package has been purchased, show the icon
 		if {[info exists temp(owns)] && [string length [string trim $temp(owns)]] != 0} {
@@ -85,8 +96,14 @@ proc drawPackageList {destination data} {
 
 		# If this package has an update, show the icon
 		if {[info exists temp(status)] && [string equal $temp(status) "update available"]} {
-			set upgradeImage [image create photo update${i} -file "update.png" -width 16 -height 16]
-			$upgrade create image 3 3 -image $upgradeImage -anchor nw
+			lappend upgradable $temp(package)
+			if {[lsearch $upgraded $temp(package)] == -1} {
+				# Upgrade is available
+				setUpgradeIcon $temp(package) 0
+			} else {
+				# Already scheduled to upgrade
+				setUpgradeIcon $temp(package) 1
+			}
 		}
 
 		# Should get longer info from search eventually
@@ -136,6 +153,8 @@ proc contextButtons {} {
 	global currentPackage
 	global selectedPackages
 	global originalValues
+	global upgraded
+	global upgradable
 	global bottomMiddle
 	set contextArea $bottomMiddle
 
@@ -143,6 +162,8 @@ proc contextButtons {} {
 	global uninstallCurrent
 	global removeCurrent
 	global unremoveCurrent
+	global upgradeCurrent
+	global unupgradeCurrent
 
 	# First, clear the context area
 	clearContext
@@ -169,6 +190,16 @@ proc contextButtons {} {
 			} else {
 				pack $installCurrent -side left
 			}
+		}
+	}
+
+	if {[lsearch $upgradable $currentPackage(package)] != -1} {
+		if {[lsearch $upgraded $currentPackage(package)] == -1} {
+			# Upgrade Available
+			pack $upgradeCurrent -side left
+		} else {
+			# To be upgraded
+			pack $unupgradeCurrent -side left
 		}
 	}
 }
@@ -327,12 +358,22 @@ proc checkChanged {package} {
 proc getDiff {} {
 	global originalValues
 	global selectedPackages
-	set result [list]
+	global upgraded
+
+	# Go through all packages to be upgraded
+	foreach {package} $upgraded {
+		set state($package) 1
+	}
 	# Go through each entry in originalValues, use the selectedValue
+	# This overrides the upgraded ones above (So, for example, we don't upgrade a package then remove it)
 	foreach {package} [array names originalValues] {
-		lappend result [list $package $selectedPackages($package)]
+		set state($package) $selectedPackages($package)
 	}
 
+	set result [list]
+	foreach {p k} [array get state] {
+		lappend result [list $p $k]
+	}
 	return $result
 }
 
@@ -743,6 +784,7 @@ proc drawLoggedInUi {} {
 	global {description.rating}
 
 	global installCurrent
+	global upgradeCurrent
 
 	set offlineMode 0
 	set logoutButtonText "Logout"
@@ -751,6 +793,7 @@ proc drawLoggedInUi {} {
 
 	# Can't click install buttons in offline mode
 	$installCurrent configure -state normal
+	$upgradeCurrent configure -state normal
 
 	drawUi
 
@@ -765,6 +808,7 @@ proc drawOfflineUi {} {
 	global {description.rating}
 
 	global installCurrent
+	global upgradeCurrent
 
 	set offlineMode 1
 	set logoutButtonText "Go Online"
@@ -773,6 +817,7 @@ proc drawOfflineUi {} {
 
 	# Can't click install buttons in offline mode
 	$installCurrent configure -state disabled
+	$upgradeCurrent configure -state disabled
 
 	drawUi
 }
@@ -838,6 +883,51 @@ proc toggleCurrent {} {
 
 	# Redraw context buttons
 	contextButtons
+}
+
+proc toggleCurrentPackageUpgrade {} {
+	global currentPackage
+
+	if [info exists currentPackage(package)] {
+		# If there's a current package, toggle it
+		toggleUpgrade $currentPackage(package)
+	}
+
+	# Redraw context buttons
+	contextButtons
+}
+
+# This toggles the upgrade status.
+proc toggleUpgrade {package} {
+	global upgraded
+
+	# If it's here, remove it.
+	# If not, add it
+	set item [lsearch $upgraded $package]
+	if {$item == -1} {
+		lappend upgraded $package
+		setUpgradeIcon $package 1
+	} else {
+		set upgraded [lreplace $upgraded $item $item]
+		setUpgradeIcon $package 0
+	}
+}
+
+# This sets package's icon.
+# 1 - This will be upgraded
+# 0 - Upgrade is available, but not selected
+proc setUpgradeIcon {package icon} {
+	global upgradeImageMap
+	global upgradeImage
+	global upgradingImage
+
+	if [info exists upgradeImageMap($package)] {
+		if {$icon == 1} {
+			$upgradeImageMap($package) create image 3 3 -image $upgradingImage -anchor nw
+		} else {
+			$upgradeImageMap($package) create image 3 3 -image $upgradeImage -anchor nw
+		}
+	}
 }
 
 # Login Stuff
@@ -1043,6 +1133,12 @@ set installCurrent [ttk::button ${bottomMiddle}.install -text "Mark for Installa
 set uninstallCurrent [ttk::button ${bottomMiddle}.uninstall -text "Unmark for Installation" -command toggleCurrent]
 set removeCurrent [ttk::button ${bottomMiddle}.remove -text "Mark for Removal" -command toggleCurrent]
 set unremoveCurrent [ttk::button ${bottomMiddle}.unremove -text "Unmark for Removal" -command toggleCurrent]
+set upgradeCurrent [ttk::button ${bottomMiddle}.upgradeCurrent -text "Upgrade" -command toggleCurrentPackageUpgrade]
+set unupgradeCurrent [ttk::button ${bottomMiddle}.unupgradeCurrent -text "Don't Upgrade" -command toggleCurrentPackageUpgrade]
+
+
+set upgradeImage [image create photo upgrade -file "update.png" -width 16 -height 16]
+set upgradingImage [image create photo upgrading -file "updating.png" -width 16 -height 16]
 
 # Initialize Filter
 set searchQuery ""
