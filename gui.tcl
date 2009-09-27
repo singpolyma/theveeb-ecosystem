@@ -742,10 +742,16 @@ proc drawLoggedInUi {} {
 	global logoutButtonText
 	global {description.rating}
 
+	global installCurrent
+
 	set offlineMode 0
 	set logoutButtonText "Logout"
 	# Make sure you can do ratings
 	${description.rating} configure -readonly 0
+
+	# Can't click install buttons in offline mode
+	$installCurrent configure -state normal
+
 	drawUi
 
 	# Run the update
@@ -758,10 +764,16 @@ proc drawOfflineUi {} {
 	global logoutButtonText
 	global {description.rating}
 
+	global installCurrent
+
 	set offlineMode 1
 	set logoutButtonText "Go Online"
 	# Can't do ratings in offline mode
 	${description.rating} configure -readonly 1
+
+	# Can't click install buttons in offline mode
+	$installCurrent configure -state disabled
+
 	drawUi
 }
 
