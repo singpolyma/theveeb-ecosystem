@@ -16,11 +16,21 @@ else
 fi
 
 if [ -x "`dirname "$0"`/getrepo.sh" ]; then
-	"`dirname "$0"`/getrepo.sh" | "$UPDATE"
+	GETREPO="`dirname "$0"`/getrepo.sh"
 elif cmdexists tve-getrepo; then
-	tve-getrepo | "$UPDATE"
+	GETREPO="tve-getrepo"
 else
 	echo "tve-getrepo not found" 1>&2
+	exit 1
+fi
+
+# Catch error code and exit
+if ! DATA="`"$GETREPO"`
+
+"; then
+	exit 1
+fi
+if ! echo "$DATA" | "$UPDATE"; then
 	exit 1
 fi
 
