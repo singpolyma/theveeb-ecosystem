@@ -34,7 +34,9 @@ while [ "$#" -gt 0 ]; do
 	depList=`echo "$depList" | grep '^I ' | cut -f 2 -d ' '`
 
 	# Append this package and its dependencies to the packages list 
-	packages=`echo -e "$packages\n$1\n$depList"`
+	packages="$packages
+$1
+$depList"
 
 	# Now move to the next package
 	shift
@@ -54,7 +56,7 @@ for package in `echo "$packages" | grep '^.' | sort | uniq`; do
 		continue;
 	fi
 	# Check if user owns this package
-	if [ "`$status -o "$package"`" == 0 ]; then
+	if [ "`$status -o "$package"`" -eq 0 ]; then
 		thisPrice=`echo "$packageData" | grep '^Price:' | cut -f 2 -d ' '`
 		if [ -n "$thisPrice" ]; then
 			price=`expr "$thisPrice" + "$price"`
