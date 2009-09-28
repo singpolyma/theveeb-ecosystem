@@ -29,7 +29,7 @@ R_CODE="`echo "$RESPONSE" | tail -n 1`"
 # And take the Reponse Code off the Reponse
 RESPONSE="`echo "$RESPONSE" | sed '$d'`"
 
-if [ "$R_CODE" != 200 ]; then
+if [ "$R_CODE" -ne 200 ]; then
 	echo "$RESPONSE"
 	exit 2
 fi
