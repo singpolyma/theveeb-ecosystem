@@ -971,7 +971,7 @@ grid $preLoginSkip
 
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
-set canvasScroll [scrollbar .yscroll -orient vertical -command {$canvas yview}]
+set canvasScroll [ttk::scrollbar .yscroll -orient vertical -command {$canvas yview}]
 $canvas configure -yscrollcommand [list $canvasScroll set]
 
 # Get scrollable view area
@@ -1049,7 +1049,7 @@ bind ${description.rating} <<Rate>> {
 }
 
 # Set up the scrolling
-set description.scrollbar [scrollbar ${description}.scrollbar -command "${description.longText} yview"]
+set description.scrollbar [ttk::scrollbar ${description}.scrollbar -command "${description.longText} yview"]
 ${description.longText} configure -yscrollcommand "${description.scrollbar} set"
 
 # Set up the text box to update when the variable's changed.
@@ -1095,7 +1095,7 @@ grid ${feedback.typeLabel} ${feedback.type}
 
 # Main Feedback form
 set feedback.box [text ${feedback}.box]
-set feedback.scroll [scrollbar ${feedback}.scroll -command [list ${feedback.box} yview]]
+set feedback.scroll [ttk::scrollbar ${feedback}.scroll -command [list ${feedback.box} yview]]
 ${feedback.box} configure -yscrollcommand [list ${feedback.scroll} set]
 # And send button
 set feedback.send [ttk::button ${feedback}.send -text "Send" -command [list sendFeedback ${feedback.box} ${feedback.type}]]
