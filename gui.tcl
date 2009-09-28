@@ -80,7 +80,7 @@ proc drawPackageList {destination data} {
 		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont -background white]
 		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w -background white]
 		set price [label ${destination}.frame.row$i.price -text "$temp(price) ¤" -anchor e -background white]
-		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
+		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3 -background white]
 		$rating avgSet $temp(rating)
 
 		# Now the Purchased and Upgrade status
