@@ -74,18 +74,18 @@ proc drawPackageList {destination data} {
 			}
 		}
 
-		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)] -background white]
 		set checkBoxMap($temp(package)) $cb
 		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
-		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
-		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
-		set price [label ${destination}.frame.row$i.price -text "$temp(price) ¤" -anchor e]
+		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont -background white]
+		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w -background white]
+		set price [label ${destination}.frame.row$i.price -text "$temp(price) ¤" -anchor e -background white]
 		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
 		$rating avgSet $temp(rating)
 
 		# Now the Purchased and Upgrade status
-		set purchase [canvas ${destination}.frame.row${i}.purchase -height 16 -width 16]
-		set upgrade [canvas ${destination}.frame.row${i}.upgrade -height 16 -width 16]
+		set purchase [canvas ${destination}.frame.row${i}.purchase -height 16 -width 16 -background white]
+		set upgrade [canvas ${destination}.frame.row${i}.upgrade -height 16 -width 16 -background white]
 		set upgradeImageMap($temp(package)) $upgrade
 
 		# If this package has been purchased, show the icon
