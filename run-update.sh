@@ -36,12 +36,6 @@ fi
 
 BASEURL="http://pkgs.theveeb.com" # XXX: Should this be an argument?
 
-# Verify the presence of oauthsign
-if ! cmdexists oauthsign; then
-	echo "You need the oauthsign utility from oauth-utils installed to use this script." 1>&2
-	exit 1
-fi
-
 # URL to fetch
 URL="https://theveeb.com/users/me?packages"
 
