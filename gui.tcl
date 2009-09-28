@@ -61,7 +61,7 @@ proc drawPackageList {destination data} {
 	foreach {item} $data {
 		array set temp $item
 
-		canvas ${destination}.frame.row$i -highlightbackground #abc -highlightthickness 0
+		canvas ${destination}.frame.row$i -highlightbackground #abc -highlightthickness 0 -background white
 		grid ${destination}.frame.row$i -pady 2 -sticky nwe -row $i
 
 		# When reading the database, only use its value if we haven't already picked one
