@@ -15,6 +15,13 @@ source scrollable.tcl
 source textvariable.tcl
 source ratingWidget.tcl
 
+set frameBackground [ttk::style lookup frame -background]
+if [string equal $frameBackground "systemWindowBody"] {
+	# This is a crappy dirty hack to get this to work on Mac where it lie to me
+	# I'm a lot frustrated with this, and there's probably a better way, but I hate too much right now to find it.
+	set frameBackground systemDialogBackgroundActive
+}
+
 proc findTVEbinary {script {prefix tve-}} {
 	global argv0
 	set localpath [file join [file dirname $argv0] $script $script]
@@ -1034,7 +1041,7 @@ set description.title [ttk::label ${description.topLine}.title -textvariable cur
 set description.caption [ttk::label ${description.secondLine}.caption -textvariable currentPackage(caption) -justify left]
 set description.longText [text ${description}.longText -wrap word]
 set description.price [ttk::label ${description.topLine}.price -textvariable currentPackage(price) -justify right]
-set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 5]
+set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 5 -background $frameBackground -highlightthickness 0]
 bind ${description.rating} <<Rate>> {
 	if [info exists packageRating($currentPackage(package))] {
 		set currentValue $packageRating($currentPackage(package))
