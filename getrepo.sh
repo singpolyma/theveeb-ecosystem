@@ -30,6 +30,12 @@ if [ -z "$LISTFILE" ]; then
 	fi
 fi
 
+# Set up gnupg if it isn't
+if [ ! -r "$HOME/.gnupg/gpg.conf" -a ! -r "$HOME/Application Data/gnupg/gpg.conf" -a -r "$TVEROOT/usr/share/gnupg/gpg.conf" ]; then
+	cp "$TVEROOT/usr/share/gnupg/gpg.conf" "$HOME/Application Data/gnupg/gpg.conf"
+	cat "$TVEROOT/usr/share/gnupg/"*.asc | gpg --import
+fi
+
 # Don't mess up the current directory
 if [ ! -z "$TMPDIR" ]; then
 	temp="$TMPDIR"
