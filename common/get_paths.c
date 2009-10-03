@@ -62,6 +62,12 @@ char *get_db_path() {
 			return path;
 		}
 	}
+	if((path = getenv("TVEROOT")) && path[0] != '\0') {
+		path = xmalloc((strlen(path)+sizeof("/var/cache/tve.db"))*sizeof(*path), "get_db_path");
+		strcpy(path, getenv("TVEROOT"));
+		strcat(path, "/var/cache/tve.db");
+		return path;
+	}
 	return xstrdup(TVEDB, "get_db_path: xstrdup");
 }
 
