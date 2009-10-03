@@ -15,6 +15,13 @@ source scrollable.tcl
 source textvariable.tcl
 source ratingWidget.tcl
 
+set frameBackground [ttk::style lookup frame -background]
+if [string equal $frameBackground "systemWindowBody"] {
+	# This is a crappy dirty hack to get this to work on Mac where it lie to me
+	# I'm a lot frustrated with this, and there's probably a better way, but I hate too much right now to find it.
+	set frameBackground systemDialogBackgroundActive
+}
+
 proc findTVEbinary {script {prefix tve-}} {
 	global argv0
 	set localpath [file join [file dirname $argv0] $script $script]
@@ -61,7 +68,7 @@ proc drawPackageList {destination data} {
 	foreach {item} $data {
 		array set temp $item
 
-		canvas ${destination}.frame.row$i -highlightbackground #abc -highlightthickness 0
+		canvas ${destination}.frame.row$i -highlightbackground #abc -highlightthickness 0 -background white
 		grid ${destination}.frame.row$i -pady 2 -sticky nwe -row $i
 
 		# When reading the database, only use its value if we haven't already picked one
@@ -74,18 +81,18 @@ proc drawPackageList {destination data} {
 			}
 		}
 
-		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)]]
+		set cb [checkbutton ${destination}.frame.row${i}.check -variable selectedPackages($temp(package)) -command [list checkChanged $temp(package)] -background white -highlightbackground white]
 		set checkBoxMap($temp(package)) $cb
-		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue]
-		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont]
-		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w]
-		set price [label ${destination}.frame.row$i.price -text "$temp(price) ¤" -anchor e]
-		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3]
+		set icon [canvas $destination.frame.row$i.icon -height 24 -width 24 -background blue -highlightbackground white]
+		set name [label ${destination}.frame.row$i.desc -text $temp(title) -anchor w -font TkHeadingFont -background white]
+		set desc [label ${destination}.frame.row$i.longer -text $temp(descText) -anchor w -background white]
+		set price [label ${destination}.frame.row$i.price -text "$temp(price) ¤" -anchor e -background white]
+		set rating [ratingWidget ${destination}.frame.row$i.rating -readonly 1 -pointRadius 8 -troughRadius 3 -background white -highlightthickness 0]
 		$rating avgSet $temp(rating)
 
 		# Now the Purchased and Upgrade status
-		set purchase [canvas ${destination}.frame.row${i}.purchase -height 16 -width 16]
-		set upgrade [canvas ${destination}.frame.row${i}.upgrade -height 16 -width 16]
+		set purchase [canvas ${destination}.frame.row${i}.purchase -height 16 -width 16 -background white -highlightbackground white]
+		set upgrade [canvas ${destination}.frame.row${i}.upgrade -height 16 -width 16 -background white -highlightbackground white]
 		set upgradeImageMap($temp(package)) $upgrade
 
 		# If this package has been purchased, show the icon
@@ -971,7 +978,7 @@ grid $preLoginSkip
 
 # Get the main scrollable canvas
 set canvas [scrollableThing .can]
-set canvasScroll [scrollbar .yscroll -orient vertical -command {$canvas yview}]
+set canvasScroll [ttk::scrollbar .yscroll -orient vertical -command {$canvas yview}]
 $canvas configure -yscrollcommand [list $canvasScroll set]
 
 # Get scrollable view area
@@ -1034,7 +1041,7 @@ set description.title [ttk::label ${description.topLine}.title -textvariable cur
 set description.caption [ttk::label ${description.secondLine}.caption -textvariable currentPackage(caption) -justify left]
 set description.longText [text ${description}.longText -wrap word]
 set description.price [ttk::label ${description.topLine}.price -textvariable currentPackage(price) -justify right]
-set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 5]
+set description.rating [ratingWidget ${description.secondLine}.rating -pointRadius 12 -troughRadius 5 -background $frameBackground -highlightthickness 0]
 bind ${description.rating} <<Rate>> {
 	if [info exists packageRating($currentPackage(package))] {
 		set currentValue $packageRating($currentPackage(package))
@@ -1049,7 +1056,7 @@ bind ${description.rating} <<Rate>> {
 }
 
 # Set up the scrolling
-set description.scrollbar [scrollbar ${description}.scrollbar -command "${description.longText} yview"]
+set description.scrollbar [ttk::scrollbar ${description}.scrollbar -command "${description.longText} yview"]
 ${description.longText} configure -yscrollcommand "${description.scrollbar} set"
 
 # Set up the text box to update when the variable's changed.
@@ -1095,7 +1102,7 @@ grid ${feedback.typeLabel} ${feedback.type}
 
 # Main Feedback form
 set feedback.box [text ${feedback}.box]
-set feedback.scroll [scrollbar ${feedback}.scroll -command [list ${feedback.box} yview]]
+set feedback.scroll [ttk::scrollbar ${feedback}.scroll -command [list ${feedback.box} yview]]
 ${feedback.box} configure -yscrollcommand [list ${feedback.scroll} set]
 # And send button
 set feedback.send [ttk::button ${feedback}.send -text "Send" -command [list sendFeedback ${feedback.box} ${feedback.type}]]
