@@ -45,10 +45,14 @@ Section "The Veeb Ecosystem"
 
 	SetOutPath $INSTDIR
 	File /a /r dist\*.*
+
+	CreateShortCut "$SMPROGRAMS\The Veeb Ecosystem.lnk" "\"$INSTDIR\usr\bin\wish.exe\" \"$INSTDIR\usr\bin\tve-gui\""
+
 	WriteUninstaller $INSTDIR\uninstall.exe
 SectionEnd
 
 Section "Uninstall"
+	Delete "$SMPROGRAMS\The Veeb Ecosystem.lnk"
 	Delete $INSTDIR\uninstall.exe
 	RMDir /r /REBOOTOK $INSTDIR\bin
 	RMDir /r /REBOOTOK $INSTDIR\usr
