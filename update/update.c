@@ -180,8 +180,11 @@ void package_update_sql(struct Package * current, char * sql, size_t size) {
 	if(current->price > 0) {
 		sprintf(sql, "%sprice=%d,", sql, current->price);
 	}
-	if(current->installed_size > 0 && current->size > 0) {
-		sprintf(sql, "%sinstalled_size=%d,size=%d,", sql, current->installed_size, current->size);
+	if(current->size > 0) {
+		sprintf(sql, "%ssize=%d,", sql, current->size);
+	}
+	if(current->installed_size > 0) {
+		sprintf(sql, "%sinstalled_size=%d,", sql, current->installed_size);
 	}
 	sql[strlen(sql)-1] = '\0'; /* chomp final , */
 	strncat (sql, " WHERE package=",  size);
