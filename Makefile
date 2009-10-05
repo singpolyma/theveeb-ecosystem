@@ -26,7 +26,7 @@ install_sh: *.sh
 	install -DTvpm644 tve-setup.sh "$(prefix)/lib/tve-setup.sh"
 
 install: install_sh
-	-cp -rLpv external/* "$(prefix)"
+	-cp -rLpv external/* "$(prefix)/.."
 	install -Dvpm755 gui.tcl "$(prefix)/bin/tve-gui"
 # TODO: TCL includes to packages and such
 	install -DTvpm644 README  "$(prefix)/share/doc/tve-core/README"

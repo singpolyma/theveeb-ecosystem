@@ -31,6 +31,9 @@ Section "The Veeb Ecosystem"
 	# Environment variables
 	WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" TVEROOT "$INSTDIR"
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\lib"
+	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\usr\lib"
+	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\usr\local\lib"
 	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\bin"
 	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\usr\bin"
 	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\usr\local\bin"
@@ -46,7 +49,7 @@ Section "The Veeb Ecosystem"
 	SetOutPath $INSTDIR
 	File /a /r dist\*.*
 
-	CreateShortCut "$SMPROGRAMS\The Veeb Ecosystem.lnk" "\"$INSTDIR\usr\bin\wish.exe\" \"$INSTDIR\usr\bin\tve-gui\""
+	CreateShortCut "$SMPROGRAMS\The Veeb Ecosystem.lnk" "$\"$INSTDIR\usr\bin\wish85.exe$\" $\"$INSTDIR\usr\bin\tve-gui$\""
 
 	WriteUninstaller $INSTDIR\uninstall.exe
 SectionEnd
@@ -59,6 +62,9 @@ Section "Uninstall"
 	RMDir /REBOOTOK $INSTDIR
 	DeleteRegValue HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" TVEROOT
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\lib"
+	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\usr\lib"
+	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\usr\local\lib"
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\bin"
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\usr\bin"
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\usr\local\bin"
