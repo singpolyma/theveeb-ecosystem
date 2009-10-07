@@ -11,9 +11,19 @@ catch {namespace import -force ttk::*}
 
 catch {package require Img}
 
-source scrollable.tcl
-source textvariable.tcl
-source ratingWidget.tcl
+set tveIncludeDir [file join [file dirname $argv0] tveTclIncludes]
+# If we have a directory in the same folder as the executable called tveTclIncludes
+if [file readable $tveIncludeDir] {
+	# Add it to the path to look for includes in.
+	lappend auto_path $tveIncludeDir
+}
+
+# If we don't have this directory, then we'd better just assume it's in one of the directories listed in auto_path
+
+if [catch {package require tveLibs}] {
+	tk_messageBox -title "Include Error" -message "Couldn't find required package tveLibs.\n\nTry finding a directory called tveTclIncludes and placing it in one of the following dirs:\n\n[join $auto_path \n]"
+	exit
+}
 
 set frameBackground [ttk::style lookup frame -background]
 if [string equal $frameBackground "systemWindowBody"] {
