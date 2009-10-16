@@ -30,6 +30,7 @@ UninstPage instfiles
 Section "The Veeb Ecosystem"
 	# Environment variables
 	WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" TVEROOT "$INSTDIR"
+	WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" XDG_DATA_DIRS "$INSTDIR\usr\share:$INSTDIR\usr\local\share"
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\lib"
 	${EnvVarUpdate} $0 "PATH" "P" "HKLM" "$INSTDIR\usr\lib"
@@ -61,6 +62,7 @@ Section "Uninstall"
 	RMDir /r /REBOOTOK $INSTDIR\usr
 	RMDir /REBOOTOK $INSTDIR
 	DeleteRegValue HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" TVEROOT
+	DeleteRegValue HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" XDG_DATA_DIRS
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\lib"
 	${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\usr\lib"
