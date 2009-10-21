@@ -949,6 +949,15 @@ proc setUpgradeIcon {package icon} {
 	}
 }
 
+# This is called when a package is rated
+proc ratePackage {package rating} {
+	global packageRating
+	global currentPackage
+
+	puts [exec sh -c "[findTVEscript "rate"] $currentPackage(package) $rating"]
+	set packageRating($currentPackage(package)) $rating
+}
+
 # Login Stuff
 # TODO: put logo here... put logo always in app?
 set loginFrame    [ttk::frame  .loginFrame]
@@ -1060,8 +1069,7 @@ bind ${description.rating} <<Rate>> {
 	}
 	if {%d != $currentValue} {
 		# Only report on changes
-		puts "Rated package $currentPackage(package) a %d"
-		set packageRating($currentPackage(package)) {%d}
+		ratePackage $currentPackage(package) %d
 	}
 }
 
