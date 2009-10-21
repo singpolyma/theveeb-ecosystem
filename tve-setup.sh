@@ -67,7 +67,7 @@ if cmdexists wget 1>&2; then
 	}
 elif cmdexists curl 1>&2; then
 	post2stdout() {
-		curl -d"$2" "$1"
+		curl -s -d"$2" "$1"
 	}
 	net2stdout() {
 		if [ -n "$2" ]; then
