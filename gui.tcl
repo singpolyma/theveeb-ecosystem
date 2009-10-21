@@ -560,7 +560,12 @@ proc sendFeedback {textWindow typeWindow} {
 	set feedback(machine) $tcl_platform(machine)
 	set feedback(platform) $tcl_platform(platform)
 
-	puts [array get feedback]
+	set optionString ""
+	foreach {name value} [array get feedback] {
+		append optionString "-d '$name=$value' "
+	}
+
+	puts [exec sh -c "[findTVEscript "feedback"] $currentPackage(package) $optionString"]
 }
 
 proc clearUi {} {
