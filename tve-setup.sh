@@ -48,6 +48,9 @@ fi
 
 # Find the network utility
 if cmdexists wget 1>&2; then
+	post2stdout() {
+		wget --post-data="$2" -q -O - "$1"
+	}
 	net2stdout() {
 		if [ -n "$2" ]; then
 			wget --header="$1" -q -O - "$2"
@@ -63,6 +66,9 @@ if cmdexists wget 1>&2; then
 		fi
 	}
 elif cmdexists curl 1>&2; then
+	post2stdout() {
+		curl -d"$2" "$1"
+	}
 	net2stdout() {
 		if [ -n "$2" ]; then
 			curl -H"$1" -sfL "$2"
@@ -78,6 +84,10 @@ elif cmdexists curl 1>&2; then
 		fi
 	}
 else
+	post2stdout() {
+		echo "You must have wget or curl installed." 1>&2
+		exit 1
+	}
 	net2stdout() {
 		echo "You must have wget or curl installed." 1>&2
 		exit 1
