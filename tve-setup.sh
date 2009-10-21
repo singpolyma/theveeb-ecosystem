@@ -162,9 +162,10 @@ getTVEAuthRequest() {
 	else
 		method="GET"
 	fi
+	shift 3
 
 	token="`echo "$line" | cut -d ' ' -f2`"
 	secret="`echo "$line" | cut -d ' ' -f3`"
 
-	echo "`oauthsign -r "$method" -c anonymous -C anonymous -t "$token" -T "$secret" "$requestUrl"`"
+	echo "`oauthsign -G -r "$method" "$@" -c anonymous -C anonymous -t "$token" -T "$secret" "$requestUrl"`"
 }
