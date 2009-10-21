@@ -13,4 +13,4 @@ REQ="`getTVEAuthRequest "$TOKENS" "https://theveeb.com/apps/$1" "PUT" -d "rating
 
 # Use cURL, since wget can't do PUT
 # Send parameters in query string for OAuth
-curl -X PUT "$REQ"
+curl -s -X PUT "$REQ"
