@@ -6,6 +6,8 @@ else
 	. "$TVEROOT"/usr/lib/tve-setup.sh
 fi
 
+BASEURL="http://pkgs.theveeb.com/" # XXX: Should this be an argument?
+
 # Expects app-name -d 'k=v' -d 'k2-v2' NO URL ENCODING
 
 TOKENS="`getTVETokens "$BASEURL"`"

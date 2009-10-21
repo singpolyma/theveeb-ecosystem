@@ -162,7 +162,12 @@ getTVEAuthRequest() {
 	else
 		method="GET"
 	fi
-	shift 3
+
+	if [ $# -gt 2 ]; then
+		shift 3
+	else
+		shift 2
+	fi
 
 	token="`echo "$line" | cut -d ' ' -f2`"
 	secret="`echo "$line" | cut -d ' ' -f3`"
