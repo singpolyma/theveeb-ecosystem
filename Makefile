@@ -9,7 +9,7 @@ all:    targets
 dir             := .
 include         Rules.mk
 
-.PHONY: all static targets test clean distclean install install_sh
+.PHONY: all static targets test clean distclean install install_sh install_tcl
 
 %$(BINSUFFIX): %.o
 	$(CC) $^ $(LL_ALL) $(LL_TGT) $(LDFLAGS) -o $@
@@ -27,7 +27,11 @@ install_sh: *.sh
 	mkdir -p "$(prefix)/lib/"
 	cp -vp tve-setup.sh "$(prefix)/lib/tve-setup.sh"
 
-install: install_sh
+install_tcl: tveTclIncludes/*.tcl
+	mkdir -p "$(prefix)/lib"
+	cp -Rvp tveTclIncludes "$(prefix)/lib"
+
+install: install_sh install_tcl
 	-cp -RLpv external/* "$(prefix)/.."
 	cp -vp gui.tcl "$(prefix)/bin/tve-gui"
 # TODO: TCL includes to packages and such
