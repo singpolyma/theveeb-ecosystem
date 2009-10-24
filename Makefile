@@ -18,19 +18,22 @@ static:
 	$(MAKE) LDFLAGS="-lpthread -ldl -static"
 
 install_sh: *.sh
-	@for SCRIPT in $^; do install -DTvpm755 "$$SCRIPT" "$(prefix)/bin/tve-`basename $$SCRIPT .sh`"; done
+	mkdir -p "$(prefix)/bin"
+	@for SCRIPT in $^; do cp -vp "$$SCRIPT" "$(prefix)/bin/tve-`basename $$SCRIPT .sh`"; done
 	mv "$(prefix)/bin/tve-undeb" "$(prefix)/bin/undeb"
 	mv "$(prefix)/bin/tve-maybesudo" "$(prefix)/bin/maybesudo"
 	$(RM) "$(prefix)/bin/tve-tve-setup" "$(prefix)/bin/tve-setup.sh"
 	$(RM) "$(prefix)/bin/tve-xdebuild"*
-	install -DTvpm644 tve-setup.sh "$(prefix)/lib/tve-setup.sh"
+	mkdir -p "$(prefix)/lib/"
+	cp -vp tve-setup.sh "$(prefix)/lib/tve-setup.sh"
 
 install: install_sh
-	-cp -rLpv external/* "$(prefix)/.."
-	install -Dvpm755 gui.tcl "$(prefix)/bin/tve-gui"
+	-cp -RLpv external/* "$(prefix)/.."
+	cp -vp gui.tcl "$(prefix)/bin/tve-gui"
 # TODO: TCL includes to packages and such
-	install -DTvpm644 README  "$(prefix)/share/doc/tve-core/README"
-	install -DTvpm644 COPYING "$(prefix)/share/doc/tve-core/COPYING"
+	mkdir -p "$(prefix)/share/doc/tve-core"
+	cp -vp README  "$(prefix)/share/doc/tve-core/README"
+	cp -vp COPYING "$(prefix)/share/doc/tve-core/COPYING"
 
 tve-core.deb:
 	debuild --no-tgz-check

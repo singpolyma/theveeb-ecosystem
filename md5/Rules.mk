@@ -16,7 +16,8 @@ CLEAN_$(d)      := $(OBJS_$(d)) $(TGTS_$(d))
 $(TGTS_$(d)):   $(OBJS_$(d))
 targets_$(d):   $(TGTS_$(d))
 install_$(d):   $(TGTS_$(d))
-	install -Dvpsm755 $^ "$(prefix)/bin/"
+	mkdir -p "$(prefix)/bin"
+	cp -vp "$^" "$(prefix)/bin/"
 
 # Arrange for this target to be part of a global build
 CLEAN           := $(CLEAN) $(CLEAN_$(d))
