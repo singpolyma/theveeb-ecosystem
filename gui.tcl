@@ -896,16 +896,26 @@ proc skipLoginCheck {} {
 proc runUpdate {} {
 	global env
 
+	set update [findTVEscript "run-update"]
+	set prefix ""
+
 	# In "Offline But Pretend To Be Online" mode, don't update
 	if [info exists env(TVEOFFLINE)] {
 		return
 	}
 	if {![file writable [get_db_path]]} {
-		# Probably Can't Update
-		return
+		# Probably Can't Update Without Permission
+
+		# This is the amount that the times must be different for it to ask to update (In seconds).
+		# 3 days?
+		set updateDiffTime [expr 3 * 60 * 60 * 24]
+		if {[expr [clock seconds] - [file mtime [get_db_path]]] < $updateDiffTime} {
+			# No need to update
+			return
+		}
+		set prefix [findTVEscript maybesudo]
 	}
-	set update [findTVEscript "run-update"]
-	set command [open "| sh -c \"$update\"" r]
+	set command [open "| sh -c \"$prefix $update\"" r]
 	fileevent $command readable [list handleRunUpdate $command]
 }
 
