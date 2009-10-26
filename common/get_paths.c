@@ -43,6 +43,7 @@ char *get_home() {
 	return NULL;
 }
 
+/* XXX: The following was ported to tcl in gui.tcl */
 char *get_db_path() {
 	char *path;
 	FILE *fp;

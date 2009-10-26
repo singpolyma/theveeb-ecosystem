@@ -1,5 +1,6 @@
 #The wine build has not been tested.   --DV
 TARGET=win32
 CC=winegcc
+# XXX: If the TVEDB default changes it must be updated in gui.tcl
 CFLAGS=-g -O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET) -D_WIN32 -D__WIN32__ -DTVEDB="\"\\\\Program Files\\\\TheVeeb\\\\var\\\\cache\\\\tve.db\"" -I.
 prefix=/usr/local

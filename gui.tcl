@@ -32,6 +32,37 @@ if [string equal $frameBackground "systemWindowBody"] {
 	set frameBackground systemDialogBackgroundActive
 }
 
+# XXX: The following is a direct port of the C code from common/get_paths.c
+proc get_db_path {} {
+	global env
+	global tcl_platform
+
+	if {[info exists env(TVEDB)] && [string length [string trim $env(TVEDB)]] > 0} {
+		return $env(TVEDB)
+	}
+	if [file exists [file join {~} {.tve.db}]] {
+		return [file join {~} {.tve.db}]
+	}
+	if {[info exists env(TVEROOT)] && [string length [string trim $env(TVEROOT)]] > 0} {
+		return [file join $env(TVEROOT) {var} {cache} {tve.db}]
+	}
+
+	# Platform specific defaults
+	if [string equal $tcl_platform(platform) "windows"] {
+		# Taken from build-config.mk.win32-mingw
+		# Hardcoding C:\ migth not be a good thing.
+		return [file join "C:\\" {Program Files} {TheVeeb} {var} {cache} {tve.db}]
+	}
+
+	if [string equal $tcl_platform(os) "Darwin"] {
+		# Taken from build-config.mk.osx
+		return [file join {/} {Library} {caches} {tve.db}]
+	}
+
+	# Taken from common/get_paths.h
+	return [file join {/} {var} {cache} {tve.db}]
+}
+
 proc findTVEbinary {script {prefix tve-}} {
 	global argv0
 	set localpath [file join [file dirname $argv0] $script $script]
@@ -867,6 +898,10 @@ proc runUpdate {} {
 
 	# In "Offline But Pretend To Be Online" mode, don't update
 	if [info exists env(TVEOFFLINE)] {
+		return
+	}
+	if {![file writable [get_db_path]]} {
+		# Probably Can't Update
 		return
 	}
 	set update [findTVEscript "run-update"]

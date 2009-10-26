@@ -1,4 +1,5 @@
 #ifndef TVEDB
+	/* XXX: If this is changed, it has to be changed in gui.tcl */
 	#define TVEDB "/var/cache/tve.db"
 #endif
 
