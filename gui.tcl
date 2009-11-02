@@ -83,6 +83,43 @@ proc findTVEscript {script {prefix tve-}} {
 	}
 }
 
+proc findTVEdata {name} {
+	global env
+	global argv0
+	set localpath [file join [file dirname $argv0] $name]
+	if [file readable $localpath] {
+		return $localpath
+	} else {
+		set dirList [list]
+		if [info exists env(XDG_DATA_HOME)] {
+			lappend dirList $env(XDG_DATA_HOME)
+		}
+
+		if [info exists env(XDG_DATA_DIRS)] {
+			set tempList [split $env(XDG_DATA_DIRS) ":"]
+			# If we find any single char paths, join them to the next item
+			# This is to deal with C:\ in paths that are colon separated.
+			for {set i 0} {$i < [llength $tempList]} {incr i} {
+				if {[string length [lindex $tempList $i]] <= 1} {
+					# Jam this!
+					set tempList [lreplace $tempList $i [expr $i + 1] "[lindex $tempList $i]:[lindex $tempList [expr $i + 1]]"]
+					# And stay on the same i.
+					incr i -1
+				}
+			}
+			set dirList [concat $dirList $tempList]
+		}
+		set dirList [concat $dirList [list [file join {~} {.local} {share}] [file join {/} {usr} {local} {share}] [file join {/} {usr} {share}]]]
+
+		foreach dir $dirList {
+			set path [file join $dir {tve} $name]
+			if [file readable $path] {
+				return $path
+			}
+		}
+	}
+}
+
 proc clearScrollableThing {widget} {
 	foreach item [grid slaves ${widget}.frame] {
 		grid forget $item
@@ -138,7 +175,7 @@ proc drawPackageList {destination data} {
 
 		# If this package has been purchased, show the icon
 		if {[info exists temp(owns)] && [string length [string trim $temp(owns)]] != 0} {
-			set purchaseImage [image create photo purchase${i} -file "purchase.png" -width 16 -height 16]
+			set purchaseImage [image create photo purchase${i} -file [findTVEdata purchase.png] -width 16 -height 16]
 			$purchase create image 3 3 -image $purchaseImage -anchor nw
 		}
 
@@ -1214,8 +1251,8 @@ set upgradeCurrent [ttk::button ${bottomMiddle}.upgradeCurrent -text "Upgrade" -
 set unupgradeCurrent [ttk::button ${bottomMiddle}.unupgradeCurrent -text "Don't Upgrade" -command toggleCurrentPackageUpgrade]
 
 
-set upgradeImage [image create photo upgrade -file "update.png" -width 16 -height 16]
-set upgradingImage [image create photo upgrading -file "updating.png" -width 16 -height 16]
+set upgradeImage [image create photo upgrade -file [findTVEdata update.png] -width 16 -height 16]
+set upgradingImage [image create photo upgrading -file [findTVEdata updating.png] -width 16 -height 16]
 
 # Initialize Filter
 set searchQuery ""
