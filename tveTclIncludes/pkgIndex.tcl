@@ -1,0 +1,1 @@
+package ifneeded tveLibs 1.0 [join [list [list source [file join $dir scrollable.tcl]] [list source [file join $dir textvariable.tcl]] [list source [file join $dir ratingWidget.tcl]] [list package provide tveLibs 1.0]] "\n"]
