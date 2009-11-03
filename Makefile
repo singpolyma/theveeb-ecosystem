@@ -30,6 +30,8 @@ install_sh: *.sh
 install_tcl: tveTclIncludes/*.tcl
 	mkdir -p "$(prefix)/lib"
 	cp -Rvp tveTclIncludes "$(prefix)/lib"
+	mkdir -p "$(prefix)/share/tve"
+	cp -vp purchase.png update.png updating.png "$(prefix)/share/tve"
 
 install: install_sh install_tcl
 	-cp -RLpv external/* "$(prefix)/.."
