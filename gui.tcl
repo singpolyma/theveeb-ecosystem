@@ -579,13 +579,15 @@ proc DoIt {} {
 			}
 			# Install this
 			if [catch {exec -ignorestderr sh -c "[findTVEscript maybesudo ""] [findTVEscript install] $pName"} failWords] {
-				append installFail " $pName"
-				tk_messageBox -message $failWords -title "Install"
+				if {[lindex $errorCode 2] == 110} {
+					set restartRequired 1
+					append installSucc " $pName"
+				} else {
+					append installFail " $pName"
+					tk_messageBox -message $failWords -title "Install"
+				}
 			} else {
 				append installSucc " $pName"
-			}
-			if {[lindex $errorCode 2] == 110} {
-				set restartRequired 1
 			}
 		} else {
 			# Remove this
