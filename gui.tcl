@@ -523,11 +523,13 @@ proc Depends {package} {
 proc DoIt {} {
 	global selectedPackages
 	global env
+	global errorCode
 
 	set installFail ""
 	set removeFail ""
 	set installSucc ""
 	set removeSucc ""
+	set restartRequired 0
 
 	set diffList [getDiff]
 
@@ -582,6 +584,9 @@ proc DoIt {} {
 			} else {
 				append installSucc " $pName"
 			}
+			if {[lindex $errorCode 2] == 110} {
+				set restartRequired 1
+			}
 		} else {
 			# Remove this
 			if [catch {exec -ignorestderr sh -c "[findTVEscript maybesudo ""] [findTVEscript remove] $pName"} failWords] {
@@ -591,6 +596,9 @@ proc DoIt {} {
 				append removeSucc " $pName"
 			}
 		}
+	}
+	if $restartRequired {
+		tk_messageBox -title "Restart Required" -message "To complete the installation you must restart your computer"
 	}
 	Report "The following packages failed to install:" $installFail "Installation Failed"
 	Report "Installation succeeded on the following packages:" $installSucc "Installation Success"
