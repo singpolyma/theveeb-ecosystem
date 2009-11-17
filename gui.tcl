@@ -63,13 +63,50 @@ proc get_db_path {} {
 	return [file join {/} {var} {cache} {tve.db}]
 }
 
+# This takes in a colon separated string, like that of a "$PATH" variable.
+# It splits it and returns a Tcl List insteaad
+# It also joins elements that are one character long, so C:\ThisText will work properly
+proc parsePathEnv {path} {
+	set tempList [split $path ":"]
+	# If we find any single char paths, join them to the next item
+	# This is to deal with C:\ in paths that are colon separated.
+	for {set i 0} {$i < [llength $tempList]} {incr i} {
+		if {[string length [lindex $tempList $i]] <= 1} {
+			# Jam this!
+			set tempList [lreplace $tempList $i [expr $i + 1] "[lindex $tempList $i]:[lindex $tempList [expr $i + 1]]"]
+			# And stay on the same i.
+			incr i -1
+		}
+	}
+
+	return $tempList
+}
+
+proc findPathFile {filename} {
+	global env
+	if {![info exists env(PATH)]} {
+		return $filename
+	}
+	set path [parsePathEnv $env(PATH)]
+
+	foreach dir $path {
+		set full [file join $dir $filename]
+		if [file readable $full] {
+			return $full
+		}
+	}
+
+	# If we can't figure it out ourselves, assume it will know what to do with it and pass it through.
+	return $filename
+}
+
 proc findTVEbinary {script {prefix tve-}} {
 	global argv0
 	set localpath [file join [file dirname $argv0] $script $script]
 	if [file readable $localpath] {
 		return $localpath
 	} else {
-		return $prefix$script
+		return [findPathFile $prefix$script]
 	}
 }
 
@@ -79,7 +116,7 @@ proc findTVEscript {script {prefix tve-}} {
 	if [file readable $localpath] {
 		return $localpath
 	} else {
-		return $prefix$script
+		return [findPathFile $prefix$script]
 	}
 }
 
@@ -96,19 +133,9 @@ proc findTVEdata {name} {
 		}
 
 		if [info exists env(XDG_DATA_DIRS)] {
-			set tempList [split $env(XDG_DATA_DIRS) ":"]
-			# If we find any single char paths, join them to the next item
-			# This is to deal with C:\ in paths that are colon separated.
-			for {set i 0} {$i < [llength $tempList]} {incr i} {
-				if {[string length [lindex $tempList $i]] <= 1} {
-					# Jam this!
-					set tempList [lreplace $tempList $i [expr $i + 1] "[lindex $tempList $i]:[lindex $tempList [expr $i + 1]]"]
-					# And stay on the same i.
-					incr i -1
-				}
-			}
-			set dirList [concat $dirList $tempList]
+			set dirList [concat $dirList [parsePathEnv $env(XDG_DATA_DIRS)]]
 		}
+
 		set dirList [concat $dirList [list [file join {~} {.local} {share}] [file join {/} {usr} {local} {share}] [file join {/} {usr} {share}]]]
 
 		foreach dir $dirList {
@@ -499,13 +526,13 @@ proc getCost {diff} {
 		return 0
 	}
 
-	return [exec sh -c "[findTVEscript calculateTotal] $apps"]
+	return [exec [findTVEscript calculateTotal] $apps]
 }
 
 # This returns a list of all depended on packages
 proc Depends {package} {
 	set depends [findTVEbinary {depends}]
-	if [catch {exec -ignorestderr sh -c "$depends $package"} dependencies] {
+	if [catch {exec -ignorestderr $depends $package} dependencies] {
 		tk_messageBox -title "Depends Failed!" -message "Dependencies Failed: $dependencies"
 		exit -1
 	}
@@ -552,14 +579,14 @@ proc DoIt {} {
 		if {$pStatus == 1} {
 			# Check if all dependencies are purchased
 			foreach {dName} [Depends $pName] {
-				if [catch {exec sh -c "[findTVEbinary status] -o $dName"} val] {
+				if [catch {exec [findTVEbinary status] -o $dName} val] {
 					tk_messageBox -title "Status Broke" -message "Couldn't Call Status -o. Error: $val"
 					append installFail " $pName"
 					break
 				}
 				if {$val == 0} {
 					# This needs purchasing
-					if [catch {exec sh -c "[findTVEscript purchase] $dName"} val] {
+					if [catch {exec [findTVEscript purchase] $dName} val] {
 						tk_messageBox -title "Purchase Broke" -message "Error With Purchase: $val"
 						append installFail " $pName"
 						break
@@ -572,13 +599,13 @@ proc DoIt {} {
 				continue
 			}
 			# Purchase the actual package
-			if [catch {exec sh -c "[findTVEscript purchase] $pName"} val] {
+			if [catch {exec [findTVEscript purchase] $pName} val] {
 				tk_messageBox -title "Purchase Broke" -message "Error With Purchase: $val"
 				append installFail " $pName"
 				break
 			}
 			# Install this
-			if [catch {exec -ignorestderr sh -c "[findTVEscript maybesudo ""] [findTVEscript install] $pName"} failWords] {
+			if [catch {exec -ignorestderr [findTVEscript maybesudo ""] [findTVEscript install] $pName} failWords] {
 				if {[lindex $errorCode 2] == 110} {
 					set restartRequired 1
 					append installSucc " $pName"
@@ -591,7 +618,7 @@ proc DoIt {} {
 			}
 		} else {
 			# Remove this
-			if [catch {exec -ignorestderr sh -c "[findTVEscript maybesudo ""] [findTVEscript remove] $pName"} failWords] {
+			if [catch {exec -ignorestderr [findTVEscript maybesudo ""] [findTVEscript remove] $pName} failWords] {
 				append removeFail " $pName"
 				tk_messageBox -message $failWords -title "Remove"
 			} else {
@@ -643,7 +670,7 @@ proc sendFeedback {textWindow typeWindow} {
 		append optionString "-d '$name=$value' "
 	}
 
-	puts [exec sh -c "[findTVEscript "feedback"] $currentPackage(package) $optionString"]
+	puts [exec [findTVEscript "feedback"] $currentPackage(package) $optionString]
 }
 
 proc clearUi {} {
@@ -764,7 +791,7 @@ proc loginStart {} {
 	$loginButton configure -state disabled -text "Please wait..."
 	$offlineButton configure -state disabled
 
-	set command [open "| sh -c [findTVEscript login-start]" r]
+	set command [open "| [findTVEscript login-start]" r]
 	fileevent $command readable [list handleLoginStart $command]
 }
 
@@ -775,7 +802,7 @@ proc loginFinish {} {
 
 	$loginContinue configure -state disabled -text "Please wait..."
 
-	set command [open "| sh -c \"[findTVEscript login-finish] $TOKEN $SECRET\"" r]
+	set command [open "| [findTVEscript login-finish] $TOKEN $SECRET" r]
 	fileevent $command readable [list handleLoginFinish $command]
 }
 
@@ -826,7 +853,7 @@ proc logout {} {
 		clearUi
 		drawProperScreen
 	} else {
-		if [catch {exec sh -c [findTVEscript logout]} errorMessage] {
+		if [catch {exec [findTVEscript logout]} errorMessage] {
 			tk_messageBox -message "Encountered Error: $errorMessage" -title "Error"
 		}
 		clearUi
@@ -847,7 +874,7 @@ proc drawProperScreen {} {
 	# In a fast login-check they might not even see this
 	grid $preLoginFrame -sticky news
 
-	set loginCheckCommand [open "| sh -c [findTVEscript login-check]" r]
+	set loginCheckCommand [open "| [findTVEscript login-check]" r]
 	fileevent $loginCheckCommand readable [list handleLoginCheck $loginCheckCommand]
 }
 
@@ -962,7 +989,7 @@ proc runUpdate {} {
 		}
 		set prefix [findTVEscript maybesudo]
 	}
-	set command [open "| sh -c \"$prefix $update\"" r]
+	set command [open "| $prefix $update" r]
 	fileevent $command readable [list handleRunUpdate $command]
 }
 
@@ -1051,7 +1078,7 @@ proc ratePackage {package rating} {
 	global packageRating
 	global currentPackage
 
-	puts [exec sh -c "[findTVEscript "rate"] $currentPackage(package) $rating"]
+	puts [exec [findTVEscript "rate"] $currentPackage(package) $rating]
 	set packageRating($currentPackage(package)) $rating
 }
 
