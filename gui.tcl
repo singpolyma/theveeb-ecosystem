@@ -66,14 +66,24 @@ proc get_db_path {} {
 # This takes in a colon separated string, like that of a "$PATH" variable.
 # It splits it and returns a Tcl List insteaad
 # It also joins elements that are one character long, so C:\ThisText will work properly
-proc parsePathEnv {path} {
-	set tempList [split $path ":"]
+proc parsePathEnv {path {separator ""}} {
+	if [string equal separator ""] {
+		# If blank, guess from the system
+		global tcl_platform
+		if [string equal $tcl_platform(platform) "windows"] {
+			set separator ";"
+		} else {
+			set separator ":"
+		}
+	}
+
+	set tempList [split $path $separator]
 	# If we find any single char paths, join them to the next item
 	# This is to deal with C:\ in paths that are colon separated.
 	for {set i 0} {$i < [llength $tempList]} {incr i} {
 		if {[string length [lindex $tempList $i]] <= 1} {
 			# Jam this!
-			set tempList [lreplace $tempList $i [expr $i + 1] "[lindex $tempList $i]:[lindex $tempList [expr $i + 1]]"]
+			set tempList [lreplace $tempList $i [expr $i + 1] "[lindex $tempList $i]$separator[lindex $tempList [expr $i + 1]]"]
 			# And stay on the same i.
 			incr i -1
 		}
@@ -133,7 +143,7 @@ proc findTVEdata {name} {
 		}
 
 		if [info exists env(XDG_DATA_DIRS)] {
-			set dirList [concat $dirList [parsePathEnv $env(XDG_DATA_DIRS)]]
+			set dirList [concat $dirList [parsePathEnv $env(XDG_DATA_DIRS) ":"]]
 		}
 
 		set dirList [concat $dirList [list [file join {~} {.local} {share}] [file join {/} {usr} {local} {share}] [file join {/} {usr} {share}]]]
