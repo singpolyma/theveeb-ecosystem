@@ -67,7 +67,7 @@ proc get_db_path {} {
 # It splits it and returns a Tcl List insteaad
 # It also joins elements that are one character long, so C:\ThisText will work properly
 proc parsePathEnv {path {separator ""}} {
-	if [string equal separator ""] {
+	if [string equal $separator ""] {
 		# If blank, guess from the system
 		global tcl_platform
 		if [string equal $tcl_platform(platform) "windows"] {
