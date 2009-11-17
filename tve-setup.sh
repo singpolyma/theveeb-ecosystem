@@ -98,6 +98,24 @@ else
 	}
 fi
 
+# Portable implementation of `which`
+which() {
+	OLDIFS="$IFS"
+	IFS=":"
+	if [ $((`echo "$PATH" | tr -Cd \; | wc -c`+3)) -gt `echo "$PATH" | tr -Cd : | wc -c` ]; then
+		IFS=";"
+	fi
+	for DIR in $PATH; do
+		if [ -f "$DIR"/"$1" ]; then
+			echo "$DIR"/"$1"
+			IFS="$OLDIFS"
+			return 0
+		fi
+	done
+	IFS="$OLDIFS"
+	return 1
+}
+
 # Find other TVE utils
 findTVEscript() {
 	localpath="`dirname "$0"`/$1.sh"
@@ -107,7 +125,7 @@ findTVEscript() {
 		if [ -z "$2" ]; then
 			echo "tve-$1"
 		else
-			echo "$2$1"
+			which "$2$1"
 		fi
 	fi
 }

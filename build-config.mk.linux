@@ -2,4 +2,5 @@ TARGET=unix
 CC=gcc
 # XXX: If the TVEDB default changes it must be updated in gui.tcl
 CFLAGS=-g -O3 -Wextra -Wall -Werror -ansi -pedantic -DTARGET=$(TARGET) -I.
+STRIP=strip
 prefix=/usr/local

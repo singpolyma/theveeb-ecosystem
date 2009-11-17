@@ -3,13 +3,11 @@ independent developers to sell their software easily over the Internet,
 while simultaneously providing users with a great distribution and update 
 system.
 
-While the code is under the terms of the COPYING file, we would appreciate it 
-if the project remained a "kinda-secret" until we are ready to launch.
-
 == Depends (Debian pacage name in parens)==
 
 * POSIX script interpreter and utilities (coreutils)
 * GNUMake (make)
 * ANSI C compiler (gcc)
 * SQLite3 (libsqlite3-dev)
-* Tcl and Tk 8.5 (or 8.4 with TTK)
+* Tcl and Tk 8.5, or 8.4 with TTK (tk8.5)
+* tkImg (libtk-img)

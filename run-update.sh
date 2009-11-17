@@ -6,26 +6,11 @@ else
 	. "$TVEROOT"/usr/lib/tve-setup.sh
 fi
 
-if [ -x "`dirname "$0"`/update/update" ]; then
-	UPDATE="`dirname "$0"`/update/update"
-elif cmdexists tve-update; then
-	UPDATE="tve-update"
-else
-	echo "tve-update not found" 1>&2
-	exit 1
-fi
-
-if [ -x "`dirname "$0"`/getrepo.sh" ]; then
-	GETREPO="`dirname "$0"`/getrepo.sh"
-elif cmdexists tve-getrepo; then
-	GETREPO="tve-getrepo"
-else
-	echo "tve-getrepo not found" 1>&2
-	exit 1
-fi
+UPDATE="`findTVEbinary update`"
+GETREPO="`findTVEscript getrepo`"
 
 # Catch error code and exit
-if ! DATA="`"$GETREPO"`
+if ! DATA="`sh "$GETREPO"`
 
 "; then
 	exit 1
