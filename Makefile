@@ -24,8 +24,8 @@ install_sh: *.sh
 	mv "$(prefix)/bin/tve-maybesudo" "$(prefix)/bin/maybesudo"
 	$(RM) "$(prefix)/bin/tve-tve-setup" "$(prefix)/bin/tve-setup.sh"
 	$(RM) "$(prefix)/bin/tve-xdebuild"*
-	mkdir -p "$(prefix)/usr/lib/"
-	cp -vp tve-setup.sh "$(prefix)/usr/lib/tve-setup.sh"
+	mkdir -p "$(prefix)/lib/"
+	cp -vp tve-setup.sh "$(prefix)/lib/tve-setup.sh"
 
 install_tcl: tveTclIncludes/*.tcl
 	mkdir -p "$(prefix)/lib"
