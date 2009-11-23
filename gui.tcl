@@ -112,8 +112,10 @@ proc findPathFile {filename} {
 
 proc findTVEbinary {script {prefix tve-}} {
 	global argv0
+	global env
+
 	set localpath [file join [file dirname $argv0] $script $script]
-	if [file readable $localpath] {
+	if {[file readable $localpath] && ![info exists env(TVENOLOCAL)]} {
 		return $localpath
 	} else {
 		return [findPathFile $prefix$script]
@@ -122,8 +124,10 @@ proc findTVEbinary {script {prefix tve-}} {
 
 proc findTVEscript {script {prefix tve-}} {
 	global argv0
+	global env
+
 	set localpath [file join [file dirname $argv0] ${script}.sh]
-	if [file readable $localpath] {
+	if {[file readable $localpath] && ![info exists env(TVENOLOCAL)]} {
 		return $localpath
 	} else {
 		return [findPathFile $prefix$script]
