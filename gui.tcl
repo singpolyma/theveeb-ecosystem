@@ -805,7 +805,7 @@ proc loginStart {} {
 	$loginButton configure -state disabled -text "Please wait..."
 	$offlineButton configure -state disabled
 
-	set command [open "| [findTVEscript login-start]" r]
+	set command [open |[list [findTVEscript login-start]] r]
 	fileevent $command readable [list handleLoginStart $command]
 }
 
@@ -816,7 +816,7 @@ proc loginFinish {} {
 
 	$loginContinue configure -state disabled -text "Please wait..."
 
-	set command [open "| [findTVEscript login-finish] $TOKEN $SECRET" r]
+	set command [open |[list [findTVEscript login-finish] $TOKEN $SECRET] r]
 	fileevent $command readable [list handleLoginFinish $command]
 }
 
@@ -888,7 +888,7 @@ proc drawProperScreen {} {
 	# In a fast login-check they might not even see this
 	grid $preLoginFrame -sticky news
 
-	set loginCheckCommand [open "| [findTVEscript login-check]" r]
+	set loginCheckCommand [open |[list [findTVEscript login-check]] r]
 	fileevent $loginCheckCommand readable [list handleLoginCheck $loginCheckCommand]
 }
 
@@ -985,7 +985,6 @@ proc runUpdate {} {
 	global env
 
 	set update [findTVEscript "run-update"]
-	set prefix ""
 
 	# In "Offline But Pretend To Be Online" mode, don't update
 	if [info exists env(TVEOFFLINE)] {
@@ -1001,9 +1000,11 @@ proc runUpdate {} {
 			# No need to update
 			return
 		}
-		set prefix [findTVEscript maybesudo]
+		set command [open |[list [findTVEscript maybesudo] $update] r]
+	} else {
+		set command [open |[list $update] r]
 	}
-	set command [open "| $prefix $update" r]
+
 	fileevent $command readable [list handleRunUpdate $command]
 }
 
