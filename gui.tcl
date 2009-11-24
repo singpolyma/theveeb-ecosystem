@@ -540,7 +540,7 @@ proc getCost {diff} {
 		return 0
 	}
 
-	return [exec [findTVEscript calculateTotal] $apps]
+	return [exec sh [findTVEscript calculateTotal] $apps]
 }
 
 # This returns a list of all depended on packages
@@ -600,7 +600,7 @@ proc DoIt {} {
 				}
 				if {$val == 0} {
 					# This needs purchasing
-					if [catch {exec [findTVEscript purchase] $dName} val] {
+					if [catch {exec sh [findTVEscript purchase] $dName} val] {
 						tk_messageBox -title "Purchase Broke" -message "Error With Purchase: $val"
 						append installFail " $pName"
 						break
@@ -613,13 +613,13 @@ proc DoIt {} {
 				continue
 			}
 			# Purchase the actual package
-			if [catch {exec [findTVEscript purchase] $pName} val] {
+			if [catch {exec sh [findTVEscript purchase] $pName} val] {
 				tk_messageBox -title "Purchase Broke" -message "Error With Purchase: $val"
 				append installFail " $pName"
 				break
 			}
 			# Install this
-			if [catch {exec -ignorestderr [findTVEscript maybesudo ""] [findTVEscript install] $pName} failWords] {
+			if [catch {exec -ignorestderr sh [findTVEscript maybesudo ""] [findTVEscript install] $pName} failWords] {
 				if {[lindex $errorCode 2] == 110} {
 					set restartRequired 1
 					append installSucc " $pName"
@@ -632,7 +632,7 @@ proc DoIt {} {
 			}
 		} else {
 			# Remove this
-			if [catch {exec -ignorestderr [findTVEscript maybesudo ""] [findTVEscript remove] $pName} failWords] {
+			if [catch {exec -ignorestderr sh [findTVEscript maybesudo ""] [findTVEscript remove] $pName} failWords] {
 				append removeFail " $pName"
 				tk_messageBox -message $failWords -title "Remove"
 			} else {
@@ -684,7 +684,7 @@ proc sendFeedback {textWindow typeWindow} {
 		append optionString "-d '$name=$value' "
 	}
 
-	puts [exec [findTVEscript "feedback"] $currentPackage(package) $optionString]
+	puts [exec sh [findTVEscript "feedback"] $currentPackage(package) $optionString]
 }
 
 proc clearUi {} {
@@ -805,7 +805,7 @@ proc loginStart {} {
 	$loginButton configure -state disabled -text "Please wait..."
 	$offlineButton configure -state disabled
 
-	set command [open |[list [findTVEscript login-start]] r]
+	set command [open |[list sh [findTVEscript login-start]] r]
 	fileevent $command readable [list handleLoginStart $command]
 }
 
@@ -816,7 +816,7 @@ proc loginFinish {} {
 
 	$loginContinue configure -state disabled -text "Please wait..."
 
-	set command [open |[list [findTVEscript login-finish] $TOKEN $SECRET] r]
+	set command [open |[list sh [findTVEscript login-finish] $TOKEN $SECRET] r]
 	fileevent $command readable [list handleLoginFinish $command]
 }
 
@@ -867,7 +867,7 @@ proc logout {} {
 		clearUi
 		drawProperScreen
 	} else {
-		if [catch {exec [findTVEscript logout]} errorMessage] {
+		if [catch {exec sh [findTVEscript logout]} errorMessage] {
 			tk_messageBox -message "Encountered Error: $errorMessage" -title "Error"
 		}
 		clearUi
@@ -888,7 +888,7 @@ proc drawProperScreen {} {
 	# In a fast login-check they might not even see this
 	grid $preLoginFrame -sticky news
 
-	set loginCheckCommand [open |[list [findTVEscript login-check]] r]
+	set loginCheckCommand [open |[list sh [findTVEscript login-check]] r]
 	fileevent $loginCheckCommand readable [list handleLoginCheck $loginCheckCommand]
 }
 
@@ -1000,9 +1000,9 @@ proc runUpdate {} {
 			# No need to update
 			return
 		}
-		set command [open |[list [findTVEscript maybesudo] $update] r]
+		set command [open |[list sh [findTVEscript maybesudo] $update] r]
 	} else {
-		set command [open |[list $update] r]
+		set command [open |[list sh $update] r]
 	}
 
 	fileevent $command readable [list handleRunUpdate $command]
@@ -1093,7 +1093,7 @@ proc ratePackage {package rating} {
 	global packageRating
 	global currentPackage
 
-	puts [exec [findTVEscript "rate"] $currentPackage(package) $rating]
+	puts [exec sh [findTVEscript "rate"] $currentPackage(package) $rating]
 	set packageRating($currentPackage(package)) $rating
 }
 
