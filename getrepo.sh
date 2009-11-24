@@ -31,8 +31,15 @@ if [ -z "$LISTFILE" ]; then
 fi
 
 # Set up gnupg if it isn't
-if [ ! -r "$HOME/.gnupg/gpg.conf" -a ! -r "$HOME/Application Data/gnupg/gpg.conf" -a -r "$TVEROOT/usr/share/gnupg/gpg.conf" ]; then
-	cp "$TVEROOT/usr/share/gnupg/gpg.conf" "$HOME/Application Data/gnupg/gpg.conf"
+if [ -z "$GNUPGHOME" ]; then
+	GNUPGHOME="$HOME/.gnupg"
+	if [ -d "$HOME/Application Data" ]; then
+		GNUPGHOME="$HOME/Application Data/gnupg"
+	fi
+fi
+if [ ! -r "$GNUPGHOME/gpg.conf" -a -r "$TVEROOT/usr/share/gnupg/gpg.conf" ]; then
+	mkdir -p "$GNUPGHOME"
+	cp "$TVEROOT/usr/share/gnupg/gpg.conf" "$GNUPGHOME/gpg.conf"
 	cat "$TVEROOT/usr/share/gnupg/"*.asc | gpg --import
 fi
 
