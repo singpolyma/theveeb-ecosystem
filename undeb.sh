@@ -249,7 +249,8 @@ for FILE in `find "$temp/out" | sed -e"s#^$temp/out[\\\\\\\\\/]\{0,1\}##"`; do
 			exit 1
 		fi
 	else
-		if ! mv -f "$temp/out/$FILE" "$PREFIX/$FILE"; then
+		mv -f "$temp/out/$FILE" "$PREFIX/$FILE"
+		if [ $? -ne 0 ]; then
 			if [ $? -eq 110 ]; then
 				MUST_REBOOT=1
 			else
