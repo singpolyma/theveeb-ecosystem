@@ -139,7 +139,7 @@ findTVEbinary() {
 			echo "tve-$1"
 		else
 			# Windows is whitespace picky
-			if [ "$2" = " "]; then
+			if [ "$2" = " " ]; then
 				echo "$1"
 			else
 				echo "$2$1"
