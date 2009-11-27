@@ -240,7 +240,7 @@ fi
 MUST_REBOOT=0
 IFS="
 "
-for FILE in `find "$temp/out/" | sed -e"s#^$temp/out/##"`; do
+for FILE in `find "$temp/out" | sed -e"s#^$temp/out[\\\\\\\\\/]\{0,1\}##"`; do
 	if [ -d "$temp/out/$FILE" ]; then
 		if ! mkdir -p "$PREFIX/$FILE"; then
 			echo "ERROR: files not installed (you may not have sufficient permissions)." 1>&2
