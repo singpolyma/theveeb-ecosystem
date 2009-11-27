@@ -125,7 +125,12 @@ findTVEscript() {
 		if [ -z "$2" ]; then
 			which "tve-$1"
 		else
-			which "$2$1"
+			# Windows is whitespace picky
+			if [ "$2" = " " ]; then
+				which "$1"
+			else
+				which "$2$1"
+			fi
 		fi
 	fi
 }
