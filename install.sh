@@ -109,7 +109,7 @@ fi
 # Determine which command to use for installing internal packages
 INTERNAL="`cmdexists dpkg`"
 if [ $? != 0 -o "`whoami`" != "root" ]; then
-	INTERNAL="`findTVEscript undeb " "`"
+	INTERNAL="sh `findTVEscript undeb " "`"
 else
 	INTERNAL="dpkg --root="$TVEROOT/" -i"
 fi
