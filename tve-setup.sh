@@ -123,7 +123,7 @@ findTVEscript() {
 		abspth "$localpath"
 	else
 		if [ -z "$2" ]; then
-			echo "tve-$1"
+			which "tve-$1"
 		else
 			which "$2$1"
 		fi
