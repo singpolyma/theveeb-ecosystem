@@ -44,18 +44,18 @@ SECRET="`echo $TOKENS | sed 's/^[^&]*&oauth_token_secret=\(.*\)/\1/'`"
 
 HOSTNAME=""
 if cmdexists uname; then
-	HOSTNAME="+(`uname -n | sed -e's/ /%20/g'`)"
+	HOSTNAME="+\(`uname -n | sed -e's/ /%20/g'`\)"
 fi
 
 # This is the url to send the user to
-URL="https://theveeb.com/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem's+Official+Client$HOSTNAME"
+URL="https://theveeb.com/authorize.php?oauth_token=$TOKEN&xoauth_consumer_label=The+Veeb+Ecosystem\'s+Official+Client$HOSTNAME"
 
 # Output the tokens
 echo "$TOKEN $SECRET"
 
 if [ -n "$OPEN" ]; then
 	# If we can open urls for the user, do so
-	$OPEN "$URL" &
+	eval $OPEN "$URL" &
 else
 	# If we can't, output the url they should go to on their own
 	echo "Go to \"$URL\" in a browser to continue authentication." 1>&2
