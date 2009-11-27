@@ -104,11 +104,11 @@ fi
 
 # Get the name of a safe temporary directory
 
-if [ ! -z "$TMPDIR" ]; then
+if [ -n "$TMPDIR" ]; then
 	temp=$TMPDIR
-elif [ ! -z "$TEMP" ]; then
+elif [ -n "$TEMP" ]; then
 	temp="$TEMP"
-elif [ ! -z "$TMP" ]; then
+elif [ -n "$TMP" ]; then
 	temp="$TMP"
 elif [ -d "/tmp" ]; then
 	temp="/tmp"
@@ -261,7 +261,7 @@ for FILE in `find "$temp/out/" | sed -e"s#^$temp/out/##"`; do
 		fi
 		# Only adds files to the remove log... so that we don't remove shared folders.
 		# May result in empty dirs left behind.
-		if [ ! -z "$LOG" ]; then
+		if [ -n "$LOG" ]; then
 			echo "$PREFIX/$FILE" >> "$LOG"
 		fi
 	fi
@@ -273,7 +273,7 @@ if [ -f "$temp/postinst" ]; then
 fi
 
 # Keep rm scripts around if we've been told what to do with them
-if [ ! -z "$RMPATH" ]; then
+if [ -n "$RMPATH" ]; then
 	mv -f "$temp/prerm" "$RMPATH".prerm
 	mv -f "$temp/postrm" "$RMPATH".prerm
 fi
