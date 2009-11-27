@@ -102,7 +102,7 @@ fi
 which() {
 	OLDIFS="$IFS"
 	IFS=":"
-	if [ $((`echo "$PATH" | tr -Cd \; | wc -c`+3)) -gt `echo "$PATH" | tr -Cd : | wc -c` ]; then
+	if [ $((`echo "$PATH" | tr -cd \; | wc -c`+3)) -gt `echo "$PATH" | tr -cd : | wc -c` ]; then
 		IFS=";"
 	fi
 	for DIR in $PATH; do
@@ -138,7 +138,12 @@ findTVEbinary() {
 		if [ -z "$2" ]; then
 			echo "tve-$1"
 		else
-			echo "$2$1"
+			# Windows is whitespace picky
+			if [ "$2" = " "]; then
+				echo "$1"
+			else
+				echo "$2$1"
+			fi
 		fi
 	fi
 }
