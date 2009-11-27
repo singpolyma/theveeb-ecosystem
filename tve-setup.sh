@@ -102,7 +102,7 @@ fi
 which() {
 	OLDIFS="$IFS"
 	IFS=":"
-	if [ $((`echo "$PATH" | tr -cd \; | wc -c`+3)) -gt `echo "$PATH" | tr -cd : | wc -c` ]; then
+	if [ $(expr `echo "$PATH" | tr -cd \; | wc -c | tr -d " "` + 3) -gt `echo "$PATH" | tr -cd : | wc -c` ]; then
 		IFS=";"
 	fi
 	for DIR in $PATH; do
