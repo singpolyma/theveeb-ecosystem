@@ -362,14 +362,14 @@ int main(int argc, char ** argv) {
 						strncpy(sql, "INSERT INTO virtual_packages (package, is_really) VALUES(", sizeof(sql));
 						quotecat(sql, sep, sizeof(sql), 1);
 						quotecat(sql, current.package, sizeof(sql), 0);
-						strncat(sql, ");", sizeof(sql));
+						strncat(sql, ");", sizeof(sql)-1);
 						safe_execute(db, sql);
 						while((sep = strtok(NULL, ", ")) != NULL) {
 							sql[0] = '\0';
 							strncpy(sql, "INSERT INTO virtual_packages (package, is_really) VALUES(", sizeof(sql));
 							quotecat(sql, sep, sizeof(sql), 1);
 							quotecat(sql, current.package, sizeof(sql), 0);
-							strncat(sql, ");", sizeof(sql));
+							strncat(sql, ");", sizeof(sql)-1);
 							safe_execute(db, sql);
 						}
 					} else if(                                   strcmp(line, "Depends")        == 0) {
