@@ -15,7 +15,8 @@ if ! DATA="`sh "$GETREPO"`
 "; then
 	exit 1
 fi
-if ! echo "$DATA" | "$UPDATE"; then
+echo "$DATA" | "$UPDATE" # Windows likes it better this way
+if [ $? -ne 0 ]; then
 	exit 1
 fi
 
